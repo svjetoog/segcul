@@ -1106,63 +1106,74 @@
         }
 
         async function handleCicloFormSubmit(e) {
-            e.preventDefault();
-            const cicloId = document.getElementById('cicloIdInput').value;
-            const phase = document.getElementById('cicloPhase').value;
-            
-            const data = {
-                name: document.getElementById('cicloName').value.trim(),
-                salaId: document.getElementById('cicloSala').value,
-                phase: phase,
-            };
+            e.preventDefault();
+            const cicloId = document.getElementById('cicloIdInput').value;
+            const phase = document.getElementById('cicloPhase').value;
+            
+            const toTimestamp = (dateString) => {
+                if (!dateString || dateString === '') return null;
+                const parts = dateString.split('-');
+                const year = parseInt(parts[0], 10);
+                const month = parseInt(parts[1], 10) - 1; 
+                const day = parseInt(parts[2], 10);
+                return new Date(year, month, day);
+            };
 
-            if (!data.name || !data.salaId) {
-                alert("El nombre y la sala son obligatorios.");
-                return;
-            }
+            const dataToUpdate = {
+                name: document.getElementById('cicloName').value.trim(),
+                salaId: document.getElementById('cicloSala').value,
+                phase: phase,
+            };
 
-            if (phase === 'Vegetativo') {
-                data.vegetativeStartDate = document.getElementById('cicloVegetativeStartDate').value;
-                data.floweringStartDate = null;
-            } else { // Floración
-                const floweringDateValue = document.getElementById('cicloFloweringStartDate').value;
-                const date = new Date(floweringDateValue);
-                // Correct for timezone offset to store date as UTC midnight
-                const userTimezoneOffset = date.getTimezoneOffset() * 60000;
-                data.floweringStartDate = new Date(date.getTime() + userTimezoneOffset);
-                data.vegetativeStartDate = null;
-            }
+            if (!dataToUpdate.name || !dataToUpdate.salaId) {
+                alert("El nombre y la sala son obligatorios.");
+                return;
+            }
 
-            try {
-                if (cicloId) { // This is an EDIT
-                    const cicloRef = doc(db, `users/${userId}/ciclos`, cicloId);
-                    const existingCiclo = currentCiclos.find(c => c.id === cicloId);
+            if (phase === 'Vegetativo') {
+                dataToUpdate.vegetativeStartDate = toTimestamp(document.getElementById('cicloVegetativeStartDate').value);
+            } else { // Floración
+                dataToUpdate.floweringStartDate = toTimestamp(document.getElementById('cicloFloweringStartDate').value);
+            }
 
-                    // If switching from Vege to Flora, and no weeks exist, generate them.
-                    if (existingCiclo && existingCiclo.phase === 'Vegetativo' && data.phase === 'Floración' && (!existingCiclo.floweringWeeks || existingCiclo.floweringWeeks.length === 0)) {
-                        data.floweringWeeks = generateStandardWeeks();
-                    }
-                    
-                    await updateDoc(cicloRef, data);
-                } else { // This is a NEW cycle
-                    data.cultivationType = 'Sustrato';
-                    data.genetics = [];
-                    if (data.phase === 'Floración') {
-                        data.floweringWeeks = generateStandardWeeks();
-                    } else {
-                        data.floweringWeeks = [];
-                    }
-                    data.createdAt = serverTimestamp();
-                    const ciclosRef = collection(db, `users/${userId}/ciclos`);
-                    await addDoc(ciclosRef, data);
-                }
-                cicloModal.style.display = 'none';
-            } catch (error) {
-                console.error("Error saving ciclo: ", error);
-                alert("No se pudo guardar el ciclo.");
-            }
-        }
+            try {
+                if (cicloId) { // This is an EDIT
+                    const cicloRef = doc(db, `users/${userId}/ciclos`, cicloId);
+                    const existingCiclo = currentCiclos.find(c => c.id === cicloId);
 
+                    // Check if the phase has changed.
+                    if (existingCiclo && existingCiclo.phase !== phase) {
+                        if (phase === 'Floración') {
+                            dataToUpdate.vegetativeStartDate = null; // Clear old date
+                            // Also, if floweringWeeks aren't there, add them
+                            if (!existingCiclo.floweringWeeks || existingCiclo.floweringWeeks.length === 0) {
+                               dataToUpdate.floweringWeeks = generateStandardWeeks();
+                            }
+                        } else { // Switching to Vegetativo
+                            dataToUpdate.floweringStartDate = null; // Clear old date
+                        }
+                    }
+                    
+                    await updateDoc(cicloRef, dataToUpdate);
+                    
+                } else { // This is a NEW cycle
+                    dataToUpdate.cultivationType = 'Sustrato';
+                    dataToUpdate.genetics = [];
+                    if (dataToUpdate.phase === 'Floración') {
+                        dataToUpdate.floweringWeeks = generateStandardWeeks();
+                    } else {
+                        dataToUpdate.floweringWeeks = [];
+                    }
+                    dataToUpdate.createdAt = serverTimestamp();
+                    const ciclosRef = collection(db, `users/${userId}/ciclos`);
+                    await addDoc(ciclosRef, dataToUpdate);
+                }
+                cicloModal.style.display = 'none';
+            } catch (error) {
+                console.error("Error saving ciclo: ", error);
+                alert("No se pudo guardar el ciclo.");
+            }
+        }
         async function deleteCiclo(cicloId, cicloName) {
             if (confirm(`¿Estás seguro de que quieres eliminar el ciclo "${cicloName}" y todos sus registros? Esta acción no se puede deshacer.`)) {
                 try {
@@ -2238,3 +2249,4 @@
     </script>
 </body>
 </html>
+
