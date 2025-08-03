@@ -1608,14 +1608,26 @@
             }
         }
         
-        // --- TOOLS VIEW LOGIC ---
+        // --- TOOLS & SETTINGS VIEW LOGIC ---
         function showToolsView() {
             salasView.classList.add('hidden');
+            settingsView.classList.add('hidden');
             toolsView.classList.remove('hidden');
         }
 
         function hideToolsView() {
             toolsView.classList.add('hidden');
+            salasView.classList.remove('hidden');
+        }
+        
+        function showSettingsView() {
+            salasView.classList.add('hidden');
+            toolsView.classList.add('hidden');
+            settingsView.classList.remove('hidden');
+        }
+
+        function hideSettingsView() {
+            settingsView.classList.add('hidden');
             salasView.classList.remove('hidden');
         }
 
