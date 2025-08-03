@@ -1214,9 +1214,9 @@
             document.getElementById('addGeneticsToCicloBtn').addEventListener('click', (e) => openAddGeneticsToRoomModal(e.currentTarget.dataset.cicloId));
 
             loadLogsForCiclo(ciclo.id, weeks.map(w => w.weekNumber));
-            salasView.style.display = 'none';
-            ciclosView.style.display = 'none';
-            cicloDetailView.style.display = 'block';
+            salasView.classList.add('hidden');
+            ciclosView.classList.add('hidden');
+            cicloDetailView.classList.remove('hidden');
         }
         
         function showVegetativeDetails(ciclo) {
@@ -1274,15 +1274,15 @@
 
             const weekNumbers = Array.from({length: totalWeeksInVeg}, (_, i) => i + 1);
             loadLogsForCiclo(ciclo.id, weekNumbers);
-            salasView.style.display = 'none';
-            ciclosView.style.display = 'none';
-            cicloDetailView.style.display = 'block';
+            salasView.classList.add('hidden');
+            ciclosView.classList.add('hidden');
+            cicloDetailView.classList.remove('hidden');
         }
 
 
         function hideCicloDetails() {
             if (logsUnsubscribe) logsUnsubscribe();
-            cicloDetailView.style.display = 'none';
+            cicloDetailView.classList.add('hidden');
             showCiclosView(window.currentSalaId, window.currentSalaName);
         }
         
