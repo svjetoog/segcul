@@ -15,17 +15,73 @@
     .modal-backdrop {
         background-color: rgba(0, 0, 0, 0.75);
     }
-    .card, #salaModal > div, #cicloModal > div, #logModal > div, #addWeekModal > div, #aiSummaryModal > div, #authView form, #toolsView .card, #germinateSeedModal > div, #addGeneticsToCicloModal > div, #moveCicloModal > div, #settingsView .card {
-        background-color: #262626; /* Color de las tarjetas y ventanas emergentes */
-        border: 1px solid #404040;
-        transition: transform 0.2s, box-shadow 0.2s;
+    
+    /* --- Estilo de Tarjeta de Sala (Resplandor Neón) --- */
+    .card {
+        background-color: #262626;
+        border: 1px solid #f59e0b;
+        box-shadow: 0 0 5px rgba(245, 158, 11, 0.5), 
+                    0 0 10px rgba(245, 158, 11, 0.3);
+        transition: all 0.3s ease;
     }
     .card:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2), 0 4px 6px -2px rgba(0, 0, 0, 0.1);
+        transform: translateY(-5px);
+        border-color: #fbbf24; /* Amarillo más brillante al pasar el mouse */
+        box-shadow: 0 0 10px rgba(251, 191, 36, 0.6), 
+                    0 0 20px rgba(251, 191, 36, 0.4);
+    }
+
+    /* --- Estilo de Ciclos (Lista) --- */
+    .ciclos-list {
+       display: flex;
+       flex-direction: column;
+       gap: 0.35rem; /* Espacio entre items */
+    }
+    .ciclo-item {
+        background-color: #404040;
+        border: 1px solid #525252;
+        padding: 0.35rem 2rem 0.35rem 0.75rem; /* Más padding a la derecha para el punto */
+        border-radius: 0.5rem;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.4);
+        transition: all 0.2s ease-out;
+        font-size: 0.875rem;
+        position: relative; /* Para posicionar el punto */
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+    }
+    .ciclo-item:hover {
+        transform: translateY(-2px);
+        border-color: #f59e0b;
+        z-index: 10;
+    }
+    /* Punto de estado */
+    .ciclo-item::after {
+        content: '';
+        position: absolute;
+        right: 0.75rem;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 0.65rem;
+        height: 0.65rem;
+        border-radius: 9999px;
+        border: 1px solid rgba(0,0,0,0.5);
+    }
+    .ciclo-item.vege::after { background-color: #4ade80; } /* green-400 */
+    .ciclo-item.pre-flora::after { background-color: #c084fc; } /* purple-400 */
+    .ciclo-item.flora::after { background-color: #f472b6; } /* pink-400 */
+    .ciclo-item.maduracion::after { background-color: #fb923c; } /* orange-400 */
+    .ciclo-item.lavado::after { background-color: #60a5fa; } /* blue-400 */
+    .ciclo-item.secado::after { background-color: #facc15; } /* yellow-400 */
+
+
+    /* --- Otros Estilos --- */
+    #salaModal > div, #cicloModal > div, #logModal > div, #addWeekModal > div, #aiSummaryModal > div, #authView form, #toolsView .card, #germinateSeedModal > div, #addGeneticsToCicloModal > div, #moveCicloModal > div, #settingsView .card {
+        background-color: #262626;
+        border: 1px solid #404040;
     }
     .btn-primary, #authView button[type="submit"] {
-        background-color: #f59e0b; /* Botón primario */
+        background-color: #f59e0b;
         color: #171717;
         font-weight: 600;
         transition: background-color 0.2s;
@@ -34,7 +90,7 @@
         background-color: #d97706;
     }
     .btn-secondary {
-        background-color: #525252; /* Botón secundario */
+        background-color: #525252;
         color: #ffffff;
         font-weight: 500;
         transition: background-color 0.2s;
@@ -52,7 +108,7 @@
         background-color: #dc2626;
     }
     .btn-ai {
-        background: linear-gradient(90deg, #f59e0b, #ef4444); /* Botón de IA */
+        background: linear-gradient(90deg, #f59e0b, #ef4444);
         color: white;
         font-weight: 600;
         transition: all 0.2s;
@@ -61,17 +117,11 @@
         box-shadow: 0 0 15px rgba(239, 68, 68, 0.5);
     }
     .week-header {
-        background-color: #404040; /* Cabecera de semana */
+        background-color: #404040;
     }
     .log-entry {
-        border-left: 4px solid #f59e0b; /* Borde de registros */
+        border-left: 4px solid #f59e0b;
         background-color: #262626;
-    }
-    #cicloDetailView, #toolsView, #ciclosView, #settingsView {
-        background-color: #171717; /* Fondo de las vistas */
-    }
-    #aiSummaryContent, .space-y-3.p-4 {
-        background-color: #404040 !important; /* Contenedores internos */
     }
     input, select, textarea {
         background-color: #404040 !important;
@@ -80,34 +130,6 @@
     }
     input::placeholder {
         color: #a3a3a3 !important;
-    }
-    input[type="checkbox"] {
-        background-color: #525252 !important;
-        border-color: #737373 !important;
-    }
-    input[type="checkbox"]:checked {
-        background-color: #f59e0b !important;
-    }
-    .favorite-star {
-        color: #737373;
-        cursor: pointer;
-        transition: color 0.2s;
-    }
-    .favorite-star.favorited {
-        color: #f59e0b;
-    }
-    ::-webkit-scrollbar {
-        width: 8px;
-    }
-    ::-webkit-scrollbar-track {
-        background: #262626;
-    }
-    ::-webkit-scrollbar-thumb {
-        background: #525252;
-        border-radius: 4px;
-    }
-    ::-webkit-scrollbar-thumb:hover {
-        background: #737373;
     }
     .spinner {
         border: 4px solid rgba(255, 255, 255, 0.3);
@@ -221,7 +243,7 @@
                 Grupo Telegram
             </a>
             <div class="text-xs text-gray-600 font-mono">
-                SegCul Beta 0.3 by svjeto
+                SegCul Beta 0.2912 by svjeto
             </div>
         </div>
     </div>
@@ -795,12 +817,12 @@
         // --- HELPERS ---
         function getPhaseInfo(phaseName) {
             switch(phaseName) {
-                case 'PRE-FLORA': return { name: 'PRE-FLORA', color: 'bg-purple-600' };
-                case 'FLORA': return { name: 'FLORA', color: 'bg-pink-600' };
-                case 'MADURACION': return { name: 'MADURACION', color: 'bg-orange-600' };
-                case 'LAVADO': return { name: 'LAVADO', color: 'bg-blue-600' };
-                case 'SECADO': return { name: 'SECADO', color: 'bg-yellow-600 text-black' };
-                default: return { name: 'Finalizado', color: 'bg-gray-500' };
+                case 'PRE-FLORA': return { name: 'PRE-FLORA', color: 'bg-purple-600', class: 'pre-flora' };
+                case 'FLORA': return { name: 'FLORA', color: 'bg-pink-600', class: 'flora' };
+                case 'MADURACION': return { name: 'MADURACION', color: 'bg-orange-600', class: 'maduracion' };
+                case 'LAVADO': return { name: 'LAVADO', color: 'bg-blue-600', class: 'lavado' };
+                case 'SECADO': return { name: 'SECADO', color: 'bg-yellow-600 text-black', class: 'secado' };
+                default: return { name: 'Finalizado', color: 'bg-gray-500', class: 'finalizado' };
             }
         }
 
@@ -865,18 +887,36 @@
                 const activeCiclos = ciclosInSala.filter(c => c.phase !== 'Finalizado');
 
                 const salaCard = document.createElement('div');
-                salaCard.className = 'card rounded-xl p-5 flex flex-col justify-between aspect-square cursor-pointer';
+                salaCard.className = 'card rounded-xl p-5 flex flex-col justify-between aspect-square';
                 salaCard.dataset.salaId = sala.id;
                 
-                let ciclosPreviewHTML = activeCiclos.length > 0
-                    ? activeCiclos.map(c => `<div class="text-xs truncate text-gray-300 bg-gray-700/50 px-2 py-1 rounded">${c.name} (${c.phase})</div>`).join('')
-                    : '<p class="text-sm text-gray-500">Sala vacía</p>';
+                let ciclosPreviewHTML = '';
+                if (activeCiclos.length > 0) {
+                    const listHTML = activeCiclos.map(c => {
+                        let phaseClass = 'vege';
+                        if (c.phase === 'Floración' && c.floweringStartDate && c.floweringWeeks) {
+                            const start = c.floweringStartDate.toDate();
+                            const now = new Date();
+                            const diffDays = Math.floor((now - start) / (1000 * 60 * 60 * 24));
+                            const currentWeek = Math.floor(diffDays / 7) + 1;
+                            const weekData = c.floweringWeeks.find(w => w.weekNumber === currentWeek);
+                            if (weekData) {
+                                phaseClass = getPhaseInfo(weekData.phaseName).class;
+                            }
+                        }
+                        return `<div class="ciclo-item ${phaseClass}">${c.name}</div>`;
+                    }).join('');
+                    ciclosPreviewHTML = `<div class="ciclos-list">${listHTML}</div>`;
+                } else {
+                    ciclosPreviewHTML = '<p class="text-sm text-gray-500">Sala vacía</p>';
+                }
+
 
                 salaCard.innerHTML = `
-                    <div>
+                    <div class="flex-grow flex flex-col">
                         <h3 class="text-2xl font-bold text-white">${sala.name}</h3>
                         <p class="text-gray-400 mb-4">${activeCiclos.length} ciclo(s) activo(s)</p>
-                        <div class="space-y-1">${ciclosPreviewHTML}</div>
+                        <div class="flex-grow relative">${ciclosPreviewHTML}</div>
                     </div>
                     <div class="flex justify-end gap-2 mt-4">
                         <button data-action="edit-sala" class="p-2 rounded-md bg-gray-600 hover:bg-gray-500 text-white transition">
@@ -1070,47 +1110,51 @@
             const cicloId = document.getElementById('cicloIdInput').value;
             const phase = document.getElementById('cicloPhase').value;
             
-            const cicloData = {
+            const data = {
                 name: document.getElementById('cicloName').value.trim(),
                 salaId: document.getElementById('cicloSala').value,
                 phase: phase,
-                cultivationType: 'Sustrato', // Simplified for now
             };
-            
-            if (!cicloData.name || !cicloData.salaId) {
+
+            if (!data.name || !data.salaId) {
                 alert("El nombre y la sala son obligatorios.");
                 return;
             }
 
             if (phase === 'Vegetativo') {
-                cicloData.vegetativeStartDate = document.getElementById('cicloVegetativeStartDate').value;
-                cicloData.floweringStartDate = null;
-                if (!cicloId) { // Only set on creation
-                    cicloData.floweringWeeks = [];
-                    cicloData.genetics = [];
-                }
+                data.vegetativeStartDate = document.getElementById('cicloVegetativeStartDate').value;
+                data.floweringStartDate = null;
             } else { // Floración
                 const floweringDateValue = document.getElementById('cicloFloweringStartDate').value;
                 const date = new Date(floweringDateValue);
+                // Correct for timezone offset to store date as UTC midnight
                 const userTimezoneOffset = date.getTimezoneOffset() * 60000;
-                cicloData.floweringStartDate = new Date(date.getTime() + userTimezoneOffset);
-                cicloData.vegetativeStartDate = null;
-                
-                const existingCiclo = currentCiclos.find(c => c.id === cicloId);
-                if (!existingCiclo || !existingCiclo.floweringWeeks || existingCiclo.floweringWeeks.length === 0) {
-                    cicloData.floweringWeeks = generateStandardWeeks();
-                    if (!cicloId) cicloData.genetics = [];
-                }
+                data.floweringStartDate = new Date(date.getTime() + userTimezoneOffset);
+                data.vegetativeStartDate = null;
             }
 
             try {
-                if (cicloId) {
+                if (cicloId) { // This is an EDIT
                     const cicloRef = doc(db, `users/${userId}/ciclos`, cicloId);
-                    await setDoc(cicloRef, cicloData, { merge: true });
-                } else {
-                    cicloData.createdAt = serverTimestamp();
+                    const existingCiclo = currentCiclos.find(c => c.id === cicloId);
+
+                    // If switching from Vege to Flora, and no weeks exist, generate them.
+                    if (existingCiclo && existingCiclo.phase === 'Vegetativo' && data.phase === 'Floración' && (!existingCiclo.floweringWeeks || existingCiclo.floweringWeeks.length === 0)) {
+                        data.floweringWeeks = generateStandardWeeks();
+                    }
+                    
+                    await updateDoc(cicloRef, data);
+                } else { // This is a NEW cycle
+                    data.cultivationType = 'Sustrato';
+                    data.genetics = [];
+                    if (data.phase === 'Floración') {
+                        data.floweringWeeks = generateStandardWeeks();
+                    } else {
+                        data.floweringWeeks = [];
+                    }
+                    data.createdAt = serverTimestamp();
                     const ciclosRef = collection(db, `users/${userId}/ciclos`);
-                    await addDoc(ciclosRef, cicloData);
+                    await addDoc(ciclosRef, data);
                 }
                 cicloModal.style.display = 'none';
             } catch (error) {
@@ -1780,9 +1824,6 @@
                 geneticCard.innerHTML = `
                     <div>
                         <p class="font-bold text-lg flex items-center gap-2">
-                            <span class="favorite-star ${g.isFavorite ? 'favorited' : ''}" data-id="${g.id}">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>
-                            </span>
                             ${g.name}
                         </p>
                         <p class="text-sm text-gray-400">${g.parents || ''} | ${g.bank || ''} | ${g.owner || ''}</p>
@@ -1801,7 +1842,6 @@
             // Add event listeners
             document.querySelectorAll('[data-action="edit-genetic"]').forEach(btn => btn.addEventListener('click', (e) => editGenetic(e.currentTarget.dataset.id)));
             document.querySelectorAll('[data-action="delete-genetic"]').forEach(btn => btn.addEventListener('click', (e) => deleteGenetic(e.currentTarget.dataset.id)));
-            document.querySelectorAll('.favorite-star').forEach(star => star.addEventListener('click', (e) => toggleFavorite(e.currentTarget.dataset.id)));
         }
 
         async function handleGeneticsFormSubmit(e) {
@@ -1819,7 +1859,6 @@
                 const geneticRef = doc(db, `users/${userId}/genetics`, id);
                 await updateDoc(geneticRef, data);
             } else { // Create
-                data.isFavorite = false;
                 data.cloneStock = 0;
                 const geneticsRef = collection(db, `users/${userId}/genetics`);
                 await addDoc(geneticsRef, data);
@@ -1844,13 +1883,6 @@
                 const geneticRef = doc(db, `users/${userId}/genetics`, id);
                 await deleteDoc(geneticRef);
             }
-        }
-
-        async function toggleFavorite(id) {
-            const genetic = currentGenetics.find(g => g.id === id);
-            if (!genetic) return;
-            const geneticRef = doc(db, `users/${userId}/genetics`, id);
-            await updateDoc(geneticRef, { isFavorite: !genetic.isFavorite });
         }
 
         // --- STOCK MANAGEMENT ---
