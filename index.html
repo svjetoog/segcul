@@ -147,7 +147,6 @@
 </head>
 <body class="antialiased">
 
-    <!-- Auth View -->
     <div id="authView" class="min-h-screen flex items-center justify-center p-4">
         <div class="w-full max-w-md space-y-8">
             <div class="text-center mb-8">
@@ -212,7 +211,6 @@
         </div>
     </div>
 
-    <!-- Main App View (Salas) -->
     <div id="app" class="relative min-h-screen p-4 sm:p-6 lg:p-8 pb-20 hidden">
         
         <header class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8">
@@ -243,7 +241,6 @@
         <div id="loadingSalas" class="text-center py-10 text-gray-400">Cargando salas...</div>
         <div id="emptySalasState" class="text-center py-10 text-gray-400 hidden">No tienes salas. ¡Añade una para empezar!</div>
 
-        <!-- Signature and Telegram Link -->
         <div class="absolute bottom-4 right-6 flex items-center gap-4">
             <a href="https://t.me/+Uk-oVUNEmTM3YzFh" target="_blank" rel="noopener noreferrer" class="bg-sky-500 hover:bg-sky-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md text-sm transition-colors" title="Unite al grupo de Telegram">
                 Grupo Telegram
@@ -254,7 +251,6 @@
         </div>
     </div>
 
-    <!-- Ciclos View -->
     <div id="ciclosView" class="min-h-screen p-4 sm:p-6 lg:p-8 hidden">
         <header class="flex justify-between items-center mb-8">
             <h1 id="ciclosViewHeader" class="text-4xl font-mono tracking-wider font-bold text-white"></h1>
@@ -264,7 +260,6 @@
         <div id="emptyCiclosState" class="text-center py-10 text-gray-400 hidden">No hay ciclos en esta sala.</div>
     </div>
 
-    <!-- Tools View -->
     <div id="toolsView" class="min-h-screen p-4 sm:p-6 lg:p-8 hidden">
         <header class="flex justify-between items-center mb-8">
             <h1 class="text-4xl font-mono tracking-wider font-bold text-white">Herramientas</h1>
@@ -277,7 +272,6 @@
             <button id="seedBankTabBtn" class="py-2 px-4 text-gray-400">Banco de Semillas</button>
         </div>
 
-        <!-- Genetics Tab Content -->
         <div id="geneticsContent">
             <div class="card p-6 mb-6">
                 <h2 class="text-xl font-bold mb-4">Añadir Nueva Genética</h2>
@@ -293,12 +287,10 @@
             <div id="geneticsList" class="space-y-4"></div>
         </div>
 
-        <!-- Stock Tab Content -->
         <div id="stockContent" class="hidden">
             <div id="stockList" class="space-y-4"></div>
         </div>
 
-        <!-- Seed Bank Tab Content -->
         <div id="seedBankContent" class="hidden">
              <div class="card p-6 mb-6">
                 <h2 class="text-xl font-bold mb-4">Añadir Semillas al Banco</h2>
@@ -313,7 +305,6 @@
         </div>
     </div>
 
-    <!-- Settings View -->
     <div id="settingsView" class="min-h-screen p-4 sm:p-6 lg:p-8 hidden">
         <header class="flex justify-between items-center mb-8">
             <h1 class="text-4xl font-mono tracking-wider font-bold text-white">Ajustes de Cuenta</h1>
@@ -337,8 +328,6 @@
         </div>
     </div>
 
-    <!-- Modals -->
-    <!-- About Modal -->
     <div id="aboutModal" class="fixed inset-0 z-50 items-center justify-center hidden p-4 modal-backdrop">
         <div class="w-full max-w-2xl rounded-xl shadow-2xl p-6 prose prose-invert prose-sm max-h-[80vh] overflow-y-auto">
             <h2 class="text-2xl font-bold text-white mb-4">¿Qué es SegCul?</h2>
@@ -368,7 +357,6 @@
         </div>
     </div>
 
-    <!-- Sala Modal (Add/Edit) -->
     <div id="salaModal" class="fixed inset-0 z-50 items-center justify-center hidden p-4 modal-backdrop">
         <div class="w-full max-w-md rounded-xl shadow-2xl p-6">
             <h2 id="salaModalTitle" class="text-2xl font-bold mb-6 text-white">Añadir Nueva Sala</h2>
@@ -386,7 +374,6 @@
         </div>
     </div>
 
-    <!-- Ciclo Modal (Add/Edit) -->
     <div id="cicloModal" class="fixed inset-0 z-50 items-center justify-center hidden p-4 modal-backdrop">
         <div class="w-full max-w-md rounded-xl shadow-2xl p-6">
             <h2 id="cicloModalTitle" class="text-2xl font-bold mb-6 text-white">Añadir Nuevo Ciclo</h2>
@@ -423,7 +410,6 @@
         </div>
     </div>
 
-    <!-- Ciclo Detail View -->
     <div id="cicloDetailView" class="fixed inset-0 z-40 hidden p-4 sm:p-6 lg:p-8 overflow-y-auto">
         <div class="max-w-4xl mx-auto">
             <button id="backToCiclosBtn" class="btn-secondary py-2 px-4 rounded-lg mb-6 flex items-center gap-2">
@@ -434,7 +420,6 @@
         </div>
     </div>
 
-    <!-- Log Modal (Add) -->
     <div id="logModal" class="fixed inset-0 z-50 items-center justify-center hidden p-4 modal-backdrop">
         <div class="w-full max-w-lg rounded-xl shadow-2xl p-6">
             <h2 id="logModalTitle" class="text-2xl font-bold mb-6 text-white">Añadir Registro</h2>
@@ -522,21 +507,21 @@
                      <div>
                          <label for="podaType" class="block text-sm font-medium text-gray-300 mb-2">Tipo de Poda</label>
                           <select id="podaType" class="w-full rounded-lg px-3 py-2 text-white focus:ring-2 focus:ring-amber-500 focus:outline-none">
-                             <option>Apical</option>
-                             <option>Defoliación</option>
-                             <option>Clones</option>
-                         </select>
-                       </div>
-                       <div id="clonesSection" class="hidden space-y-4">
-                         <div>
-                             <label for="cloneGenetic" class="block text-sm font-medium text-gray-300 mb-2">Genética</label>
-                             <select id="cloneGenetic" class="w-full rounded-lg px-3 py-2 text-white focus:ring-2 focus:ring-amber-500 focus:outline-none"></select>
-                         </div>
-                         <div>
-                             <label for="cloneQuantity" class="block text-sm font-medium text-gray-300 mb-2">Cantidad de Clones</label>
-                             <input type="number" id="cloneQuantity" class="w-full rounded-lg px-3 py-2 text-white focus:ring-2 focus:ring-amber-500 focus:outline-none" min="1">
-                         </div>
-                       </div>
+                               <option>Apical</option>
+                               <option>Defoliación</option>
+                               <option>Clones</option>
+                          </select>
+                        </div>
+                        <div id="clonesSection" class="hidden space-y-4">
+                          <div>
+                               <label for="cloneGenetic" class="block text-sm font-medium text-gray-300 mb-2">Genética</label>
+                               <select id="cloneGenetic" class="w-full rounded-lg px-3 py-2 text-white focus:ring-2 focus:ring-amber-500 focus:outline-none"></select>
+                          </div>
+                          <div>
+                               <label for="cloneQuantity" class="block text-sm font-medium text-gray-300 mb-2">Cantidad de Clones</label>
+                               <input type="number" id="cloneQuantity" class="w-full rounded-lg px-3 py-2 text-white focus:ring-2 focus:ring-amber-500 focus:outline-none" min="1">
+                          </div>
+                        </div>
                 </div>
 
                 <div id="notesBasedFields" class="hidden">
@@ -590,7 +575,6 @@
         </div>
     </div>
 
-    <!-- Add Genetics to Ciclo Modal -->
     <div id="addGeneticsToCicloModal" class="fixed inset-0 z-50 items-center justify-center hidden p-4 modal-backdrop">
         <div class="w-full max-w-lg rounded-xl shadow-2xl p-6">
             <h2 class="text-2xl font-bold mb-6 text-white">Añadir Genéticas al Ciclo</h2>
@@ -621,7 +605,6 @@
         </div>
     </div>
     
-    <!-- Germinate Seed Modal -->
     <div id="germinateSeedModal" class="fixed inset-0 z-50 items-center justify-center hidden p-4 modal-backdrop">
         <div class="w-full max-w-md rounded-xl shadow-2xl p-6">
             <h2 class="text-2xl font-bold mb-6 text-white">Germinar Semillas</h2>
@@ -647,7 +630,6 @@
         </div>
     </div>
 
-    <!-- Move Ciclo Modal -->
     <div id="moveCicloModal" class="fixed inset-0 z-50 items-center justify-center hidden p-4 modal-backdrop">
         <div class="w-full max-w-md rounded-xl shadow-2xl p-6">
             <h2 class="text-2xl font-bold mb-6 text-white">Mover Ciclo de Sala</h2>
@@ -665,7 +647,6 @@
         </div>
     </div>
 
-    <!-- Confirmation Modal -->
     <div id="confirmationModal" class="fixed inset-0 z-[100] items-center justify-center hidden p-4 modal-backdrop">
         <div class="w-full max-w-sm rounded-xl shadow-2xl p-6">
             <h2 id="confirmationTitle" class="text-xl font-bold mb-4 text-white">Confirmar Acción</h2>
@@ -678,9 +659,8 @@
     </div>
 
 
-    <!-- Firebase and App Logic -->
     <script type="module">
-        // v0.292b
+        // v0.292b (Hot Fix)
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, updatePassword, EmailAuthProvider, reauthenticateWithCredential, deleteUser } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, doc, addDoc, setDoc, deleteDoc, onSnapshot, query, serverTimestamp, getDocs, writeBatch, updateDoc, arrayUnion, where, increment } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
@@ -717,12 +697,10 @@
         let confirmCallback = null; // To store the action for the confirmation modal
         let mainAppListenersInitialized = false;
 
-        // --- DOM ELEMENT GETTERS ---
-        // Se usan funciones para obtener los elementos solo cuando son necesarios,
-        // evitando errores si la vista no está visible.
+        // --- DOM ELEMENT GETTER ---
         const getEl = (id) => document.getElementById(id);
 
-        // --- AUTHENTICATION ---
+        // --- AUTHENTICATION & VIEW MANAGEMENT ---
         onAuthStateChanged(auth, user => {
             if (user) {
                 if (user.isAnonymous) {
@@ -756,7 +734,7 @@
                 getEl('cicloDetailView').classList.add('hidden');
                 getEl('toolsView').classList.add('hidden');
                 getEl('settingsView').classList.add('hidden');
-                mainAppListenersInitialized = false;
+                mainAppListenersInitialized = false; // Reset flag on logout
             }
         });
 
@@ -771,6 +749,7 @@
             }
         };
 
+        // --- AUTH VIEW LISTENERS (Always safe to attach) ---
         getEl('loginForm').addEventListener('submit', (e) => {
             e.preventDefault();
             const email = getEl('login-email').value;
@@ -1431,7 +1410,7 @@
                 weekNumbers.forEach(weekNum => {
                      const logContainer = getEl(`logs-week-${weekNum}`);
                     if(logContainer) {
-                         logContainer.innerHTML = `<p class="text-gray-500 italic">No hay registros para esta semana.</p>`;
+                          logContainer.innerHTML = `<p class="text-gray-500 italic">No hay registros para esta semana.</p>`;
                     }
                 });
 
@@ -1468,24 +1447,24 @@
             if (log.type === 'Riego') {
                 const title = ciclo.cultivationType === 'Hidroponia' ? 'Control de Solución' : 'Riego';
                 details = `<p class="font-semibold text-amber-400">${title}</p>
-                             <div class="text-sm text-gray-300 mt-1 grid grid-cols-2 gap-x-4 gap-y-1">
-                                 <span><strong>pH:</strong> ${log.ph || 'N/A'}</span>
-                                 <span><strong>EC:</strong> ${log.ec || 'N/A'}</span>
-                             </div>
-                             <div class="text-sm text-gray-300 mt-2"><strong>Fertilizantes:</strong> ${formatFertilizers(log.fertilizers)}</div>`;
+                                 <div class="text-sm text-gray-300 mt-1 grid grid-cols-2 gap-x-4 gap-y-1">
+                                     <span><strong>pH:</strong> ${log.ph || 'N/A'}</span>
+                                     <span><strong>EC:</strong> ${log.ec || 'N/A'}</span>
+                                 </div>
+                                 <div class="text-sm text-gray-300 mt-2"><strong>Fertilizantes:</strong> ${formatFertilizers(log.fertilizers)}</div>`;
             } else if (log.type === 'Control de Plagas') {
                 borderColor = 'border-yellow-400';
                 details = `<p class="font-semibold text-yellow-400">Control de Plagas</p>
-                             <p class="text-sm text-gray-300 mt-1 whitespace-pre-wrap">${log.notes || 'Sin notas.'}</p>`;
+                                 <p class="text-sm text-gray-300 mt-1 whitespace-pre-wrap">${log.notes || 'Sin notas.'}</p>`;
             } else if (log.type === 'Cambio de Solución') {
                 borderColor = 'border-blue-400';
                 details = `<p class="font-semibold text-blue-400">Cambio de Solución</p>
-                             <div class="text-sm text-gray-300 mt-1 grid grid-cols-2 gap-x-4 gap-y-1">
-                                 <span><strong>Litros:</strong> ${log.litros || 'N/A'}</span>
-                                 <span><strong>pH:</strong> ${log.ph || 'N/A'}</span>
-                                 <span><strong>EC:</strong> ${log.ec || 'N/A'}</span>
-                             </div>
-                             <div class="text-sm text-gray-300 mt-2"><strong>Fertilizantes:</strong> ${formatFertilizers(log.fertilizers)}</div>`;
+                                 <div class="text-sm text-gray-300 mt-1 grid grid-cols-2 gap-x-4 gap-y-1">
+                                     <span><strong>Litros:</strong> ${log.litros || 'N/A'}</span>
+                                     <span><strong>pH:</strong> ${log.ph || 'N/A'}</span>
+                                     <span><strong>EC:</strong> ${log.ec || 'N/A'}</span>
+                                 </div>
+                                 <div class="text-sm text-gray-300 mt-2"><strong>Fertilizantes:</strong> ${formatFertilizers(log.fertilizers)}</div>`;
             } else if (log.type === 'Podas') {
                 borderColor = 'border-green-400';
                 details = `<p class="font-semibold text-green-400">Poda: ${log.podaType || ''}</p>`;
@@ -2160,11 +2139,10 @@
             });
         }
 
+
         // --- GLOBAL EVENT LISTENERS ---
         function initializeAppEventListeners() {
-            getEl('logoutBtn').addEventListener('click', () => {
-                signOut(auth);
-            });
+            getEl('logoutBtn').addEventListener('click', () => signOut(auth));
 
             getEl('menuBtn').addEventListener('click', (e) => {
                 e.stopPropagation();
@@ -2174,7 +2152,7 @@
             window.addEventListener('click', (e) => {
                 const menuBtn = getEl('menuBtn');
                 const dropdownMenu = getEl('dropdownMenu');
-                if (dropdownMenu && menuBtn && !dropdownMenu.contains(e.target) && !menuBtn.contains(e.target)) {
+                if (menuBtn && dropdownMenu && !dropdownMenu.contains(e.target) && !menuBtn.contains(e.target)) {
                     dropdownMenu.classList.add('hidden');
                 }
             });
@@ -2218,7 +2196,7 @@
 
             getEl('cancelCicloBtn').addEventListener('click', () => getEl('cicloModal').style.display = 'none');
             getEl('cicloForm').addEventListener('submit', handleCicloFormSubmit);
-            getEl('cicloPhaseSelect').addEventListener('change', updateCicloModalDateFields);
+            getEl('cicloPhase').addEventListener('change', updateCicloModalDateFields); // <-- HOTFIX
             
             getEl('backToCiclosBtn').addEventListener('click', hideCicloDetails);
             
