@@ -1314,44 +1314,24 @@
 
         function showFloweringDetails(ciclo) {
             const startDateString = ciclo.floweringStartDate;
-            const startDateObj = parseDateStringAsUTC(startDateString);
-
             let content = `<div data-ciclo-id="${ciclo.id}"><h2 class="text-3xl font-bold text-white mb-2">${ciclo.name}</h2>`;
             content += `<p class="text-gray-400 mb-6">Inicio de floración: ${startDateString || 'No establecida'}</p>`;
-            
             content += renderGeneticsInCiclo(ciclo);
             content += `<div id="weeksContainer" class="space-y-6">`;
             
             const weeks = ciclo.floweringWeeks || [];
+            const diffDays = calculateDaysSince(startDateString);
 
-            if (startDateObj) {
+            if (diffDays !== null) {
                 weeks.forEach(week => {
-                    const weekStartDate = new Date(startDateObj);
-                    weekStartDate.setUTCDate(startDateObj.getUTCDate() + (week.weekNumber - 1) * 7);
-                    const weekEndDate = new Date(weekStartDate);
-                    weekEndDate.setUTCDate(weekStartDate.getUTCDate() + 6);
-                    
                     const weekInfo = getPhaseInfo(week.phaseName);
-
-                    const hydroButton = ciclo.cultivationType === 'Hidroponia' ? `
-                        <button data-action="add-hydro-log" data-ciclo-id="${ciclo.id}" data-week="${week.weekNumber}" class="btn-secondary py-1.5 px-3 rounded-md text-sm flex items-center gap-1.5">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" /></svg>
-                            Cambio Sol.
-                        </button>
-                    ` : '';
-
                     content += `
                         <div class="card rounded-lg overflow-hidden">
                             <div class="week-header p-4 flex justify-between items-center flex-wrap gap-2">
                                 <div>
                                     <h4 class="text-xl font-bold text-white">Semana ${week.weekNumber}: <span class="px-2 py-0.5 rounded text-sm ${weekInfo.color}">${weekInfo.name}</span></h4>
-                                    <p class="text-sm text-gray-300">${weekStartDate.toLocaleDateString()} - ${weekEndDate.toLocaleDateString()}</p>
                                 </div>
                                 <div class="flex items-center gap-2">
-                                    <button data-action="summarize-week" data-ciclo-id="${ciclo.id}" data-week-number="${week.weekNumber}" data-week-phase="${week.phaseName}" class="btn-ai py-1.5 px-3 rounded-md text-sm flex items-center gap-1.5">
-                                        ✨ Generar Resumen
-                                    </button>
-                                    ${hydroButton}
                                     <button data-action="add-log" data-ciclo-id="${ciclo.id}" data-week="${week.weekNumber}" class="btn-primary py-1.5 px-3 rounded-md text-sm flex items-center gap-1.5">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" /></svg>
                                         Añadir
@@ -1361,23 +1341,16 @@
                             <div id="logs-week-${week.weekNumber}" class="p-4 space-y-3">
                                 <p class="text-gray-500 italic">No hay registros para esta semana.</p>
                             </div>
-                        </div>
-                    `;
+                        </div>`;
                 });
             }
 
             content += `</div>`;
-            content += `
-                <div class="mt-8 text-center">
-                    <button id="addNewWeekBtn" data-ciclo-id="${ciclo.id}" class="btn-secondary py-2 px-5 rounded-lg">Añadir Semana</button>
-                </div>
-            </div>`;
+            content += `<div class="mt-8 text-center"><button id="addNewWeekBtn" data-ciclo-id="${ciclo.id}" class="btn-secondary py-2 px-5 rounded-lg">Añadir Semana</button></div></div>`;
             cicloDetailContent.innerHTML = content;
             
             document.querySelectorAll('[data-action="add-log"]').forEach(btn => btn.addEventListener('click', (e) => openLogModal(e.currentTarget.dataset.cicloId, e.currentTarget.dataset.week, 'Riego')));
-            document.querySelectorAll('[data-action="add-hydro-log"]').forEach(btn => btn.addEventListener('click', (e) => openLogModal(e.currentTarget.dataset.cicloId, e.currentTarget.dataset.week, 'Cambio de Solución')));
             document.getElementById('addNewWeekBtn').addEventListener('click', (e) => openAddWeekModal(e.currentTarget.dataset.cicloId));
-            document.querySelectorAll('[data-action="summarize-week"]').forEach(btn => btn.addEventListener('click', (e) => handleSummarizeWeek(e.currentTarget.dataset)));
             document.getElementById('addGeneticsToCicloBtn').addEventListener('click', (e) => openAddGeneticsToCicloModal(e.currentTarget.dataset.cicloId));
 
             loadLogsForCiclo(ciclo.id, weeks.map(w => w.weekNumber));
@@ -1387,31 +1360,19 @@
         
         function showVegetativeDetails(ciclo) {
             const startDateString = ciclo.vegetativeStartDate;
-            const diffDays = calculateDaysSince(startDateString);
-
             let content = `<div data-ciclo-id="${ciclo.id}"><h2 class="text-3xl font-bold text-white mb-2">${ciclo.name} (Vegetativo)</h2>`;
             content += `<p class="text-gray-400 mb-6">Inicio de vegetativo: ${startDateString || 'No establecida'}</p>`;
-            
             content += renderGeneticsInCiclo(ciclo);
             content += `<div id="weeksContainer" class="space-y-6">`;
 
+            const diffDays = calculateDaysSince(startDateString);
             if (diffDays !== null && diffDays > 0) {
                 const totalWeeksInVeg = Math.ceil(diffDays / 7);
-                const startDateObj = parseDateStringAsUTC(startDateString);
-
                 for (let i = 1; i <= totalWeeksInVeg; i++) {
-                    const weekStartDate = new Date(startDateObj);
-                    weekStartDate.setUTCDate(startDateObj.getUTCDate() + (i - 1) * 7);
-                    const weekEndDate = new Date(weekStartDate);
-                    weekEndDate.setUTCDate(weekStartDate.getUTCDate() + 6);
-
                     content += `
                         <div class="card rounded-lg overflow-hidden">
                             <div class="week-header p-4 flex justify-between items-center flex-wrap gap-2">
-                                <div>
-                                    <h4 class="text-xl font-bold text-white">Semana ${i} (Vegetativo)</h4>
-                                    <p class="text-sm text-gray-300">${weekStartDate.toLocaleDateString()} - ${weekEndDate.toLocaleDateString()}</p>
-                                </div>
+                                <div><h4 class="text-xl font-bold text-white">Semana ${i} (Vegetativo)</h4></div>
                                 <div class="flex items-center gap-2">
                                     <button data-action="add-log" data-ciclo-id="${ciclo.id}" data-week="${i}" class="btn-primary py-1.5 px-3 rounded-md text-sm flex items-center gap-1.5">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" /></svg>
@@ -1419,22 +1380,15 @@
                                     </button>
                                 </div>
                             </div>
-                            <div id="logs-week-${i}" class="p-4 space-y-3">
-                                <p class="text-gray-500 italic">No hay registros para esta semana.</p>
-                            </div>
-                        </div>
-                    `;
+                            <div id="logs-week-${i}" class="p-4 space-y-3"><p class="text-gray-500 italic">No hay registros para esta semana.</p></div>
+                        </div>`;
                 }
                 const weekNumbers = Array.from({length: totalWeeksInVeg}, (_, i) => i + 1);
                 loadLogsForCiclo(ciclo.id, weekNumbers);
             }
 
             content += `</div>`;
-            content += `
-                <div class="mt-8 text-center">
-                    <button id="startFloweringFromDetailBtn" data-ciclo-id="${ciclo.id}" class="bg-pink-600 hover:bg-pink-700 text-white font-bold py-3 px-6 rounded-lg text-lg">Iniciar Floración</button>
-                </div>
-            </div>`;
+            content += `<div class="mt-8 text-center"><button id="startFloweringFromDetailBtn" data-ciclo-id="${ciclo.id}" class="bg-pink-600 hover:bg-pink-700 text-white font-bold py-3 px-6 rounded-lg text-lg">Iniciar Floración</button></div></div>`;
             cicloDetailContent.innerHTML = content;
 
             document.querySelectorAll('[data-action="add-log"]').forEach(btn => btn.addEventListener('click', (e) => openLogModal(e.currentTarget.dataset.cicloId, e.currentTarget.dataset.week, 'Riego')));
