@@ -36,37 +36,37 @@
        display: flex;
        flex-direction: column;
        gap: 0.35rem; /* Espacio entre items */
-    }
+     }
     .ciclo-item {
-        background-color: #404040;
-        border: 1px solid #525252;
-        padding: 0.35rem 2rem 0.35rem 0.75rem; /* Más padding a la derecha para el punto */
-        border-radius: 0.5rem;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.4);
-        transition: all 0.2s ease-out;
-        font-size: 0.875rem;
-        position: relative; /* Para posicionar el punto */
-        overflow: hidden;
-        white-space: nowrap;
-        text-overflow: ellipsis;
-    }
+       background-color: #404040;
+       border: 1px solid #525252;
+       padding: 0.35rem 2rem 0.35rem 0.75rem; /* Más padding a la derecha para el punto */
+       border-radius: 0.5rem;
+       box-shadow: 0 2px 4px rgba(0,0,0,0.4);
+       transition: all 0.2s ease-out;
+       font-size: 0.875rem;
+       position: relative; /* Para posicionar el punto */
+       overflow: hidden;
+       white-space: nowrap;
+       text-overflow: ellipsis;
+     }
     .ciclo-item:hover {
-        transform: translateY(-2px);
-        border-color: #f59e0b;
-        z-index: 10;
-    }
+       transform: translateY(-2px);
+       border-color: #f59e0b;
+       z-index: 10;
+     }
     /* Punto de estado */
     .ciclo-item::after {
-        content: '';
-        position: absolute;
-        right: 0.75rem;
-        top: 50%;
-        transform: translateY(-50%);
-        width: 0.65rem;
-        height: 0.65rem;
-        border-radius: 9999px;
-        border: 1px solid rgba(0,0,0,0.5);
-    }
+       content: '';
+       position: absolute;
+       right: 0.75rem;
+       top: 50%;
+       transform: translateY(-50%);
+       width: 0.65rem;
+       height: 0.65rem;
+       border-radius: 9999px;
+       border: 1px solid rgba(0,0,0,0.5);
+     }
     .ciclo-item.vege::after { background-color: #4ade80; } /* green-400 */
     .ciclo-item.pre-flora::after { background-color: #c084fc; } /* purple-400 */
     .ciclo-item.flora::after { background-color: #f472b6; } /* pink-400 */
@@ -76,7 +76,7 @@
 
 
     /* --- Otros Estilos --- */
-    #salaModal > div, #cicloModal > div, #logModal > div, #addWeekModal > div, #aiSummaryModal > div, #authView form, #toolsView .card, #germinateSeedModal > div, #addGeneticsToCicloModal > div, #moveCicloModal > div, #settingsView .card {
+    #salaModal > div, #cicloModal > div, #logModal > div, #addWeekModal > div, #aiSummaryModal > div, #authView form, #toolsView .card, #germinateSeedModal > div, #addGeneticsToCicloModal > div, #moveCicloModal > div, #settingsView .card, #confirmationModal > div {
         background-color: #262626;
         border: 1px solid #404040;
     }
@@ -147,7 +147,6 @@
 </head>
 <body class="antialiased">
 
-    <!-- Auth View -->
     <div id="authView" class="min-h-screen flex items-center justify-center p-4">
         <div class="w-full max-w-md space-y-8">
             <div>
@@ -209,7 +208,6 @@
         </div>
     </div>
 
-    <!-- Main App View (Salas) -->
     <div id="app" class="relative min-h-screen p-4 sm:p-6 lg:p-8 pb-20 hidden">
         
         <header class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8">
@@ -237,7 +235,6 @@
         <div id="loadingSalas" class="text-center py-10 text-gray-400">Cargando salas...</div>
         <div id="emptySalasState" class="text-center py-10 text-gray-400 hidden">No tienes salas. ¡Añade una para empezar!</div>
 
-        <!-- Signature and Telegram Link -->
         <div class="absolute bottom-4 right-6 flex items-center gap-4">
             <a href="https://t.me/+Uk-oVUNEmTM3YzFh" target="_blank" rel="noopener noreferrer" class="btn-secondary py-2 px-4 rounded-lg shadow-md text-sm" title="Unite al grupo de Telegram">
                 Grupo Telegram
@@ -248,7 +245,6 @@
         </div>
     </div>
 
-    <!-- Ciclos View -->
     <div id="ciclosView" class="min-h-screen p-4 sm:p-6 lg:p-8 hidden">
         <header class="flex justify-between items-center mb-8">
             <h1 id="ciclosViewHeader" class="text-3xl font-bold text-white"></h1>
@@ -258,7 +254,6 @@
         <div id="emptyCiclosState" class="text-center py-10 text-gray-400 hidden">No hay ciclos en esta sala.</div>
     </div>
 
-    <!-- Tools View -->
     <div id="toolsView" class="min-h-screen p-4 sm:p-6 lg:p-8 hidden">
         <header class="flex justify-between items-center mb-8">
             <h1 class="text-3xl font-bold text-white">Herramientas</h1>
@@ -271,7 +266,6 @@
             <button id="seedBankTabBtn" class="py-2 px-4 text-gray-400">Banco de Semillas</button>
         </div>
 
-        <!-- Genetics Tab Content -->
         <div id="geneticsContent">
             <div class="card p-6 mb-6">
                 <h2 class="text-xl font-bold mb-4">Añadir Nueva Genética</h2>
@@ -287,12 +281,10 @@
             <div id="geneticsList" class="space-y-4"></div>
         </div>
 
-        <!-- Stock Tab Content -->
         <div id="stockContent" class="hidden">
             <div id="stockList" class="space-y-4"></div>
         </div>
 
-        <!-- Seed Bank Tab Content -->
         <div id="seedBankContent" class="hidden">
              <div class="card p-6 mb-6">
                 <h2 class="text-xl font-bold mb-4">Añadir Semillas al Banco</h2>
@@ -307,7 +299,6 @@
         </div>
     </div>
 
-    <!-- Settings View -->
     <div id="settingsView" class="min-h-screen p-4 sm:p-6 lg:p-8 hidden">
         <header class="flex justify-between items-center mb-8">
             <h1 class="text-3xl font-bold text-white">Ajustes de Cuenta</h1>
@@ -331,8 +322,6 @@
         </div>
     </div>
 
-    <!-- Modals -->
-    <!-- Sala Modal (Add/Edit) -->
     <div id="salaModal" class="fixed inset-0 z-50 items-center justify-center hidden p-4 modal-backdrop">
         <div class="w-full max-w-md rounded-xl shadow-2xl p-6">
             <h2 id="salaModalTitle" class="text-2xl font-bold mb-6 text-white">Añadir Nueva Sala</h2>
@@ -350,7 +339,6 @@
         </div>
     </div>
 
-    <!-- Ciclo Modal (Add/Edit) -->
     <div id="cicloModal" class="fixed inset-0 z-50 items-center justify-center hidden p-4 modal-backdrop">
         <div class="w-full max-w-md rounded-xl shadow-2xl p-6">
             <h2 id="cicloModalTitle" class="text-2xl font-bold mb-6 text-white">Añadir Nuevo Ciclo</h2>
@@ -387,7 +375,6 @@
         </div>
     </div>
 
-    <!-- Ciclo Detail View -->
     <div id="cicloDetailView" class="fixed inset-0 z-40 hidden p-4 sm:p-6 lg:p-8 overflow-y-auto">
         <div class="max-w-4xl mx-auto">
             <button id="backToCiclosBtn" class="btn-secondary py-2 px-4 rounded-lg mb-6 flex items-center gap-2">
@@ -398,7 +385,6 @@
         </div>
     </div>
 
-    <!-- Log Modal (Add) -->
     <div id="logModal" class="fixed inset-0 z-50 items-center justify-center hidden p-4 modal-backdrop">
         <div class="w-full max-w-lg rounded-xl shadow-2xl p-6">
             <h2 id="logModalTitle" class="text-2xl font-bold mb-6 text-white">Añadir Registro</h2>
@@ -484,23 +470,23 @@
                 
                 <div id="podasFields" class="hidden space-y-4">
                      <div>
-                        <label for="podaType" class="block text-sm font-medium text-gray-300 mb-2">Tipo de Poda</label>
-                         <select id="podaType" class="w-full rounded-lg px-3 py-2 text-white focus:ring-2 focus:ring-amber-500 focus:outline-none">
-                            <option>Apical</option>
-                            <option>Defoliación</option>
-                            <option>Clones</option>
-                        </select>
-                     </div>
-                     <div id="clonesSection" class="hidden space-y-4">
-                        <div>
-                            <label for="cloneGenetic" class="block text-sm font-medium text-gray-300 mb-2">Genética</label>
-                            <select id="cloneGenetic" class="w-full rounded-lg px-3 py-2 text-white focus:ring-2 focus:ring-amber-500 focus:outline-none"></select>
-                        </div>
-                        <div>
-                            <label for="cloneQuantity" class="block text-sm font-medium text-gray-300 mb-2">Cantidad de Clones</label>
-                            <input type="number" id="cloneQuantity" class="w-full rounded-lg px-3 py-2 text-white focus:ring-2 focus:ring-amber-500 focus:outline-none" min="1">
-                        </div>
-                     </div>
+                         <label for="podaType" class="block text-sm font-medium text-gray-300 mb-2">Tipo de Poda</label>
+                          <select id="podaType" class="w-full rounded-lg px-3 py-2 text-white focus:ring-2 focus:ring-amber-500 focus:outline-none">
+                             <option>Apical</option>
+                             <option>Defoliación</option>
+                             <option>Clones</option>
+                         </select>
+                       </div>
+                       <div id="clonesSection" class="hidden space-y-4">
+                         <div>
+                             <label for="cloneGenetic" class="block text-sm font-medium text-gray-300 mb-2">Genética</label>
+                             <select id="cloneGenetic" class="w-full rounded-lg px-3 py-2 text-white focus:ring-2 focus:ring-amber-500 focus:outline-none"></select>
+                         </div>
+                         <div>
+                             <label for="cloneQuantity" class="block text-sm font-medium text-gray-300 mb-2">Cantidad de Clones</label>
+                             <input type="number" id="cloneQuantity" class="w-full rounded-lg px-3 py-2 text-white focus:ring-2 focus:ring-amber-500 focus:outline-none" min="1">
+                         </div>
+                       </div>
                 </div>
 
                 <div id="notesBasedFields" class="hidden">
@@ -554,7 +540,6 @@
         </div>
     </div>
 
-    <!-- Add Genetics to Ciclo Modal -->
     <div id="addGeneticsToCicloModal" class="fixed inset-0 z-50 items-center justify-center hidden p-4 modal-backdrop">
         <div class="w-full max-w-lg rounded-xl shadow-2xl p-6">
             <h2 class="text-2xl font-bold mb-6 text-white">Añadir Genéticas al Ciclo</h2>
@@ -585,7 +570,6 @@
         </div>
     </div>
     
-    <!-- Germinate Seed Modal -->
     <div id="germinateSeedModal" class="fixed inset-0 z-50 items-center justify-center hidden p-4 modal-backdrop">
         <div class="w-full max-w-md rounded-xl shadow-2xl p-6">
             <h2 class="text-2xl font-bold mb-6 text-white">Germinar Semillas</h2>
@@ -611,7 +595,6 @@
         </div>
     </div>
 
-    <!-- Move Ciclo Modal -->
     <div id="moveCicloModal" class="fixed inset-0 z-50 items-center justify-center hidden p-4 modal-backdrop">
         <div class="w-full max-w-md rounded-xl shadow-2xl p-6">
             <h2 class="text-2xl font-bold mb-6 text-white">Mover Ciclo de Sala</h2>
@@ -629,8 +612,18 @@
         </div>
     </div>
 
+    <div id="confirmationModal" class="fixed inset-0 z-[100] items-center justify-center hidden p-4 modal-backdrop">
+        <div class="w-full max-w-sm rounded-xl shadow-2xl p-6">
+            <h2 id="confirmationTitle" class="text-xl font-bold mb-4 text-white">Confirmar Acción</h2>
+            <p id="confirmationMessage" class="text-gray-300 mb-6"></p>
+            <div class="flex justify-end gap-4">
+                <button type="button" id="cancelActionBtn" class="btn-secondary py-2 px-4 rounded-lg">Cancelar</button>
+                <button type="button" id="confirmActionBtn" class="btn-danger py-2 px-4 rounded-lg">Confirmar</button>
+            </div>
+        </div>
+    </div>
 
-    <!-- Firebase and App Logic -->
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, updatePassword, EmailAuthProvider, reauthenticateWithCredential, deleteUser } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
@@ -640,11 +633,11 @@
         const firebaseConfig = {
              // NOTE: Replace with your actual Firebase config
             apiKey: "AIzaSyC3OUQBy8VpjDCBllgsCGu3sDQoGO-G8w0",
-  	        authDomain: "betasegui-8cdaa.firebaseapp.com",
-  	        projectId: "betasegui-8cdaa",
-  	        storageBucket: "betasegui-8cdaa.firebasestorage.app",
-  	        messagingSenderId: "995668670252",
-  	        appId: "1:995668670252:web:0aa68d85263ce46354de89"
+            authDomain: "betasegui-8cdaa.firebaseapp.com",
+            projectId: "betasegui-8cdaa",
+            storageBucket: "betasegui-8cdaa.firebasestorage.app",
+            messagingSenderId: "995668670252",
+            appId: "1:995668670252:web:0aa68d85263ce46354de89"
         };
         const geminiApiKey = "AIzaSyDWGxN8cv0Id884GJ6cQPVxXwKRXOObwzs"; // NOTE: Replace with your Gemini API Key
         // --- FIN DE LA CONFIGURACIÓN ---
@@ -665,6 +658,7 @@
         let currentSeeds = [];
         let currentSalaId = null; // Used to know where to return to
         let currentSalaName = null; // Used to know where to return to
+        let confirmCallback = null; // To store the action for the confirmation modal
 
         // --- DOM ELEMENTS ---
         const authView = document.getElementById('authView');
@@ -731,6 +725,10 @@
         const settingsView = document.getElementById('settingsView');
         const changePasswordForm = document.getElementById('changePasswordForm');
         const deleteAccountBtn = document.getElementById('deleteAccountBtn');
+        const confirmationModal = document.getElementById('confirmationModal');
+        const confirmationMessage = document.getElementById('confirmationMessage');
+        const cancelActionBtn = document.getElementById('cancelActionBtn');
+        const confirmActionBtn = document.getElementById('confirmActionBtn');
 
         // --- AUTHENTICATION ---
         onAuthStateChanged(auth, user => {
@@ -815,6 +813,21 @@
         });
         
         // --- HELPERS ---
+
+        /**
+         * Parsea un string YYYY-MM-DD a un objeto Date en UTC para cálculos consistentes.
+         * @param {string} dateString - La fecha en formato YYYY-MM-DD.
+         * @returns {Date|null}
+         */
+        function parseDateStringAsUTC(dateString) {
+            if (!dateString || typeof dateString !== 'string') return null;
+            // Añadir T00:00:00Z asegura que el string sea parseado como medianoche UTC,
+            // eliminando cualquier ambigüedad de zona horaria.
+            const date = new Date(dateString + 'T00:00:00Z');
+            if (isNaN(date.getTime())) return null;
+            return date;
+        }
+
         function getPhaseInfo(phaseName) {
             switch(phaseName) {
                 case 'PRE-FLORA': return { name: 'PRE-FLORA', color: 'bg-purple-600', class: 'pre-flora' };
@@ -868,12 +881,29 @@
             if (ciclosUnsubscribe) ciclosUnsubscribe();
             ciclosUnsubscribe = onSnapshot(q, (snapshot) => {
                 currentCiclos = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                renderSalasGrid(); // Re-render salas to update cycle counts
+                
+                renderSalasGrid(); 
+
+                if (!ciclosView.classList.contains('hidden')) {
+                    showCiclosView(currentSalaId, currentSalaName);
+                }
+                
+                if (!cicloDetailView.classList.contains('hidden')) {
+                    const activeCicloId = cicloDetailContent.querySelector('[data-ciclo-id]')?.dataset.cicloId;
+                    if (activeCicloId) {
+                        const updatedCiclo = currentCiclos.find(c => c.id === activeCicloId);
+                        if (updatedCiclo) {
+                            showCicloDetails(updatedCiclo);
+                        } else {
+                            hideCicloDetails();
+                        }
+                    }
+                }
             });
         }
         
         function renderSalasGrid() {
-            if (!salasGrid) return; // Ensure element exists
+            if (!salasGrid) return;
             loadingSalas.style.display = 'none';
             salasGrid.innerHTML = '';
             if (currentSalas.length === 0) {
@@ -895,13 +925,15 @@
                     const listHTML = activeCiclos.map(c => {
                         let phaseClass = 'vege';
                         if (c.phase === 'Floración' && c.floweringStartDate && c.floweringWeeks) {
-                            const start = c.floweringStartDate.toDate();
-                            const now = new Date();
-                            const diffDays = Math.floor((now - start) / (1000 * 60 * 60 * 24));
-                            const currentWeek = Math.floor(diffDays / 7) + 1;
-                            const weekData = c.floweringWeeks.find(w => w.weekNumber === currentWeek);
-                            if (weekData) {
-                                phaseClass = getPhaseInfo(weekData.phaseName).class;
+                            const start = parseDateStringAsUTC(c.floweringStartDate);
+                            if (start) {
+                                const now = new Date();
+                                const diffDays = Math.floor((now - start) / (1000 * 60 * 60 * 24));
+                                const currentWeek = Math.floor(diffDays / 7) + 1;
+                                const weekData = c.floweringWeeks.find(w => w.weekNumber === currentWeek);
+                                if (weekData) {
+                                    phaseClass = getPhaseInfo(weekData.phaseName).class;
+                                }
                             }
                         }
                         return `<div class="ciclo-item ${phaseClass}">${c.name}</div>`;
@@ -916,7 +948,7 @@
                     <div class="flex-grow flex flex-col">
                         <h3 class="text-2xl font-bold text-white">${sala.name}</h3>
                         <p class="text-gray-400 mb-4">${activeCiclos.length} ciclo(s) activo(s)</p>
-                        <div class="flex-grow relative">${ciclosPreviewHTML}</div>
+                        <div class="flex-grow relative overflow-hidden">${ciclosPreviewHTML}</div>
                     </div>
                     <div class="flex justify-end gap-2 mt-4">
                         <button data-action="edit-sala" class="p-2 rounded-md bg-gray-600 hover:bg-gray-500 text-white transition">
@@ -954,25 +986,27 @@
 
             let statusInfo = '';
             if (ciclo.phase === 'Floración' && ciclo.floweringStartDate) {
-                const start = ciclo.floweringStartDate.toDate();
-                const now = new Date();
-                const diffDays = Math.floor((now - start) / (1000 * 60 * 60 * 24));
-                const currentWeek = Math.floor(diffDays / 7) + 1;
-                const totalWeeks = ciclo.floweringWeeks ? ciclo.floweringWeeks.length : 10;
-                
-                statusInfo = currentWeek <= totalWeeks 
-                    ? `<p class="text-sm text-gray-300 mt-1">Semana ${currentWeek} / ${totalWeeks}</p>`
-                    : `<p class="text-sm text-gray-300 mt-1">Ciclo finalizado</p>`;
+                const start = parseDateStringAsUTC(ciclo.floweringStartDate);
+                if (start) {
+                    const now = new Date();
+                    const diffDays = Math.floor((now - start) / (1000 * 60 * 60 * 24));
+                    const currentWeek = Math.floor(diffDays / 7) + 1;
+                    const totalWeeks = ciclo.floweringWeeks ? ciclo.floweringWeeks.length : 10;
+                    
+                    statusInfo = currentWeek <= totalWeeks 
+                        ? `<p class="text-sm text-gray-300 mt-1">Semana ${currentWeek} / ${totalWeeks}</p>`
+                        : `<p class="text-sm text-gray-300 mt-1">Ciclo finalizado</p>`;
+                }
 
             } else if (ciclo.phase === 'Vegetativo' && ciclo.vegetativeStartDate) {
-                const start = new Date(ciclo.vegetativeStartDate);
-                const now = new Date();
-                start.setHours(0,0,0,0);
-                now.setHours(0,0,0,0);
-                const diffTime = Math.abs(now - start);
-                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
-                const currentWeek = Math.floor(diffDays / 7) + 1;
-                statusInfo = `<p class="text-sm text-gray-300 mt-1">Día ${diffDays} (Semana ${currentWeek}) de vegetativo</p>`;
+                const start = parseDateStringAsUTC(ciclo.vegetativeStartDate);
+                if (start) {
+                    const now = new Date();
+                    const diffTime = Math.abs(now - start);
+                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); // Days start at 1
+                    const currentWeek = Math.floor(diffDays / 7) + 1;
+                    statusInfo = `<p class="text-sm text-gray-300 mt-1">Día ${diffDays} (Semana ${currentWeek}) de vegetativo</p>`;
+                }
             }
 
             card.innerHTML = `
@@ -1045,20 +1079,21 @@
             }
         }
 
-        async function deleteSala(id, name) {
+        function deleteSala(id, name) {
             const ciclosInSala = currentCiclos.filter(c => c.salaId === id);
             if (ciclosInSala.length > 0) {
                 alert(`No se puede eliminar la sala "${name}" porque contiene ciclos. Mueve o elimina los ciclos primero.`);
                 return;
             }
-            if (confirm(`¿Estás seguro de que quieres eliminar la sala "${name}"? Esta acción no se puede deshacer.`)) {
+            
+            showConfirmationModal(`¿Estás seguro de que quieres eliminar la sala "${name}"? Esta acción no se puede deshacer.`, async () => {
                 try {
                     await deleteDoc(doc(db, `users/${userId}/salas`, id));
                 } catch (error) {
                     console.error("Error deleting sala:", error);
                     alert("No se pudo eliminar la sala.");
                 }
-            }
+            });
         }
 
         function openCicloModal(ciclo = null) {
@@ -1082,19 +1117,19 @@
                 });
             }
 
+            // Simplificado: Se asignan los strings de fecha directamente.
             if (ciclo) {
                 document.getElementById('cicloName').value = ciclo.name;
                 document.getElementById('cicloPhase').value = ciclo.phase;
                 document.getElementById('cicloVegetativeStartDate').value = ciclo.vegetativeStartDate || '';
-                if (ciclo.floweringStartDate && ciclo.floweringStartDate.toDate) {
-                    document.getElementById('cicloFloweringStartDate').value = ciclo.floweringStartDate.toDate().toISOString().split('T')[0];
-                } else {
-                    document.getElementById('cicloFloweringStartDate').value = '';
-                }
+                document.getElementById('cicloFloweringStartDate').value = ciclo.floweringStartDate || '';
             } else {
-                 document.getElementById('cicloVegetativeStartDate').value = new Date().toISOString().split('T')[0];
-                 document.getElementById('cicloFloweringStartDate').value = new Date().toISOString().split('T')[0];
+                // Para un ciclo nuevo, se pone la fecha de hoy por defecto.
+                const todayString = new Date().toISOString().split('T')[0];
+                document.getElementById('cicloVegetativeStartDate').value = todayString;
+                document.getElementById('cicloFloweringStartDate').value = todayString;
             }
+
             updateCicloModalDateFields();
             cicloModal.style.display = 'flex';
         }
@@ -1105,30 +1140,20 @@
             cicloFloweringDateContainer.style.display = selectedPhase === 'Floración' ? 'block' : 'none';
         }
 
+        // --- START OF CORRECTED AND SIMPLIFIED FUNCTION ---
         async function handleCicloFormSubmit(e) {
             e.preventDefault();
             const cicloId = document.getElementById('cicloIdInput').value;
             const phase = document.getElementById('cicloPhase').value;
 
-            // Función de conversión de fecha robusta que usa UTC para evitar problemas de zona horaria.
-            const toTimestampUTC = (dateString) => {
-                if (!dateString || dateString.trim() === '') return null;
-                const parts = dateString.split('-');
-                if (parts.length !== 3) return null;
-                const year = parseInt(parts[0], 10);
-                const month = parseInt(parts[1], 10) - 1; // Mes es 0-indexado en JS
-                const day = parseInt(parts[2], 10);
-                if (isNaN(year) || isNaN(month) || isNaN(day)) return null;
-                return new Date(Date.UTC(year, month, day));
-            };
-
             // 1. Construir un objeto de datos limpio directamente desde el formulario.
+            // Las fechas se leen y guardan como strings YYYY-MM-DD.
             const data = {
                 name: document.getElementById('cicloName').value.trim(),
                 salaId: document.getElementById('cicloSala').value,
                 phase: phase,
-                vegetativeStartDate: toTimestampUTC(document.getElementById('cicloVegetativeStartDate').value),
-                floweringStartDate: toTimestampUTC(document.getElementById('cicloFloweringStartDate').value)
+                vegetativeStartDate: document.getElementById('cicloVegetativeStartDate').value,
+                floweringStartDate: document.getElementById('cicloFloweringStartDate').value
             };
 
             if (!data.name || !data.salaId) {
@@ -1163,13 +1188,12 @@
                         // Mantener las semanas existentes si no hay cambio de fase.
                         data.floweringWeeks = existingCiclo.floweringWeeks || [];
                     }
-
                     await updateDoc(cicloRef, data);
 
                 } else { // ----- CREAR UN CICLO NUEVO -----
                     data.cultivationType = 'Sustrato';
                     data.genetics = [];
-                    data.createdAt = serverTimestamp();
+                    data.createdAt = serverTimestamp(); // Firestore se encarga de esto.
                     if (data.phase === 'Floración') {
                         data.floweringWeeks = generateStandardWeeks();
                     } else {
@@ -1184,9 +1208,10 @@
                 alert("No se pudo guardar el ciclo. Revisa la consola para más detalles.");
             }
         }
+        // --- END OF CORRECTED AND SIMPLIFIED FUNCTION ---
 
-        async function deleteCiclo(cicloId, cicloName) {
-            if (confirm(`¿Estás seguro de que quieres eliminar el ciclo "${cicloName}" y todos sus registros? Esta acción no se puede deshacer.`)) {
+        function deleteCiclo(cicloId, cicloName) {
+            showConfirmationModal(`¿Estás seguro de que quieres eliminar el ciclo "${cicloName}" y todos sus registros? Esta acción no se puede deshacer.`, async () => {
                 try {
                     const logsRef = collection(db, `users/${userId}/ciclos/${cicloId}/logs`);
                     const logsSnapshot = await getDocs(logsRef);
@@ -1200,7 +1225,7 @@
                     console.error("Error deleting ciclo:", error);
                     alert("No se pudo eliminar el ciclo.");
                 }
-            }
+            });
         }
         
         function openMoveCicloModal(cicloId) {
@@ -1289,62 +1314,63 @@
         }
 
         function showFloweringDetails(ciclo) {
-            const startDate = ciclo.floweringStartDate.toDate();
-            let content = `<h2 class="text-3xl font-bold text-white mb-2">${ciclo.name}</h2>`;
-            content += `<p class="text-gray-400 mb-6">Inicio de floración: ${startDate.toLocaleDateString()}</p>`;
+            const startDate = parseDateStringAsUTC(ciclo.floweringStartDate);
+            let content = `<div data-ciclo-id="${ciclo.id}"><h2 class="text-3xl font-bold text-white mb-2">${ciclo.name}</h2>`;
+            content += `<p class="text-gray-400 mb-6">Inicio de floración: ${startDate ? startDate.toLocaleDateString() : 'No establecida'}</p>`;
             
             content += renderGeneticsInCiclo(ciclo);
-
             content += `<div id="weeksContainer" class="space-y-6">`;
             
             const weeks = ciclo.floweringWeeks || [];
 
-            weeks.forEach(week => {
-                const weekStartDate = new Date(startDate);
-                weekStartDate.setDate(startDate.getDate() + (week.weekNumber - 1) * 7);
-                const weekEndDate = new Date(weekStartDate);
-                weekEndDate.setDate(weekStartDate.getDate() + 6);
-                
-                const weekInfo = getPhaseInfo(week.phaseName);
+            if (startDate) {
+                weeks.forEach(week => {
+                    const weekStartDate = new Date(startDate);
+                    weekStartDate.setDate(startDate.getDate() + (week.weekNumber - 1) * 7);
+                    const weekEndDate = new Date(weekStartDate);
+                    weekEndDate.setDate(weekStartDate.getDate() + 6);
+                    
+                    const weekInfo = getPhaseInfo(week.phaseName);
 
-                const hydroButton = ciclo.cultivationType === 'Hidroponia' ? `
-                    <button data-action="add-hydro-log" data-ciclo-id="${ciclo.id}" data-week="${week.weekNumber}" class="btn-secondary py-1.5 px-3 rounded-md text-sm flex items-center gap-1.5">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" /></svg>
-                        Cambio Sol.
-                    </button>
-                ` : '';
+                    const hydroButton = ciclo.cultivationType === 'Hidroponia' ? `
+                        <button data-action="add-hydro-log" data-ciclo-id="${ciclo.id}" data-week="${week.weekNumber}" class="btn-secondary py-1.5 px-3 rounded-md text-sm flex items-center gap-1.5">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" /></svg>
+                            Cambio Sol.
+                        </button>
+                    ` : '';
 
-                content += `
-                    <div class="card rounded-lg overflow-hidden">
-                        <div class="week-header p-4 flex justify-between items-center flex-wrap gap-2">
-                            <div>
-                                <h4 class="text-xl font-bold text-white">Semana ${week.weekNumber}: <span class="px-2 py-0.5 rounded text-sm ${weekInfo.color}">${weekInfo.name}</span></h4>
-                                <p class="text-sm text-gray-300">${weekStartDate.toLocaleDateString()} - ${weekEndDate.toLocaleDateString()}</p>
+                    content += `
+                        <div class="card rounded-lg overflow-hidden">
+                            <div class="week-header p-4 flex justify-between items-center flex-wrap gap-2">
+                                <div>
+                                    <h4 class="text-xl font-bold text-white">Semana ${week.weekNumber}: <span class="px-2 py-0.5 rounded text-sm ${weekInfo.color}">${weekInfo.name}</span></h4>
+                                    <p class="text-sm text-gray-300">${weekStartDate.toLocaleDateString()} - ${weekEndDate.toLocaleDateString()}</p>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <button data-action="summarize-week" data-ciclo-id="${ciclo.id}" data-week-number="${week.weekNumber}" data-week-phase="${week.phaseName}" class="btn-ai py-1.5 px-3 rounded-md text-sm flex items-center gap-1.5">
+                                        ✨ Generar Resumen
+                                    </button>
+                                    ${hydroButton}
+                                    <button data-action="add-log" data-ciclo-id="${ciclo.id}" data-week="${week.weekNumber}" class="btn-primary py-1.5 px-3 rounded-md text-sm flex items-center gap-1.5">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" /></svg>
+                                        Añadir
+                                    </button>
+                                </div>
                             </div>
-                            <div class="flex items-center gap-2">
-                                <button data-action="summarize-week" data-ciclo-id="${ciclo.id}" data-week-number="${week.weekNumber}" data-week-phase="${week.phaseName}" class="btn-ai py-1.5 px-3 rounded-md text-sm flex items-center gap-1.5">
-                                    ✨ Generar Resumen
-                                </button>
-                                ${hydroButton}
-                                <button data-action="add-log" data-ciclo-id="${ciclo.id}" data-week="${week.weekNumber}" class="btn-primary py-1.5 px-3 rounded-md text-sm flex items-center gap-1.5">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" /></svg>
-                                    Añadir
-                                </button>
+                            <div id="logs-week-${week.weekNumber}" class="p-4 space-y-3">
+                                <p class="text-gray-500 italic">No hay registros para esta semana.</p>
                             </div>
                         </div>
-                        <div id="logs-week-${week.weekNumber}" class="p-4 space-y-3">
-                            <p class="text-gray-500 italic">No hay registros para esta semana.</p>
-                        </div>
-                    </div>
-                `;
-            });
+                    `;
+                });
+            }
 
             content += `</div>`;
             content += `
                 <div class="mt-8 text-center">
                     <button id="addNewWeekBtn" data-ciclo-id="${ciclo.id}" class="btn-secondary py-2 px-5 rounded-lg">Añadir Semana</button>
                 </div>
-            `;
+            </div>`;
             cicloDetailContent.innerHTML = content;
             
             document.querySelectorAll('[data-action="add-log"]').forEach(btn => btn.addEventListener('click', (e) => openLogModal(e.currentTarget.dataset.cicloId, e.currentTarget.dataset.week, 'Riego')));
@@ -1359,17 +1385,20 @@
         }
         
         function showVegetativeDetails(ciclo) {
-            const startDate = new Date(ciclo.vegetativeStartDate);
+            const startDate = parseDateStringAsUTC(ciclo.vegetativeStartDate);
+            if (!startDate) {
+                cicloDetailContent.innerHTML = `<p>Error: No se ha establecido una fecha de inicio para este ciclo vegetativo.</p>`;
+                return;
+            }
             const now = new Date();
             const diffTime = Math.abs(now - startDate);
-            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); // Days start at 1
             const totalWeeksInVeg = Math.max(1, Math.ceil(diffDays / 7));
 
-            let content = `<h2 class="text-3xl font-bold text-white mb-2">${ciclo.name} (Vegetativo)</h2>`;
+            let content = `<div data-ciclo-id="${ciclo.id}"><h2 class="text-3xl font-bold text-white mb-2">${ciclo.name} (Vegetativo)</h2>`;
             content += `<p class="text-gray-400 mb-6">Inicio de vegetativo: ${startDate.toLocaleDateString()}</p>`;
             
             content += renderGeneticsInCiclo(ciclo);
-            
             content += `<div id="weeksContainer" class="space-y-6">`;
 
             for (let i = 1; i <= totalWeeksInVeg; i++) {
@@ -1404,7 +1433,7 @@
                 <div class="mt-8 text-center">
                     <button id="startFloweringFromDetailBtn" data-ciclo-id="${ciclo.id}" class="bg-pink-600 hover:bg-pink-700 text-white font-bold py-3 px-6 rounded-lg text-lg">Iniciar Floración</button>
                 </div>
-            `;
+            </div>`;
             cicloDetailContent.innerHTML = content;
 
             document.querySelectorAll('[data-action="add-log"]').forEach(btn => btn.addEventListener('click', (e) => openLogModal(e.currentTarget.dataset.cicloId, e.currentTarget.dataset.week, 'Riego')));
@@ -1418,26 +1447,22 @@
         }
 
         async function startFlowering(cicloId) {
-            if (!confirm("¿Estás seguro de que quieres pasar este ciclo a floración? Se establecerá la fecha de hoy como inicio.")) {
-                return;
-            }
-            
-            const cicloRef = doc(db, `users/${userId}/ciclos`, cicloId);
-            const floweringDate = new Date();
-            const userTimezoneOffset = floweringDate.getTimezoneOffset() * 60000;
+            showConfirmationModal("¿Estás seguro de que quieres pasar este ciclo a floración? Se establecerá la fecha de hoy como inicio.", async () => {
+                const cicloRef = doc(db, `users/${userId}/ciclos`, cicloId);
+                const todayString = new Date().toISOString().split('T')[0];
 
-            try {
-                await updateDoc(cicloRef, {
-                    phase: 'Floración',
-                    floweringStartDate: new Date(floweringDate.getTime() + userTimezoneOffset),
-                    vegetativeStartDate: null, // Clear vegetative start date
-                    floweringWeeks: generateStandardWeeks()
-                });
-                // The onSnapshot listener will automatically refresh the view
-            } catch (error) {
-                console.error("Error starting flowering:", error);
-                alert("No se pudo iniciar la floración.");
-            }
+                try {
+                    await updateDoc(cicloRef, {
+                        phase: 'Floración',
+                        floweringStartDate: todayString,
+                        vegetativeStartDate: null,
+                        floweringWeeks: generateStandardWeeks()
+                    });
+                } catch (error) {
+                    console.error("Error starting flowering:", error);
+                    alert("No se pudo iniciar la floración.");
+                }
+            });
         }
 
 
@@ -1461,13 +1486,18 @@
                 weekNumbers.forEach(weekNum => {
                      const logContainer = document.getElementById(`logs-week-${weekNum}`);
                     if(logContainer) {
-                        logContainer.innerHTML = `<p class="text-gray-500 italic">No hay registros para esta semana.</p>`;
+                         logContainer.innerHTML = `<p class="text-gray-500 italic">No hay registros para esta semana.</p>`;
                     }
                 });
 
-                const allLogs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                // Sort logs by date descending to show newest first
-                allLogs.sort((a, b) => b.date.toDate() - a.date.toDate());
+                const allLogs = snapshot.docs.map(doc => {
+                    const data = doc.data();
+                    // Fallback para logs viejos guardados como Timestamps
+                    const logDate = data.date.toDate ? data.date.toDate() : new Date(data.date);
+                    return { id: doc.id, ...data, date: logDate };
+                });
+
+                allLogs.sort((a, b) => b.date - a.date);
 
                 allLogs.forEach(log => {
                     const logContainer = document.getElementById(`logs-week-${log.week}`);
@@ -1485,7 +1515,7 @@
 
         function createLogEntry(log, ciclo) {
             const entry = document.createElement('div');
-            const logDate = log.date.toDate().toLocaleString('es-AR', { dateStyle: 'short', timeStyle: 'short'});
+            const logDate = log.date.toLocaleString('es-AR', { dateStyle: 'short', timeStyle: 'short'});
             const dayTimeInfo = log.day && log.time ? `<span class="font-semibold">${log.day}, ${log.time}</span>` : '';
 
             let details = '';
@@ -1494,24 +1524,24 @@
             if (log.type === 'Riego') {
                 const title = ciclo.cultivationType === 'Hidroponia' ? 'Control de Solución' : 'Riego';
                 details = `<p class="font-semibold text-amber-400">${title}</p>
-                           <div class="text-sm text-gray-300 mt-1 grid grid-cols-2 gap-x-4 gap-y-1">
-                               <span><strong>pH:</strong> ${log.ph || 'N/A'}</span>
-                               <span><strong>EC:</strong> ${log.ec || 'N/A'}</span>
-                           </div>
-                           <div class="text-sm text-gray-300 mt-2"><strong>Fertilizantes:</strong> ${formatFertilizers(log.fertilizers)}</div>`;
+                             <div class="text-sm text-gray-300 mt-1 grid grid-cols-2 gap-x-4 gap-y-1">
+                                 <span><strong>pH:</strong> ${log.ph || 'N/A'}</span>
+                                 <span><strong>EC:</strong> ${log.ec || 'N/A'}</span>
+                             </div>
+                             <div class="text-sm text-gray-300 mt-2"><strong>Fertilizantes:</strong> ${formatFertilizers(log.fertilizers)}</div>`;
             } else if (log.type === 'Control de Plagas') {
                 borderColor = 'border-yellow-400';
                 details = `<p class="font-semibold text-yellow-400">Control de Plagas</p>
-                           <p class="text-sm text-gray-300 mt-1 whitespace-pre-wrap">${log.notes || 'Sin notas.'}</p>`;
+                             <p class="text-sm text-gray-300 mt-1 whitespace-pre-wrap">${log.notes || 'Sin notas.'}</p>`;
             } else if (log.type === 'Cambio de Solución') {
                 borderColor = 'border-blue-400';
                 details = `<p class="font-semibold text-blue-400">Cambio de Solución</p>
-                           <div class="text-sm text-gray-300 mt-1 grid grid-cols-2 gap-x-4 gap-y-1">
-                               <span><strong>Litros:</strong> ${log.litros || 'N/A'}</span>
-                               <span><strong>pH:</strong> ${log.ph || 'N/A'}</span>
-                               <span><strong>EC:</strong> ${log.ec || 'N/A'}</span>
-                           </div>
-                           <div class="text-sm text-gray-300 mt-2"><strong>Fertilizantes:</strong> ${formatFertilizers(log.fertilizers)}</div>`;
+                             <div class="text-sm text-gray-300 mt-1 grid grid-cols-2 gap-x-4 gap-y-1">
+                                 <span><strong>Litros:</strong> ${log.litros || 'N/A'}</span>
+                                 <span><strong>pH:</strong> ${log.ph || 'N/A'}</span>
+                                 <span><strong>EC:</strong> ${log.ec || 'N/A'}</span>
+                             </div>
+                             <div class="text-sm text-gray-300 mt-2"><strong>Fertilizantes:</strong> ${formatFertilizers(log.fertilizers)}</div>`;
             } else if (log.type === 'Podas') {
                 borderColor = 'border-green-400';
                 details = `<p class="font-semibold text-green-400">Poda: ${log.podaType || ''}</p>`;
@@ -1659,11 +1689,11 @@
             closeLogModal();
         }
 
-        async function deleteLog(cicloId, logId) {
-            if (confirm("¿Seguro que quieres eliminar este registro?")) {
+        function deleteLog(cicloId, logId) {
+            showConfirmationModal("¿Seguro que quieres eliminar este registro?", async () => {
                 const logRef = doc(db, `users/${userId}/ciclos/${cicloId}/logs`, logId);
                 await deleteDoc(logRef);
-            }
+            });
         }
 
         // --- ADD WEEK MANAGEMENT ---
@@ -1714,8 +1744,9 @@
             let logsText = "";
             logsSnapshot.forEach(doc => {
                 const log = doc.data();
+                const logDate = log.date.toDate ? log.date.toDate() : new Date(log.date);
                 const dayTime = (log.day && log.time) ? `(${log.day} - ${log.time})` : '';
-                logsText += `Registro del ${log.date.toDate().toLocaleString()} ${dayTime}:\n`;
+                logsText += `Registro del ${logDate.toLocaleString()} ${dayTime}:\n`;
                 logsText += `Tipo: ${log.type}\n`;
                 if (log.type === 'Riego' || log.type === 'Cambio de Solución') {
                     if(log.type === 'Cambio de Solución') {
@@ -1752,7 +1783,7 @@
             try {
                 let chatHistory = [{ role: "user", parts: [{ text: prompt }] }];
                 const payload = { contents: chatHistory };
-                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${geminiApiKey}`;
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-preview-0514:generateContent?key=${geminiApiKey}`;
                 
                 const response = await fetch(apiUrl, {
                     method: 'POST',
@@ -1900,11 +1931,11 @@
             window.scrollTo(0, 0);
         }
 
-        async function deleteGenetic(id) {
-            if (confirm("¿Seguro que quieres eliminar esta genética?")) {
+        function deleteGenetic(id) {
+            showConfirmationModal("¿Seguro que quieres eliminar esta genética?", async () => {
                 const geneticRef = doc(db, `users/${userId}/genetics`, id);
                 await deleteDoc(geneticRef);
-            }
+            });
         }
 
         // --- STOCK MANAGEMENT ---
@@ -2007,11 +2038,11 @@
             seedForm.reset();
         }
 
-        async function deleteSeed(id) {
-            if (confirm("¿Seguro que quieres eliminar este lote de semillas?")) {
+        function deleteSeed(id) {
+            showConfirmationModal("¿Seguro que quieres eliminar este lote de semillas?", async () => {
                 const seedRef = doc(db, `users/${userId}/seeds`, id);
                 await deleteDoc(seedRef);
-            }
+            });
         }
 
         function openGerminateModal(id) {
@@ -2047,13 +2078,13 @@
                 return;
             }
 
-            // Create new ciclo
+            const todayString = new Date().toISOString().split('T')[0];
             const cicloData = {
                 name: cicloName,
                 salaId: salaId,
                 phase: 'Vegetativo',
                 cultivationType: 'Sustrato',
-                vegetativeStartDate: new Date().toISOString().split('T')[0],
+                vegetativeStartDate: todayString,
                 genetics: [{ name: seed.name, quantity: quantity }],
                 createdAt: serverTimestamp()
             };
@@ -2131,6 +2162,27 @@
             addGeneticsToCicloModal.style.display = 'none';
         }
         
+        // --- CONFIRMATION MODAL ---
+        function showConfirmationModal(message, onConfirm) {
+            confirmationMessage.textContent = message;
+            confirmCallback = onConfirm;
+            confirmationModal.style.display = 'flex';
+        }
+
+        function hideConfirmationModal() {
+            confirmationModal.style.display = 'none';
+            confirmCallback = null;
+        }
+
+        confirmActionBtn.addEventListener('click', () => {
+            if (confirmCallback) {
+                confirmCallback();
+            }
+            hideConfirmationModal();
+        });
+
+        cancelActionBtn.addEventListener('click', hideConfirmationModal);
+
         // --- SETTINGS FUNCTIONS (PASSWORD, DELETE ACCOUNT) ---
         async function handleChangePassword(e) {
             e.preventDefault();
@@ -2149,24 +2201,16 @@
             }
         }
 
-        async function handleDeleteAccount() {
-            const confirmation = prompt("Esta acción es irreversible. Para confirmar, escribe 'BORRAR' en mayúsculas.");
-            if (confirmation !== 'BORRAR') {
-                alert("Confirmación incorrecta. La cuenta no ha sido eliminada.");
-                return;
-            }
-
-            try {
-                // Here you would ideally delete all user data from Firestore first.
-                // This is a complex operation and depends on your data structure.
-                // For now, we just delete the user auth record.
-                await deleteUser(auth.currentUser);
-                alert("Cuenta eliminada con éxito.");
-                // The onAuthStateChanged listener will handle the redirect.
-            } catch (error) {
-                console.error("Error deleting account:", error);
-                alert("Error al eliminar la cuenta. Es posible que necesites volver a iniciar sesión.");
-            }
+        function handleDeleteAccount() {
+            showConfirmationModal("Esta acción es irreversible y borrará tu cuenta y todos tus datos. ¿Estás seguro?", async () => {
+                try {
+                    await deleteUser(auth.currentUser);
+                    alert("Cuenta eliminada con éxito.");
+                } catch (error) {
+                    console.error("Error deleting account:", error);
+                    alert("Error al eliminar la cuenta. Es posible que necesites volver a iniciar sesión.");
+                }
+            });
         }
 
 
@@ -2260,4 +2304,3 @@
     </script>
 </body>
 </html>
-
