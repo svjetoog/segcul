@@ -361,11 +361,11 @@
                 </div>
                 <div id="cicloVegetativeDateContainer" class="mb-4 hidden">
                     <label for="cicloVegetativeStartDate" class="block text-sm font-medium text-gray-300 mb-2">Fecha de Inicio (Vegetativo)</label>
-                    <input type="date" id="cicloVegetativeStartDate" class="w-full rounded-lg px-3 py-2 text-white focus:ring-2 focus:ring-amber-500 focus:outline-none" required>
+                    <input type="date" id="cicloVegetativeStartDate" class="w-full rounded-lg px-3 py-2 text-white focus:ring-2 focus:ring-amber-500 focus:outline-none">
                 </div>
                  <div id="cicloFloweringDateContainer" class="mb-6 hidden">
                     <label for="cicloFloweringStartDate" class="block text-sm font-medium text-gray-300 mb-2">Fecha de Inicio (Floración)</label>
-                    <input type="date" id="cicloFloweringStartDate" class="w-full rounded-lg px-3 py-2 text-white focus:ring-2 focus:ring-amber-500 focus:outline-none" required>
+                    <input type="date" id="cicloFloweringStartDate" class="w-full rounded-lg px-3 py-2 text-white focus:ring-2 focus:ring-amber-500 focus:outline-none">
                 </div>
                 <div class="flex justify-end gap-4">
                     <button type="button" id="cancelCicloBtn" class="btn-secondary py-2 px-4 rounded-lg">Cancelar</button>
@@ -815,17 +815,29 @@
         // --- HELPERS ---
 
         /**
-         * Parsea un string YYYY-MM-DD a un objeto Date en UTC para cálculos consistentes.
-         * @param {string} dateString - La fecha en formato YYYY-MM-DD.
-         * @returns {Date|null}
+         * Calcula los días transcurridos desde una fecha de inicio hasta hoy.
+         * Es la única función que maneja objetos Date para asegurar consistencia.
+         * @param {string} startDateString - La fecha de inicio en formato "YYYY-MM-DD".
+         * @returns {number|null} El número de días transcurridos (Día 1, Día 2, etc.).
          */
-        function parseDateStringAsUTC(dateString) {
-            if (!dateString || typeof dateString !== 'string') return null;
-            // Añadir T00:00:00Z asegura que el string sea parseado como medianoche UTC,
-            // eliminando cualquier ambigüedad de zona horaria.
-            const date = new Date(dateString + 'T00:00:00Z');
-            if (isNaN(date.getTime())) return null;
-            return date;
+        function calculateDaysSince(startDateString) {
+            if (!startDateString) return null;
+            
+            // Crea la fecha de inicio como medianoche UTC para evitar problemas de zona horaria.
+            const start = new Date(startDateString + 'T00:00:00Z');
+            if (isNaN(start.getTime())) return null;
+
+            // Crea la fecha de hoy como medianoche UTC.
+            const today = new Date();
+            const todayUTC = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate()));
+
+            // Si la fecha de inicio es en el futuro, los días transcurridos son 0.
+            if (start > todayUTC) return 0;
+
+            const diffTime = todayUTC - start;
+            const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+            
+            return diffDays + 1; // Devuelve Día 1, Día 2, etc.
         }
 
         function getPhaseInfo(phaseName) {
@@ -925,11 +937,9 @@
                     const listHTML = activeCiclos.map(c => {
                         let phaseClass = 'vege';
                         if (c.phase === 'Floración' && c.floweringStartDate && c.floweringWeeks) {
-                            const start = parseDateStringAsUTC(c.floweringStartDate);
-                            if (start) {
-                                const now = new Date();
-                                const diffDays = Math.floor((now - start) / (1000 * 60 * 60 * 24));
-                                const currentWeek = Math.floor(diffDays / 7) + 1;
+                            const diffDays = calculateDaysSince(c.floweringStartDate);
+                            if (diffDays !== null && diffDays > 0) {
+                                const currentWeek = Math.floor((diffDays -1) / 7) + 1;
                                 const weekData = c.floweringWeeks.find(w => w.weekNumber === currentWeek);
                                 if (weekData) {
                                     phaseClass = getPhaseInfo(weekData.phaseName).class;
@@ -985,26 +995,17 @@
             const typeColor = typeText === 'Hidroponia' ? 'bg-blue-500' : 'bg-yellow-600';
 
             let statusInfo = '';
-            if (ciclo.phase === 'Floración' && ciclo.floweringStartDate) {
-                const start = parseDateStringAsUTC(ciclo.floweringStartDate);
-                if (start) {
-                    const now = new Date();
-                    const diffDays = Math.floor((now - start) / (1000 * 60 * 60 * 24));
-                    const currentWeek = Math.floor(diffDays / 7) + 1;
+            if (ciclo.phase === 'Floración') {
+                const diffDays = calculateDaysSince(ciclo.floweringStartDate);
+                if (diffDays !== null && diffDays > 0) {
+                    const currentWeek = Math.floor((diffDays - 1) / 7) + 1;
                     const totalWeeks = ciclo.floweringWeeks ? ciclo.floweringWeeks.length : 10;
-                    
-                    statusInfo = currentWeek <= totalWeeks 
-                        ? `<p class="text-sm text-gray-300 mt-1">Semana ${currentWeek} / ${totalWeeks}</p>`
-                        : `<p class="text-sm text-gray-300 mt-1">Ciclo finalizado</p>`;
+                    statusInfo = `<p class="text-sm text-gray-300 mt-1">Día ${diffDays} (Semana ${currentWeek} / ${totalWeeks})</p>`;
                 }
-
-            } else if (ciclo.phase === 'Vegetativo' && ciclo.vegetativeStartDate) {
-                const start = parseDateStringAsUTC(ciclo.vegetativeStartDate);
-                if (start) {
-                    const now = new Date();
-                    const diffTime = Math.abs(now - start);
-                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); // Days start at 1
-                    const currentWeek = Math.floor(diffDays / 7) + 1;
+            } else if (ciclo.phase === 'Vegetativo') {
+                const diffDays = calculateDaysSince(ciclo.vegetativeStartDate);
+                if (diffDays !== null && diffDays > 0) {
+                    const currentWeek = Math.floor((diffDays - 1) / 7) + 1;
                     statusInfo = `<p class="text-sm text-gray-300 mt-1">Día ${diffDays} (Semana ${currentWeek}) de vegetativo</p>`;
                 }
             }
@@ -1117,14 +1118,12 @@
                 });
             }
 
-            // Simplificado: Se asignan los strings de fecha directamente.
             if (ciclo) {
                 document.getElementById('cicloName').value = ciclo.name;
                 document.getElementById('cicloPhase').value = ciclo.phase;
                 document.getElementById('cicloVegetativeStartDate').value = ciclo.vegetativeStartDate || '';
                 document.getElementById('cicloFloweringStartDate').value = ciclo.floweringStartDate || '';
             } else {
-                // Para un ciclo nuevo, se pone la fecha de hoy por defecto.
                 const todayString = new Date().toISOString().split('T')[0];
                 document.getElementById('cicloVegetativeStartDate').value = todayString;
                 document.getElementById('cicloFloweringStartDate').value = todayString;
@@ -1136,24 +1135,27 @@
 
         function updateCicloModalDateFields() {
             const selectedPhase = cicloPhaseSelect.value;
+            const vegeInput = document.getElementById('cicloVegetativeStartDate');
+            const floraInput = document.getElementById('cicloFloweringStartDate');
+
             cicloVegetativeDateContainer.style.display = selectedPhase === 'Vegetativo' ? 'block' : 'none';
+            vegeInput.required = selectedPhase === 'Vegetativo';
+
             cicloFloweringDateContainer.style.display = selectedPhase === 'Floración' ? 'block' : 'none';
+            floraInput.required = selectedPhase === 'Floración';
         }
 
-        // --- START OF CORRECTED AND SIMPLIFIED FUNCTION ---
         async function handleCicloFormSubmit(e) {
             e.preventDefault();
             const cicloId = document.getElementById('cicloIdInput').value;
             const phase = document.getElementById('cicloPhase').value;
 
-            // 1. Construir un objeto de datos limpio directamente desde el formulario.
-            // Las fechas se leen y guardan como strings YYYY-MM-DD.
             const data = {
                 name: document.getElementById('cicloName').value.trim(),
                 salaId: document.getElementById('cicloSala').value,
                 phase: phase,
                 vegetativeStartDate: document.getElementById('cicloVegetativeStartDate').value,
-                floweringStartDate: document.getElementById('cicloFloweringStartDate').value
+                floweringStartDate: document.getElementById('cicloFloweringStartDate').value,
             };
 
             if (!data.name || !data.salaId) {
@@ -1161,7 +1163,6 @@
                 return;
             }
 
-            // 2. Lógica simple: anular la fecha que no corresponde a la fase seleccionada.
             if (data.phase === 'Vegetativo') {
                 data.floweringStartDate = null;
                 if (!data.vegetativeStartDate) {
@@ -1177,23 +1178,21 @@
             }
 
             try {
-                if (cicloId) { // ----- EDITAR UN CICLO EXISTENTE -----
+                if (cicloId) {
                     const cicloRef = doc(db, `users/${userId}/ciclos`, cicloId);
                     const existingCiclo = currentCiclos.find(c => c.id === cicloId);
                     
-                    // Si estamos cambiando de fase a Floración, generar las semanas estándar.
                     if (existingCiclo && existingCiclo.phase === 'Vegetativo' && data.phase === 'Floración') {
                          data.floweringWeeks = generateStandardWeeks();
                     } else {
-                        // Mantener las semanas existentes si no hay cambio de fase.
                         data.floweringWeeks = existingCiclo.floweringWeeks || [];
                     }
                     await updateDoc(cicloRef, data);
 
-                } else { // ----- CREAR UN CICLO NUEVO -----
+                } else {
                     data.cultivationType = 'Sustrato';
                     data.genetics = [];
-                    data.createdAt = serverTimestamp(); // Firestore se encarga de esto.
+                    data.createdAt = serverTimestamp();
                     if (data.phase === 'Floración') {
                         data.floweringWeeks = generateStandardWeeks();
                     } else {
@@ -1208,7 +1207,6 @@
                 alert("No se pudo guardar el ciclo. Revisa la consola para más detalles.");
             }
         }
-        // --- END OF CORRECTED AND SIMPLIFIED FUNCTION ---
 
         function deleteCiclo(cicloId, cicloName) {
             showConfirmationModal(`¿Estás seguro de que quieres eliminar el ciclo "${cicloName}" y todos sus registros? Esta acción no se puede deshacer.`, async () => {
@@ -1261,6 +1259,7 @@
             
             salasView.classList.add('hidden');
             cicloDetailView.classList.add('hidden');
+            toolsView.classList.add('hidden');
             ciclosView.classList.remove('hidden');
 
             ciclosViewHeader.innerText = `Ciclos en: ${salaName}`;
@@ -1314,21 +1313,23 @@
         }
 
         function showFloweringDetails(ciclo) {
-            const startDate = parseDateStringAsUTC(ciclo.floweringStartDate);
+            const startDateString = ciclo.floweringStartDate;
+            const startDateObj = parseDateStringAsUTC(startDateString);
+
             let content = `<div data-ciclo-id="${ciclo.id}"><h2 class="text-3xl font-bold text-white mb-2">${ciclo.name}</h2>`;
-            content += `<p class="text-gray-400 mb-6">Inicio de floración: ${startDate ? startDate.toLocaleDateString() : 'No establecida'}</p>`;
+            content += `<p class="text-gray-400 mb-6">Inicio de floración: ${startDateString || 'No establecida'}</p>`;
             
             content += renderGeneticsInCiclo(ciclo);
             content += `<div id="weeksContainer" class="space-y-6">`;
             
             const weeks = ciclo.floweringWeeks || [];
 
-            if (startDate) {
+            if (startDateObj) {
                 weeks.forEach(week => {
-                    const weekStartDate = new Date(startDate);
-                    weekStartDate.setDate(startDate.getDate() + (week.weekNumber - 1) * 7);
+                    const weekStartDate = new Date(startDateObj);
+                    weekStartDate.setUTCDate(startDateObj.getUTCDate() + (week.weekNumber - 1) * 7);
                     const weekEndDate = new Date(weekStartDate);
-                    weekEndDate.setDate(weekStartDate.getDate() + 6);
+                    weekEndDate.setUTCDate(weekStartDate.getUTCDate() + 6);
                     
                     const weekInfo = getPhaseInfo(week.phaseName);
 
@@ -1385,47 +1386,47 @@
         }
         
         function showVegetativeDetails(ciclo) {
-            const startDate = parseDateStringAsUTC(ciclo.vegetativeStartDate);
-            if (!startDate) {
-                cicloDetailContent.innerHTML = `<p>Error: No se ha establecido una fecha de inicio para este ciclo vegetativo.</p>`;
-                return;
-            }
-            const now = new Date();
-            const diffTime = Math.abs(now - startDate);
-            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); // Days start at 1
-            const totalWeeksInVeg = Math.max(1, Math.ceil(diffDays / 7));
+            const startDateString = ciclo.vegetativeStartDate;
+            const diffDays = calculateDaysSince(startDateString);
 
             let content = `<div data-ciclo-id="${ciclo.id}"><h2 class="text-3xl font-bold text-white mb-2">${ciclo.name} (Vegetativo)</h2>`;
-            content += `<p class="text-gray-400 mb-6">Inicio de vegetativo: ${startDate.toLocaleDateString()}</p>`;
+            content += `<p class="text-gray-400 mb-6">Inicio de vegetativo: ${startDateString || 'No establecida'}</p>`;
             
             content += renderGeneticsInCiclo(ciclo);
             content += `<div id="weeksContainer" class="space-y-6">`;
 
-            for (let i = 1; i <= totalWeeksInVeg; i++) {
-                const weekStartDate = new Date(startDate);
-                weekStartDate.setDate(startDate.getDate() + (i - 1) * 7);
-                const weekEndDate = new Date(weekStartDate);
-                weekEndDate.setDate(weekStartDate.getDate() + 6);
+            if (diffDays !== null && diffDays > 0) {
+                const totalWeeksInVeg = Math.ceil(diffDays / 7);
+                const startDateObj = parseDateStringAsUTC(startDateString);
 
-                content += `
-                    <div class="card rounded-lg overflow-hidden">
-                        <div class="week-header p-4 flex justify-between items-center flex-wrap gap-2">
-                            <div>
-                                <h4 class="text-xl font-bold text-white">Semana ${i} (Vegetativo)</h4>
-                                <p class="text-sm text-gray-300">${weekStartDate.toLocaleDateString()} - ${weekEndDate.toLocaleDateString()}</p>
+                for (let i = 1; i <= totalWeeksInVeg; i++) {
+                    const weekStartDate = new Date(startDateObj);
+                    weekStartDate.setUTCDate(startDateObj.getUTCDate() + (i - 1) * 7);
+                    const weekEndDate = new Date(weekStartDate);
+                    weekEndDate.setUTCDate(weekStartDate.getUTCDate() + 6);
+
+                    content += `
+                        <div class="card rounded-lg overflow-hidden">
+                            <div class="week-header p-4 flex justify-between items-center flex-wrap gap-2">
+                                <div>
+                                    <h4 class="text-xl font-bold text-white">Semana ${i} (Vegetativo)</h4>
+                                    <p class="text-sm text-gray-300">${weekStartDate.toLocaleDateString()} - ${weekEndDate.toLocaleDateString()}</p>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <button data-action="add-log" data-ciclo-id="${ciclo.id}" data-week="${i}" class="btn-primary py-1.5 px-3 rounded-md text-sm flex items-center gap-1.5">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" /></svg>
+                                        Añadir Registro
+                                    </button>
+                                </div>
                             </div>
-                            <div class="flex items-center gap-2">
-                                <button data-action="add-log" data-ciclo-id="${ciclo.id}" data-week="${i}" class="btn-primary py-1.5 px-3 rounded-md text-sm flex items-center gap-1.5">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" /></svg>
-                                    Añadir Registro
-                                </button>
+                            <div id="logs-week-${i}" class="p-4 space-y-3">
+                                <p class="text-gray-500 italic">No hay registros para esta semana.</p>
                             </div>
                         </div>
-                        <div id="logs-week-${i}" class="p-4 space-y-3">
-                            <p class="text-gray-500 italic">No hay registros para esta semana.</p>
-                        </div>
-                    </div>
-                `;
+                    `;
+                }
+                const weekNumbers = Array.from({length: totalWeeksInVeg}, (_, i) => i + 1);
+                loadLogsForCiclo(ciclo.id, weekNumbers);
             }
 
             content += `</div>`;
@@ -1439,9 +1440,7 @@
             document.querySelectorAll('[data-action="add-log"]').forEach(btn => btn.addEventListener('click', (e) => openLogModal(e.currentTarget.dataset.cicloId, e.currentTarget.dataset.week, 'Riego')));
             document.getElementById('startFloweringFromDetailBtn').addEventListener('click', (e) => startFlowering(e.currentTarget.dataset.cicloId));
             document.getElementById('addGeneticsToCicloBtn').addEventListener('click', (e) => openAddGeneticsToCicloModal(e.currentTarget.dataset.cicloId));
-
-            const weekNumbers = Array.from({length: totalWeeksInVeg}, (_, i) => i + 1);
-            loadLogsForCiclo(ciclo.id, weekNumbers);
+            
             ciclosView.classList.add('hidden');
             cicloDetailView.classList.remove('hidden');
         }
@@ -1465,14 +1464,13 @@
             });
         }
 
-
         function hideCicloDetails() {
             if (logsUnsubscribe) logsUnsubscribe();
             cicloDetailView.classList.add('hidden');
             if (currentSalaId && currentSalaName) {
                 showCiclosView(currentSalaId, currentSalaName);
             } else {
-                hideCiclosView(); // Go back to main salas view
+                hideCiclosView();
             }
         }
         
@@ -1492,8 +1490,7 @@
 
                 const allLogs = snapshot.docs.map(doc => {
                     const data = doc.data();
-                    // Fallback para logs viejos guardados como Timestamps
-                    const logDate = data.date.toDate ? data.date.toDate() : new Date(data.date);
+                    const logDate = data.date && data.date.toDate ? data.date.toDate() : new Date();
                     return { id: doc.id, ...data, date: logDate };
                 });
 
@@ -1554,7 +1551,7 @@
                         <span class="text-xs text-gray-400">${logDate}</span>
                         <span class="text-xs text-gray-300 ml-2">${dayTimeInfo}</span>
                     </div>
-                    <button data-action="delete-log" data-ciclo-id="${log.cicloId}" data-log-id="${log.id}" class="p-1 rounded-md text-gray-500 hover:bg-red-800 hover:text-white transition">
+                    <button data-action="delete-log" data-ciclo-id="${ciclo.id}" data-log-id="${log.id}" class="p-1 rounded-md text-gray-500 hover:bg-red-800 hover:text-white transition">
                          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
                     </button>
                 </div>
@@ -1744,7 +1741,7 @@
             let logsText = "";
             logsSnapshot.forEach(doc => {
                 const log = doc.data();
-                const logDate = log.date.toDate ? log.date.toDate() : new Date(log.date);
+                const logDate = log.date.toDate ? log.date.toDate() : new Date();
                 const dayTime = (log.day && log.time) ? `(${log.day} - ${log.time})` : '';
                 logsText += `Registro del ${logDate.toLocaleString()} ${dayTime}:\n`;
                 logsText += `Tipo: ${log.type}\n`;
