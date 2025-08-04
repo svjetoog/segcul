@@ -143,6 +143,34 @@
         0% { transform: rotate(0deg); }
         100% { transform: rotate(360deg); }
     }
+
+    /* --- Estilo de Notificaciones (Toast) --- */
+    #notification-container {
+        position: fixed;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 200; /* Por encima de todo */
+        display: none; /* Oculto por defecto */
+        padding: 12px 24px;
+        border-radius: 8px;
+        color: white;
+        font-weight: 600;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        animation: fadeInOut 4s ease-in-out;
+    }
+    #notification-container.success {
+        background-color: #22c55e; /* green-500 */
+    }
+    #notification-container.error {
+        background-color: #ef4444; /* red-500 */
+    }
+    @keyframes fadeInOut {
+        0% { opacity: 0; transform: translate(-50%, 20px); }
+        15% { opacity: 1; transform: translate(-50%, 0); }
+        85% { opacity: 1; transform: translate(-50%, 0); }
+        100% { opacity: 0; transform: translate(-50%, 20px); }
+    }
 </style>
 </head>
 <body class="antialiased">
@@ -658,6 +686,7 @@
         </div>
     </div>
 
+    <div id="notification-container"></div>
 
     <script type="module">
         // v0.292b (Hot Fix)
@@ -675,7 +704,7 @@
             messagingSenderId: "995668670252",
             appId: "1:995668670252:web:0aa68d85263ce46354de89"
         };
-        const geminiApiKey = "AIzaSyDWGxN8cv0Id884GJ6cQPVxXwKRXOObwzs"; // NOTE: Replace with your Gemini API Key
+        
         // --- FIN DE LA CONFIGURACIÓN ---
 
         const app = initializeApp(firebaseConfig);
@@ -699,6 +728,25 @@
 
         // --- DOM ELEMENT GETTER ---
         const getEl = (id) => document.getElementById(id);
+
+        let notificationTimeout;
+
+        function showNotification(message, type = 'success') {
+            const container = getEl('notification-container');
+            if (!container) return;
+
+            if (notificationTimeout) {
+                clearTimeout(notificationTimeout);
+            }
+
+            container.textContent = message;
+            container.className = type; // 'success' o 'error'
+            container.style.display = 'block';
+
+            notificationTimeout = setTimeout(() => {
+                container.style.display = 'none';
+            }, 4000); // Se oculta después de 4 segundos
+        }
 
         // --- AUTHENTICATION & VIEW MANAGEMENT ---
         onAuthStateChanged(auth, user => {
@@ -1048,25 +1096,27 @@
                     await addDoc(collection(db, `users/${userId}/salas`), data);
                 }
                 getEl('salaModal').style.display = 'none';
+                showNotification("Sala guardada con éxito.", "success");
             } catch (error) {
                 console.error("Error saving sala:", error);
-                alert("No se pudo guardar la sala.");
+                showNotification("No se pudo guardar la sala.", "error");
             }
         }
 
         function deleteSala(id, name) {
             const ciclosInSala = currentCiclos.filter(c => c.salaId === id);
             if (ciclosInSala.length > 0) {
-                alert(`No se puede eliminar la sala "${name}" porque contiene ciclos. Mueve o elimina los ciclos primero.`);
+                showNotification(`No se puede eliminar la sala "${name}" porque contiene ciclos.`, "error");
                 return;
             }
             
-            showConfirmationModal(`¿Estás seguro de que quieres eliminar la sala "${name}"? Esta acción no se puede deshacer.`, async () => {
+            showConfirmationModal(`¿Estás seguro de que quieres eliminar la sala "${name}"?`, async () => {
                 try {
                     await deleteDoc(doc(db, `users/${userId}/salas`, id));
+                    showNotification("Sala eliminada.", "success");
                 } catch (error) {
                     console.error("Error deleting sala:", error);
-                    alert("No se pudo eliminar la sala.");
+                    showNotification("No se pudo eliminar la sala.", "error");
                 }
             });
         }
@@ -1133,20 +1183,20 @@
             };
 
             if (!data.name || !data.salaId) {
-                alert("El nombre y la sala son obligatorios.");
+                showNotification("El nombre y la sala son obligatorios.", "error");
                 return;
             }
 
             if (data.phase === 'Vegetativo') {
                 data.floweringStartDate = null;
                 if (!data.vegetativeStartDate) {
-                    alert("Debes seleccionar una fecha de inicio para la fase de Vegetativo.");
+                    showNotification("Debes seleccionar una fecha de inicio para Vegetativo.", "error");
                     return;
                 }
             } else { // 'Floración'
                 data.vegetativeStartDate = null;
                 if (!data.floweringStartDate) {
-                    alert("Debes seleccionar una fecha de inicio para la fase de Floración.");
+                    showNotification("Debes seleccionar una fecha de inicio para Floración.", "error");
                     return;
                 }
             }
@@ -1176,14 +1226,15 @@
                     await addDoc(ciclosRef, data);
                 }
                 getEl('cicloModal').style.display = 'none';
+                showNotification("Ciclo guardado con éxito.", "success");
             } catch (error) {
                 console.error("Error al guardar el ciclo: ", error);
-                alert("No se pudo guardar el ciclo. Revisa la consola para más detalles.");
+                showNotification("No se pudo guardar el ciclo.", "error");
             }
         }
 
         function deleteCiclo(cicloId, cicloName) {
-            showConfirmationModal(`¿Estás seguro de que quieres eliminar el ciclo "${cicloName}" y todos sus registros? Esta acción no se puede deshacer.`, async () => {
+            showConfirmationModal(`¿Estás seguro de eliminar el ciclo "${cicloName}"?`, async () => {
                 try {
                     const logsRef = collection(db, `users/${userId}/ciclos/${cicloId}/logs`);
                     const logsSnapshot = await getDocs(logsRef);
@@ -1193,9 +1244,10 @@
 
                     const cicloRef = doc(db, `users/${userId}/ciclos`, cicloId);
                     await deleteDoc(cicloRef);
+                    showNotification("Ciclo eliminado.", "success");
                 } catch (error) {
                     console.error("Error deleting ciclo:", error);
-                    alert("No se pudo eliminar el ciclo.");
+                    showNotification("No se pudo eliminar el ciclo.", "error");
                 }
             });
         }
@@ -1224,6 +1276,7 @@
             const cicloRef = doc(db, `users/${userId}/ciclos`, cicloId);
             await updateDoc(cicloRef, { salaId: newSalaId });
             getEl('moveCicloModal').style.display = 'none';
+            showNotification("Ciclo movido de sala.", "success");
         }
         
         // --- VIEW NAVIGATION ---
@@ -1267,7 +1320,7 @@
             } else if (ciclo.phase === 'Floración') {
                 showFloweringDetails(ciclo);
             } else {
-                alert("Error: El ciclo no tiene una fase válida. Por favor, edítalo.");
+                showNotification("Error: El ciclo no tiene una fase válida. Por favor, edítalo.", "error");
                 hideCicloDetails();
             }
         }
@@ -1372,7 +1425,7 @@
         }
 
         async function startFlowering(cicloId) {
-            showConfirmationModal("¿Estás seguro de que quieres pasar este ciclo a floración? Se establecerá la fecha de hoy como inicio.", async () => {
+            showConfirmationModal("¿Estás seguro de pasar este ciclo a floración?", async () => {
                 const cicloRef = doc(db, `users/${userId}/ciclos`, cicloId);
                 const todayString = new Date().toISOString().split('T')[0];
 
@@ -1383,9 +1436,10 @@
                         vegetativeStartDate: null,
                         floweringWeeks: generateStandardWeeks()
                     });
+                    showNotification("Ciclo pasado a floración.", "success");
                 } catch (error) {
                     console.error("Error starting flowering:", error);
-                    alert("No se pudo iniciar la floración.");
+                    showNotification("No se pudo iniciar la floración.", "error");
                 }
             });
         }
@@ -1704,31 +1758,29 @@
             `;
 
             try {
-                let chatHistory = [{ role: "user", parts: [{ text: prompt }] }];
-                const payload = { contents: chatHistory };
-                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-preview-0514:generateContent?key=${geminiApiKey}`;
-                
-                const response = await fetch(apiUrl, {
+                const functionUrl = "https://generatesummary-zfl5g2a53a-uc.a.run.app";
+
+                const response = await fetch(functionUrl, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
+                    body: JSON.stringify({ prompt: prompt })
                 });
 
                 if (!response.ok) {
-                    throw new Error(`API request failed with status ${response.status}`);
+                    throw new Error(`Cloud Function request failed`);
                 }
 
                 const result = await response.json();
                 
                 if (result.candidates && result.candidates[0].content.parts[0].text) {
                     const text = result.candidates[0].content.parts[0].text;
-                    getEl('aiSummaryContent').innerHTML = text.replace(/\n/g, '<br>'); // Simple markdown conversion
+                    getEl('aiSummaryContent').innerHTML = text.replace(/\n/g, '<br>');
                 } else {
-                    getEl('aiSummaryContent').innerText = "No se pudo obtener una respuesta de la IA. Inténtalo de nuevo.";
+                    getEl('aiSummaryContent').innerText = "No se pudo obtener una respuesta de la IA.";
                 }
             } catch (error) {
-                console.error("Error calling Gemini API:", error);
-                getEl('aiSummaryContent').innerText = "Error al conectar con el servicio de IA. Revisa la consola para más detalles.";
+                console.error("Error calling Cloud Function:", error);
+                getEl('aiSummaryContent').innerText = "Error al conectar con el servicio de IA.";
             }
         }
         
@@ -1956,7 +2008,7 @@
                 quantity: parseInt(getEl('seedQuantity').value)
             };
             if (!data.name || !data.quantity || data.quantity < 1) {
-                alert("Nombre y cantidad son obligatorios.");
+                showNotification("Nombre y cantidad son obligatorios.", "error");
                 return;
             }
             const seedsRef = collection(db, `users/${userId}/seeds`);
@@ -2000,7 +2052,7 @@
             const seed = currentSeeds.find(s => s.id === seedId);
 
             if (!seed || !cicloName || !salaId || quantity > seed.quantity || quantity < 1) {
-                alert("Datos inválidos. Revisa la cantidad y el nombre del ciclo.");
+                showNotification("Datos inválidos. Revisa la cantidad y el nombre del ciclo.", "error");
                 return;
             }
 
@@ -2054,20 +2106,20 @@
                 geneticId = getEl('addFromStockGenetic').value;
                 const genetic = currentGenetics.find(g => g.id === geneticId);
                 if (!genetic) {
-                    alert("Selecciona una genética válida.");
+                    showNotification("Selecciona una genética válida.", "error");
                     return;
                 }
                 geneticName = genetic.name;
                 quantity = parseInt(getEl('addFromStockQuantity').value);
                 if (!quantity || quantity <= 0 || quantity > genetic.cloneStock) {
-                    alert("Cantidad inválida o excede el stock.");
+                    showNotification("Cantidad inválida o excede el stock.", "error");
                     return;
                 }
             } else { // new
                 geneticName = getEl('addNewGeneticName').value.trim();
                 quantity = parseInt(getEl('addNewGeneticQuantity').value);
                 if (!geneticName || !quantity || quantity <= 0) {
-                    alert("Nombre y cantidad son obligatorios.");
+                    showNotification("Nombre y cantidad son obligatorios.", "error");
                     return;
                 }
             }
@@ -2114,27 +2166,27 @@
             e.preventDefault();
             const newPassword = getEl('newPassword').value;
             if (newPassword.length < 6) {
-                alert("La nueva contraseña debe tener al menos 6 caracteres.");
+                showNotification("La nueva contraseña debe tener al menos 6 caracteres.", "error");
                 return;
             }
             try {
                 await updatePassword(auth.currentUser, newPassword);
-                alert("Contraseña actualizada con éxito.");
+                showNotification("Contraseña actualizada con éxito.", "success");
                 getEl('changePasswordForm').reset();
             } catch (error) {
                 console.error("Error updating password:", error);
-                alert("Error al actualizar la contraseña. Es posible que necesites volver a iniciar sesión.");
+                showNotification("Error al actualizar la contraseña.", "error");
             }
         }
 
         function handleDeleteAccount() {
-            showConfirmationModal("Esta acción es irreversible y borrará tu cuenta y todos tus datos. ¿Estás seguro?", async () => {
+            showConfirmationModal("Esta acción es irreversible. ¿Estás seguro?", async () => {
                 try {
                     await deleteUser(auth.currentUser);
-                    alert("Cuenta eliminada con éxito.");
+                    showNotification("Cuenta eliminada con éxito.", "success");
                 } catch (error) {
                     console.error("Error deleting account:", error);
-                    alert("Error al eliminar la cuenta. Es posible que necesites volver a iniciar sesión.");
+                    showNotification("Error al eliminar la cuenta.", "error");
                 }
             });
         }
