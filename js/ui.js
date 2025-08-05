@@ -37,9 +37,6 @@ export function showNotification(message, type = 'success') {
     }, 4000);
 }
 
-
-// --- DYNAMIC CONTENT RENDERERS ---
-
 function createModalHTML(id, title, formId, content, submitText, cancelId, submitId = "submitBtn") {
     return `
         <div class="w-11/12 md:w-full max-w-lg p-6 rounded-lg shadow-lg overflow-y-auto max-h-screen">
@@ -59,7 +56,7 @@ export function openSalaModal(sala = null) {
     const title = sala ? 'Editar Sala' : 'Añadir Sala';
     const content = `
         <div>
-            <label for="sala-name" class="block text-sm font-medium text-gray-300 mb-1">Nombre de la Sala</label>
+            <label for="sala-name" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Nombre de la Sala</label>
             <input type="text" id="sala-name" required class="w-full p-2 rounded-md" value="${sala ? sala.name : ''}">
         </div>
     `;
@@ -70,7 +67,6 @@ export function openSalaModal(sala = null) {
     modal.style.display = 'flex';
 }
 
-// CAMBIO: La función ahora acepta un ID de sala pre-seleccionada para la "Acción Rápida"
 export function openCicloModal(ciclo = null, salas = [], preselectedSalaId = null) {
     const title = ciclo ? 'Editar Ciclo' : 'Añadir Ciclo';
     const salaOptions = salas.length > 0
@@ -80,16 +76,16 @@ export function openCicloModal(ciclo = null, salas = [], preselectedSalaId = nul
     const content = `
         <div class="space-y-4">
             <div>
-                <label for="ciclo-name" class="block text-sm font-medium text-gray-300 mb-1">Nombre del Ciclo</label>
+                <label for="ciclo-name" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Nombre del Ciclo</label>
                 <input type="text" id="ciclo-name" required class="w-full p-2 rounded-md" value="${ciclo ? ciclo.name : ''}">
             </div>
             <div>
-                <label for="ciclo-sala-select" class="block text-sm font-medium text-gray-300 mb-1">Sala</label>
+                <label for="ciclo-sala-select" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Sala</label>
                 <select id="ciclo-sala-select" required class="w-full p-2 rounded-md">${salaOptions}</select>
             </div>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                    <label for="cicloPhase" class="block text-sm font-medium text-gray-300 mb-1">Fase Inicial</label>
+                    <label for="cicloPhase" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Fase Inicial</label>
                     <select id="cicloPhase" class="w-full p-2 rounded-md">
                         <option value="Vegetativo" ${ciclo && ciclo.phase === 'Vegetativo' ? 'selected' : ''}>Vegetativo</option>
                         <option value="Floración" ${ciclo && ciclo.phase === 'Floración' ? 'selected' : ''}>Floración</option>
@@ -97,7 +93,7 @@ export function openCicloModal(ciclo = null, salas = [], preselectedSalaId = nul
                     </select>
                 </div>
                 <div>
-                    <label for="cultivationType" class="block text-sm font-medium text-gray-300 mb-1">Tipo de Cultivo</label>
+                    <label for="cultivationType" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Tipo de Cultivo</label>
                     <select id="cultivationType" class="w-full p-2 rounded-md">
                         <option value="Sustrato" ${ciclo && ciclo.cultivationType === 'Sustrato' ? 'selected' : ''}>Sustrato</option>
                         <option value="Hidroponia" ${ciclo && ciclo.cultivationType === 'Hidroponia' ? 'selected' : ''}>Hidroponia</option>
@@ -105,15 +101,15 @@ export function openCicloModal(ciclo = null, salas = [], preselectedSalaId = nul
                 </div>
             </div>
             <div id="vegetativeDateContainer" class="${(ciclo && ciclo.phase === 'Vegetativo') || !ciclo ? '' : 'hidden'}">
-                <label for="vegetativeStartDate" class="block text-sm font-medium text-gray-300 mb-1">Fecha Inicio Vegetativo</label>
+                <label for="vegetativeStartDate" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Fecha Inicio Vegetativo</label>
                 <input type="date" id="vegetativeStartDate" class="w-full p-2 rounded-md" value="${ciclo ? ciclo.vegetativeStartDate : ''}">
             </div>
             <div id="floweringDateContainer" class="${ciclo && ciclo.phase === 'Floración' ? '' : 'hidden'}">
-                <label for="floweringStartDate" class="block text-sm font-medium text-gray-300 mb-1">Fecha Inicio Floración (12/12)</label>
+                <label for="floweringStartDate" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Fecha Inicio Floración (12/12)</label>
                 <input type="date" id="floweringStartDate" class="w-full p-2 rounded-md" value="${ciclo ? ciclo.floweringStartDate : ''}">
             </div>
              <div>
-                <label for="ciclo-notes" class="block text-sm font-medium text-gray-300 mb-1">Notas</label>
+                <label for="ciclo-notes" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Notas</label>
                 <textarea id="ciclo-notes" rows="3" class="w-full p-2 rounded-md">${ciclo ? ciclo.notes : ''}</textarea>
             </div>
         </div>
@@ -132,7 +128,7 @@ export function openLogModal(ciclo, week, log = null) {
     const content = `
         <div class="space-y-4">
             <div>
-                <label for="logType" class="block text-sm font-medium text-gray-300 mb-1">Tipo de Registro</label>
+                <label for="logType" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Tipo de Registro</label>
                 <select id="logType" class="w-full p-2 rounded-md">
                     <option value="Riego">${ciclo.cultivationType === 'Hidroponia' ? 'Control de Solución' : 'Riego'}</option>
                     ${ciclo.cultivationType === 'Hidroponia' ? '<option value="Cambio de Solución">Cambio de Solución</option>' : ''}
@@ -140,11 +136,14 @@ export function openLogModal(ciclo, week, log = null) {
                     <option value="Podas">Podas</option>
                 </select>
             </div>
+
             <div id="log-fields-container"></div>
+
             <div id="plagasFields" class="hidden">
                 <label for="plagas-notes">Notas / Producto Aplicado</label>
                 <textarea id="plagas-notes" rows="3" class="w-full p-2 rounded-md"></textarea>
             </div>
+
             <div id="podasFields" class="hidden">
                  <label for="podaType">Tipo de Poda</label>
                  <select id="podaType" class="w-full p-2 rounded-md">
@@ -191,7 +190,10 @@ export function openLogModal(ciclo, week, log = null) {
     logTypeSelect.addEventListener('change', toggleLogFields);
     toggleLogFields();
 
-    getEl('podaType').addEventListener('change', () => getEl('clonesSection').style.display = getEl('podaType').value === 'Clones' ? 'block' : 'none');
+    const podaTypeSelect = getEl('podaType');
+    if (podaTypeSelect) {
+        podaTypeSelect.addEventListener('change', () => getEl('clonesSection').style.display = getEl('podaType').value === 'Clones' ? 'block' : 'none');
+    }
 
     modal.style.display = 'flex';
 }
@@ -199,7 +201,7 @@ export function openLogModal(ciclo, week, log = null) {
 function getRiegoHTML(type, lineOptions) {
     const litrosField = type === 'Cambio de Solución' ? `
         <div>
-            <label for="log-litros">Litros Totales</label>
+            <label for="log-litros" class="text-gray-700 dark:text-gray-300">Litros Totales</label>
             <input type="number" step="0.1" id="log-litros" class="w-full p-2 rounded-md">
         </div>
     ` : '';
@@ -207,20 +209,20 @@ function getRiegoHTML(type, lineOptions) {
     return `
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-                <label for="log-ph">pH</label>
+                <label for="log-ph" class="text-gray-700 dark:text-gray-300">pH</label>
                 <input type="number" step="0.1" id="log-ph" class="w-full p-2 rounded-md">
             </div>
             <div>
-                <label for="log-ec">EC</label>
+                <label for="log-ec" class="text-gray-700 dark:text-gray-300">EC</label>
                 <input type="number" step="0.1" id="log-ec" class="w-full p-2 rounded-md">
             </div>
             ${litrosField}
         </div>
-        <fieldset class="mt-4 border border-gray-600 p-3 rounded-md">
-            <legend class="px-2 text-sm font-medium">Fertilizantes</legend>
+        <fieldset class="mt-4 border border-gray-300 dark:border-gray-600 p-3 rounded-md">
+            <legend class="px-2 text-sm font-medium text-gray-700 dark:text-gray-300">Fertilizantes</legend>
             <div class="space-y-4">
                 <div>
-                    <label for="fert-line-select" class="block text-sm font-medium text-gray-300 mb-1">Línea de Fertilizantes</label>
+                    <label for="fert-line-select" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Línea de Fertilizantes</label>
                     <select id="fert-line-select" class="w-full p-2 rounded-md">${lineOptions}</select>
                 </div>
                 <div id="fertilizer-products-container" class="space-y-3"></div>
@@ -259,7 +261,7 @@ function renderFertilizerProducts(lineName) {
             const productRow = document.createElement('div');
             productRow.className = 'grid grid-cols-3 gap-2 items-center product-row';
             productRow.innerHTML = `
-                <label class="text-gray-300 col-span-1">${productName}</label>
+                <label class="text-gray-700 dark:text-gray-300 col-span-1">${productName}</label>
                 <input type="number" step="0.1" placeholder="Dosis" data-product-name="${productName}" class="p-2 rounded-md col-span-1 fert-dose">
                 <select class="p-2 rounded-md col-span-1 fert-unit">
                     <option>ml/L</option><option>gr/L</option><option>ml</option><option>gr</option>
@@ -277,7 +279,7 @@ export function openMoveCicloModal(ciclo, salas) {
         .map(s => `<option value="${s.id}">${s.name}</option>`).join('');
     
     const content = `
-        <p class="mb-4">Selecciona la sala de destino:</p>
+        <p class="mb-4 text-gray-700 dark:text-gray-300">Selecciona la sala de destino:</p>
         <select id="move-ciclo-sala-select" class="w-full p-2 rounded-md">
             ${salaOptions.length > 0 ? salaOptions : '<option disabled>No hay otras salas</option>'}
         </select>
@@ -293,8 +295,8 @@ export function openMoveCicloModal(ciclo, salas) {
 export function openGerminateModal(seed) {
      const title = `Germinar "${seed.name}"`;
      const content = `
-        <p class="mb-1">Disponibles: ${seed.quantity}</p>
-        <label for="germinate-quantity" class="block text-sm font-medium text-gray-300 mb-1">Cantidad a germinar</label>
+        <p class="mb-1 text-gray-700 dark:text-gray-300">Disponibles: ${seed.quantity}</p>
+        <label for="germinate-quantity" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Cantidad a germinar</label>
         <input type="number" id="germinate-quantity" min="1" max="${seed.quantity}" required class="w-full p-2 rounded-md" value="1">
      `;
      const modal = getEl('germinateSeedModal');
@@ -305,7 +307,7 @@ export function openGerminateModal(seed) {
 }
 
 export function renderCicloDetails(ciclo, handlers) {
-    let weeksHTML = '<p class="text-gray-500">Este ciclo no tiene seguimiento por semanas (es vegetativo o finalizado).</p>';
+    let weeksHTML = '<p class="text-gray-500 dark:text-gray-400">Este ciclo no tiene seguimiento por semanas (es vegetativo o finalizado).</p>';
 
     if (ciclo.phase === 'Floración' && ciclo.floweringWeeks) {
         ciclo.floweringWeeks.sort((a, b) => a.weekNumber - b.weekNumber);
@@ -315,10 +317,10 @@ export function renderCicloDetails(ciclo, handlers) {
             return `
                 <div class="mb-4">
                     <div class="week-header p-3 rounded-t-lg flex justify-between items-center cursor-pointer" onclick="this.nextElementSibling.classList.toggle('hidden')">
-                        <h4 class="font-bold text-lg">Semana ${week.weekNumber} <span class="text-sm font-normal px-2 py-1 rounded-full ${phaseInfo.color}">${phaseInfo.name}</span></h4>
+                        <h4 class="font-bold text-lg text-gray-900 dark:text-white">Semana ${week.weekNumber} <span class="text-sm font-normal px-2 py-1 rounded-full ${phaseInfo.color}">${phaseInfo.name}</span></h4>
                         <button class="btn-primary btn-base text-xs py-1 px-2 rounded-md add-log-for-week-btn" data-week='${JSON.stringify(week)}'>+ Registro</button>
                     </div>
-                    <div class="p-4 bg-[#262626] rounded-b-lg space-y-3" id="logs-week-${week.weekNumber}"></div>
+                    <div class="p-4 bg-white dark:bg-[#262626] rounded-b-lg space-y-3" id="logs-week-${week.weekNumber}"></div>
                 </div>
             `;
         }).join('');
@@ -334,8 +336,8 @@ export function renderCicloDetails(ciclo, handlers) {
         <div data-ciclo-id="${ciclo.id}">
              <header class="flex justify-between items-start mb-6">
                 <div>
-                    <h2 class="text-3xl font-bold text-white font-mono tracking-wider">${ciclo.name}</h2>
-                    <p class="text-gray-400">${statusText}</p>
+                    <h2 class="text-3xl font-bold text-amber-400 font-mono tracking-wider">${ciclo.name}</h2>
+                    <p class="text-gray-500 dark:text-gray-400">${statusText}</p>
                 </div>
                 <button id="backToCiclosBtn" class="btn-secondary btn-base py-2 px-4 rounded-lg">Volver</button>
             </header>
@@ -361,14 +363,14 @@ export function renderCicloDetails(ciclo, handlers) {
 export function renderToolsView() {
     return `
         <header class="flex justify-between items-center mb-8">
-            <h1 class="text-3xl font-bold text-white font-mono tracking-wider">Herramientas</h1>
+            <h1 class="text-3xl font-bold text-amber-400 font-mono tracking-wider">Herramientas</h1>
             <button id="backToPanelBtn" class="btn-secondary btn-base py-2 px-4 rounded-lg">Volver al Panel</button>
         </header>
-        <div class="mb-6 border-b border-gray-700">
+        <div class="mb-6 border-b border-gray-300 dark:border-gray-700">
             <nav class="flex space-x-4 sm:space-x-8 overflow-x-auto" aria-label="Tabs">
-                <button id="geneticsTabBtn" class="py-4 px-1 border-b-2 font-medium text-lg text-gray-300 hover:text-white hover:border-gray-300 whitespace-nowrap btn-base">Genéticas</button>
-                <button id="stockTabBtn" class="py-4 px-1 border-b-2 font-medium text-lg text-gray-300 hover:text-white hover:border-gray-300 whitespace-nowrap btn-base">Stock Clones</button>
-                <button id="baulSemillasTabBtn" class="py-4 px-1 border-b-2 font-medium text-lg text-gray-300 hover:text-white hover:border-gray-300 whitespace-nowrap btn-base">Baúl de Semillas</button>
+                <button id="geneticsTabBtn" class="py-4 px-1 border-b-2 font-medium text-lg text-gray-500 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:border-gray-400 dark:hover:border-gray-300 whitespace-nowrap btn-base">Genéticas</button>
+                <button id="stockTabBtn" class="py-4 px-1 border-b-2 font-medium text-lg text-gray-500 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:border-gray-400 dark:hover:border-gray-300 whitespace-nowrap btn-base">Stock Clones</button>
+                <button id="baulSemillasTabBtn" class="py-4 px-1 border-b-2 font-medium text-lg text-gray-500 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:border-gray-400 dark:hover:border-gray-300 whitespace-nowrap btn-base">Baúl de Semillas</button>
             </nav>
         </div>
         <div class="my-4">
@@ -413,10 +415,17 @@ export function renderToolsView() {
 export function renderSettingsView() {
     return `
         <header class="flex justify-between items-center mb-8">
-            <h1 class="text-3xl font-bold text-white font-mono tracking-wider">Ajustes</h1>
+            <h1 class="text-3xl font-bold text-amber-400 font-mono tracking-wider">Ajustes</h1>
             <button id="backToPanelFromSettingsBtn" class="btn-secondary btn-base py-2 px-4 rounded-lg">Volver al Panel</button>
         </header>
         <div class="max-w-2xl mx-auto space-y-8">
+            <div class="card p-6">
+                <h2 class="text-xl font-bold text-amber-400 mb-4">Apariencia</h2>
+                <div class="flex justify-between items-center">
+                    <span class="text-gray-700 dark:text-gray-300">Tema de la aplicación</span>
+                    <button id="theme-toggle" class="btn-secondary btn-base p-2 rounded-full"></button>
+                </div>
+            </div>
             <div class="card p-6">
                 <h2 class="text-xl font-bold text-amber-400 mb-4">Cambiar Contraseña</h2>
                 <form id="changePasswordForm" class="space-y-4">
@@ -425,9 +434,9 @@ export function renderSettingsView() {
                     <button type="submit" class="btn-primary btn-base py-2 px-4 rounded-lg">Cambiar Contraseña</button>
                 </form>
             </div>
-            <div class="card p-6 border-red-500">
-                <h2 class="text-xl font-bold text-red-400 mb-4">Zona de Peligro</h2>
-                <p class="text-gray-400 mb-4">Esta acción no se puede deshacer. Perderás todos tus datos de cultivo.</p>
+            <div class="card p-6 border-red-500 dark:border-red-500">
+                <h2 class="text-xl font-bold text-red-500 dark:text-red-400 mb-4">Zona de Peligro</h2>
+                <p class="text-gray-500 dark:text-gray-400 mb-4">Esta acción no se puede deshacer. Perderás todos tus datos de cultivo.</p>
                 <button id="deleteAccountBtn" class="btn-danger btn-base py-2 px-4 rounded-lg">Eliminar mi Cuenta</button>
             </div>
         </div>
@@ -447,19 +456,19 @@ export function createCicloCard(ciclo, handlers) {
         if (diffDays !== null && diffDays > 0) {
             const currentWeek = Math.floor((diffDays - 1) / 7) + 1;
             const totalWeeks = ciclo.floweringWeeks ? ciclo.floweringWeeks.length : 10;
-            statusInfo = `<p class="text-sm text-gray-300 mt-1">Día ${diffDays} (Semana ${currentWeek} / ${totalWeeks})</p>`;
+            statusInfo = `<p class="text-sm text-gray-500 dark:text-gray-300 mt-1">Día ${diffDays} (Semana ${currentWeek} / ${totalWeeks})</p>`;
         }
     } else if (ciclo.phase === 'Vegetativo') {
         const diffDays = handlers.calculateDaysSince(ciclo.vegetativeStartDate);
         if (diffDays !== null && diffDays > 0) {
             const currentWeek = Math.floor((diffDays - 1) / 7) + 1;
-            statusInfo = `<p class="text-sm text-gray-300 mt-1">Día ${diffDays} (Semana ${currentWeek}) de vegetativo</p>`;
+            statusInfo = `<p class="text-sm text-gray-500 dark:text-gray-300 mt-1">Día ${diffDays} (Semana ${currentWeek}) de vegetativo</p>`;
         }
     }
     card.innerHTML = `
         <div>
             <div class="flex justify-between items-start">
-                <h3 class="text-xl font-bold text-white">${ciclo.name}</h3>
+                <h3 class="text-xl font-bold text-amber-400">${ciclo.name}</h3>
                 <div class="flex flex-col items-end gap-2">
                    <span class="text-xs font-semibold px-2.5 py-1 rounded-full ${phaseColor} text-white">${phaseText}</span>
                    <span class="text-xs font-semibold px-2.5 py-1 rounded-full ${typeColor} text-white">${typeText}</span>
@@ -494,39 +503,36 @@ export function createLogEntry(log, ciclo, handlers) {
     const entry = document.createElement('div');
     const logDate = log.date.toLocaleString('es-AR', { dateStyle: 'short', timeStyle: 'short'});
     let details = '';
-    let borderColor = 'border-amber-500';
+    let borderColorClass = 'border-amber-500';
     if (log.type === 'Riego' || log.type === 'Cambio de Solución') {
         const title = log.type === 'Cambio de Solución' ? 'Cambio de Solución' : (ciclo.cultivationType === 'Hidroponia' ? 'Control de Solución' : 'Riego');
         const color = log.type === 'Cambio de Solución' ? 'text-blue-400' : 'text-amber-400';
         details = `<p class="font-semibold ${color}">${title}</p>
-                     <div class="text-sm text-gray-300 mt-1 grid grid-cols-2 gap-x-4 gap-y-1">
+                     <div class="text-sm text-gray-500 dark:text-gray-300 mt-1 grid grid-cols-2 gap-x-4 gap-y-1">
                          ${log.litros ? `<span><strong>Litros:</strong> ${log.litros}</span>` : ''}
                          <span><strong>pH:</strong> ${log.ph || 'N/A'}</span>
                          <span><strong>EC:</strong> ${log.ec || 'N/A'}</span>
                      </div>
-                     <div class="text-sm text-gray-300 mt-2"><strong>Fertilizantes:</strong> ${handlers.formatFertilizers(log.fertilizers)}</div>`;
-        borderColor = log.type === 'Cambio de Solución' ? 'border-blue-400' : 'border-amber-500';
+                     <div class="text-sm text-gray-500 dark:text-gray-300 mt-2"><strong>Fertilizantes:</strong> ${handlers.formatFertilizers(log.fertilizers)}</div>`;
+        borderColorClass = log.type === 'Cambio de Solución' ? 'border-blue-400' : 'border-amber-500';
 
     } else if (log.type === 'Control de Plagas') {
-        borderColor = 'border-yellow-400';
+        borderColorClass = 'border-yellow-400';
         details = `<p class="font-semibold text-yellow-400">Control de Plagas</p>
-                   <p class="text-sm text-gray-300 mt-1 whitespace-pre-wrap">${log.notes || 'Sin notas.'}</p>`;
+                   <p class="text-sm text-gray-500 dark:text-gray-300 mt-1 whitespace-pre-wrap">${log.notes || 'Sin notas.'}</p>`;
     } else if (log.type === 'Podas') {
-        borderColor = 'border-green-400';
+        borderColorClass = 'border-green-400';
         details = `<p class="font-semibold text-green-400">Poda: ${log.podaType || ''}</p>`;
-        if(log.clonesCount) details += `<p class="text-sm text-gray-300">Se sacaron ${log.clonesCount} clones.</p>`;
+        if(log.clonesCount) details += `<p class="text-sm text-gray-500 dark:text-gray-300">Se sacaron ${log.clonesCount} clones.</p>`;
     }
-    entry.className = `log-entry p-3 rounded-md`;
-    entry.style.borderLeftColor = borderColor.replace('border-', '#'); // Workaround for dynamic border colors with Tailwind
-    entry.classList.add(borderColor);
-
+    entry.className = `log-entry p-3 rounded-md ${borderColorClass}`;
 
     entry.innerHTML = `
         <div class="flex justify-between items-center">
             <div>
-                <span class="text-xs text-gray-400">${logDate}</span>
+                <span class="text-xs text-gray-400 dark:text-gray-400">${logDate}</span>
             </div>
-            <button data-action="delete-log" data-ciclo-id="${ciclo.id}" data-log-id="${log.id}" class="p-1 rounded-md text-gray-500 hover:bg-red-800 hover:text-white btn-base" title="Eliminar registro">
+            <button data-action="delete-log" data-ciclo-id="${ciclo.id}" data-log-id="${log.id}" class="p-1 rounded-md text-gray-500 dark:text-gray-500 hover:bg-red-800 hover:text-white btn-base" title="Eliminar registro">
                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>
             </button>
         </div>
@@ -574,7 +580,7 @@ export function renderSalasGrid(salas, ciclos, handlers) {
             }).join('');
             ciclosPreviewHTML = `<div class="ciclos-list">${listHTML}</div>`;
         } else {
-            ciclosPreviewHTML = '<p class="text-sm text-gray-500">Sala vacía</p>';
+            ciclosPreviewHTML = '<p class="text-sm text-gray-500 dark:text-gray-400">Sala vacía</p>';
         }
 
         salaCard.innerHTML = `
@@ -584,8 +590,8 @@ export function renderSalasGrid(salas, ciclos, handlers) {
                 </button>
             </div>
             <div class="flex-grow flex flex-col cursor-pointer" data-action="open-sala">
-                <h3 class="text-2xl font-bold text-white">${sala.name}</h3>
-                <p class="text-gray-400 mb-4">${activeCiclos.length} ciclo(s) activo(s)</p>
+                <h3 class="text-2xl font-bold text-amber-400">${sala.name}</h3>
+                <p class="text-gray-500 dark:text-gray-400 mb-4">${activeCiclos.length} ciclo(s) activo(s)</p>
                 <div class="flex-grow relative overflow-y-auto">${ciclosPreviewHTML}</div>
             </div>
             <div class="flex justify-end gap-2 mt-4 flex-wrap">
@@ -621,7 +627,7 @@ export function renderGeneticsList(genetics, handlers) {
     if (!geneticsList) return;
     geneticsList.innerHTML = '';
     if (genetics.length === 0) {
-        geneticsList.innerHTML = `<p class="text-center text-gray-500">No hay genéticas que coincidan con la búsqueda.</p>`;
+        geneticsList.innerHTML = `<p class="text-center text-gray-500 dark:text-gray-400">No hay genéticas que coincidan con la búsqueda.</p>`;
         return;
     }
     genetics.forEach(g => {
@@ -629,8 +635,8 @@ export function renderGeneticsList(genetics, handlers) {
         geneticCard.className = 'card p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center';
         geneticCard.innerHTML = `
             <div class="mb-3 sm:mb-0">
-                <p class="font-bold text-lg flex items-center gap-2">${g.name}</p>
-                <p class="text-sm text-gray-400">${g.parents || 'Sin padres definidos'} | ${g.bank || 'Sin banco'} | ${g.owner || 'Sin dueño'}</p>
+                <p class="font-bold text-lg text-amber-400 flex items-center gap-2">${g.name}</p>
+                <p class="text-sm text-gray-500 dark:text-gray-400">${g.parents || 'Sin padres definidos'} | ${g.bank || 'Sin banco'} | ${g.owner || 'Sin dueño'}</p>
             </div>
             <div class="flex gap-2 flex-wrap">
                 <button data-action="edit-genetic" data-id="${g.id}" class="btn-secondary btn-base p-2 rounded-lg" title="Editar">
@@ -652,7 +658,7 @@ export function renderStockList(genetics, handlers) {
     if (!stockList) return;
     stockList.innerHTML = '';
     if (genetics.length === 0) {
-        stockList.innerHTML = `<p class="text-center text-gray-500">Añade genéticas para ver el stock.</p>`;
+        stockList.innerHTML = `<p class="text-center text-gray-500 dark:text-gray-400">Añade genéticas para ver el stock.</p>`;
         return;
     }
     genetics.forEach(g => {
@@ -660,8 +666,8 @@ export function renderStockList(genetics, handlers) {
         stockCard.className = 'card p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center';
         stockCard.innerHTML = `
             <div class="mb-3 sm:mb-0">
-                <p class="font-bold text-lg">${g.name}</p>
-                <p class="text-sm text-gray-400">Clones en stock: <span class="font-bold text-xl text-amber-400">${g.cloneStock || 0}</span></p>
+                <p class="font-bold text-lg text-amber-400">${g.name}</p>
+                <p class="text-sm text-gray-500 dark:text-gray-400">Clones en stock: <span class="font-bold text-xl text-amber-400">${g.cloneStock || 0}</span></p>
             </div>
             <div class="flex items-center gap-2">
                 <button data-action="update-stock" data-id="${g.id}" data-amount="-1" class="btn-secondary btn-base rounded-full w-10 h-10 flex items-center justify-center text-2xl">-</button>
@@ -678,7 +684,7 @@ export function renderBaulSemillasList(seeds, handlers) {
     if (!baulSemillasList) return;
     baulSemillasList.innerHTML = '';
     if (seeds.length === 0) {
-        baulSemillasList.innerHTML = `<p class="text-center text-gray-500">No hay semillas que coincidan con la búsqueda.</p>`;
+        baulSemillasList.innerHTML = `<p class="text-center text-gray-500 dark:text-gray-400">No hay semillas que coincidan con la búsqueda.</p>`;
         return;
     }
     seeds.forEach(s => {
@@ -686,9 +692,9 @@ export function renderBaulSemillasList(seeds, handlers) {
         seedCard.className = 'card p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center';
         seedCard.innerHTML = `
             <div class="mb-3 sm:mb-0">
-                <p class="font-bold text-lg">${s.name}</p>
-                <p class="text-sm text-gray-400">${s.bank || 'Banco Desconocido'}</p>
-                <p class="text-sm text-gray-400">Cantidad: <span class="font-bold text-amber-400">${s.quantity || 0}</span></p>
+                <p class="font-bold text-lg text-amber-400">${s.name}</p>
+                <p class="text-sm text-gray-500 dark:text-gray-400">${s.bank || 'Banco Desconocido'}</p>
+                <p class="text-sm text-gray-500 dark:text-gray-400">Cantidad: <span class="font-bold text-amber-400">${s.quantity || 0}</span></p>
             </div>
             <div class="flex gap-2 flex-wrap">
                 <button data-action="germinate-seed" data-id="${s.id}" class="btn-primary btn-base py-2 px-4 rounded-lg text-sm" ${s.quantity > 0 ? '' : 'disabled'}>Germinar</button>
@@ -747,14 +753,14 @@ export function initializeEventListeners(handlers) {
     getEl('backToSalasBtn').addEventListener('click', handlers.hideCiclosView);
 
     document.body.addEventListener('click', (e) => {
-        if (e.target.id === 'cancelSalaBtn') getEl('salaModal').style.display = 'none';
-        if (e.target.id === 'cancelCicloBtn') getEl('cicloModal').style.display = 'none';
-        if (e.target.id === 'cancelLogBtn') getEl('logModal').style.display = 'none';
-        if (e.target.id === 'cancelMoveCicloBtn') getEl('moveCicloModal').style.display = 'none';
-        if (e.target.id === 'cancelGerminateBtn') getEl('germinateSeedModal').style.display = 'none';
-        if (e.target.id === 'closeAboutBtn') getEl('aboutModal').style.display = 'none';
-        if (e.target.id === 'cancelActionBtn') handlers.hideConfirmationModal();
-        if (e.target.id === 'confirmActionBtn') {
+        if (e.target.closest('#cancelSalaBtn')) getEl('salaModal').style.display = 'none';
+        if (e.target.closest('#cancelCicloBtn')) getEl('cicloModal').style.display = 'none';
+        if (e.target.closest('#cancelLogBtn')) getEl('logModal').style.display = 'none';
+        if (e.target.closest('#cancelMoveCicloBtn')) getEl('moveCicloModal').style.display = 'none';
+        if (e.target.closest('#cancelGerminateBtn')) getEl('germinateSeedModal').style.display = 'none';
+        if (e.target.closest('#closeAboutBtn')) getEl('aboutModal').style.display = 'none';
+        if (e.target.closest('#cancelActionBtn')) handlers.hideConfirmationModal();
+        if (e.target.closest('#confirmActionBtn')) {
              if (handlers.getConfirmCallback()) handlers.getConfirmCallback()();
              handlers.hideConfirmationModal();
         }

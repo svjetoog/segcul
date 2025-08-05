@@ -21,7 +21,7 @@ let salasUnsubscribe = null, ciclosUnsubscribe = null, logsUnsubscribe = null, g
 let currentSalas = [], currentCiclos = [], currentGenetics = [], currentSeeds = [];
 let currentSalaId = null, currentSalaName = null;
 let confirmCallback = null;
-let activeToolsTab = 'genetics'; // Para saber qué filtrar en la vista de herramientas
+let activeToolsTab = 'genetics';
 
 // --- 1. FUNCTION DEFINITIONS (LOGIC & DATA) ---
 
@@ -89,7 +89,6 @@ function formatFertilizers(fertilizers) {
     }
     return 'Ninguno';
 }
-
 
 function loadSalas() {
     if (!userId) return;
@@ -185,11 +184,7 @@ function loadLogsForCiclo(cicloId, weekNumbers) {
     });
 }
 
-
-// --- 2. HANDLERS OBJECT DEFINITION ---
-
 const handlers = {
-    // --- AUTH ---
     signOut: () => signOut(auth),
     handleLogin: (email, password) => {
         signInWithEmailAndPassword(auth, email, password)
@@ -205,14 +200,10 @@ const handlers = {
                 getEl('authError').classList.remove('hidden');
             });
     },
-
-    // --- HELPERS & UTILS ---
     calculateDaysSince,
     getPhaseInfo,
     formatFertilizers,
     getConfirmCallback: () => confirmCallback,
-
-    // --- CONFIRMATION MODAL ---
     hideConfirmationModal: () => {
         getEl('confirmationModal').style.display = 'none';
         confirmCallback = null;
@@ -222,8 +213,6 @@ const handlers = {
         confirmCallback = onConfirm;
         getEl('confirmationModal').style.display = 'flex';
     },
-
-    // --- SALAS ---
     openSalaModal: (sala = null) => {
         uiOpenSalaModal(sala);
     },
@@ -268,8 +257,6 @@ const handlers = {
             }
         });
     },
-
-    // --- CICLOS ---
     openCicloModal: (ciclo = null, preselectedSalaId = null) => {
         uiOpenCicloModal(ciclo, currentSalas, preselectedSalaId);
     },
@@ -327,8 +314,6 @@ const handlers = {
             }
         });
     },
-
-    // --- VIEW MANAGEMENT ---
     showCiclosView: (salaId, salaName) => {
         currentSalaId = salaId;
         currentSalaName = salaName;
@@ -393,7 +378,6 @@ const handlers = {
         toolsView.classList.add('view-container');
         
         handlers.switchToolsTab('genetics'); 
-        
         handlers.handleToolsSearch({ target: { value: '' } });
         
         getEl('backToPanelBtn').addEventListener('click', handlers.hideToolsView);
@@ -420,6 +404,7 @@ const handlers = {
         getEl('backToPanelFromSettingsBtn').addEventListener('click', handlers.hideSettingsView);
         getEl('changePasswordForm').addEventListener('submit', handlers.handleChangePassword);
         getEl('deleteAccountBtn').addEventListener('click', handlers.handleDeleteAccount);
+        handlers.initializeTheme();
     },
     hideSettingsView: () => {
         const view = getEl('settingsView');
@@ -436,8 +421,6 @@ const handlers = {
             }
         });
     },
-    
-    // --- TOOLS ---
     switchToolsTab: (activeTab) => {
         activeToolsTab = activeTab;
         ['genetics', 'stock', 'baulSemillas'].forEach(tab => {
@@ -599,8 +582,6 @@ const handlers = {
             showNotification('Error al germinar la semilla.', 'error');
         }
     },
-
-    // --- SETTINGS ---
     handleDeleteAccount: () => {
         handlers.showConfirmationModal('¿ESTÁS SEGURO? Esta acción eliminará permanentemente tu cuenta y todos tus datos. No se puede deshacer.', async () => {
             try {
@@ -635,8 +616,6 @@ const handlers = {
             showNotification('Error al cambiar la contraseña. Es posible que necesites volver a iniciar sesión.', 'error');
         }
     },
-
-    // --- LOGS ---
     handleLogFormSubmit: async (e) => {
         e.preventDefault();
         const form = e.target;
@@ -714,8 +693,6 @@ const handlers = {
             }
         });
     },
-
-    // --- MOVE CICLO ---
     openMoveCicloModal: (cicloId) => {
         const ciclo = currentCiclos.find(c => c.id === cicloId);
         if (ciclo) {
@@ -742,11 +719,30 @@ const handlers = {
             console.error("Error moving ciclo:", error);
             showNotification('Error al mover el ciclo.', 'error');
         }
+    },
+    initializeTheme: () => {
+        const themeToggleBtn = getEl('theme-toggle');
+        if (themeToggleBtn) {
+            handlers.updateThemeIcon();
+            themeToggleBtn.addEventListener('click', handlers.handleThemeToggle);
+        }
+    },
+    handleThemeToggle: () => {
+        document.documentElement.classList.toggle('dark');
+        localStorage.theme = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
+        handlers.updateThemeIcon();
+    },
+    updateThemeIcon: () => {
+        const themeToggleBtn = getEl('theme-toggle');
+        if (themeToggleBtn) {
+            const isDark = document.documentElement.classList.contains('dark');
+            const sunIcon = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2.25m6.364.386-1.591 1.591M21 12h-2.25m-.386 6.364-1.591-1.591M12 18.75V21m-4.95-4.243-1.591 1.591M5.25 12H3m4.243-4.95L6.343 5.657M12 6.75a5.25 5.25 0 1 0 0 10.5 5.25 5.25 0 0 0 0-10.5Z" /></svg>`;
+            const moonIcon = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M21.752 15.002A9.72 9.72 0 0 1 18 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 0 0 3 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 0 0 9.002-5.998Z" /></svg>`;
+            themeToggleBtn.innerHTML = isDark ? sunIcon : moonIcon;
+        }
     }
 };
 
-
-// --- 3. INICIALIZACIÓN Y MANEJO DE ESTADO ---
 onAuthStateChanged(auth, user => {
     getEl('initial-loader').classList.add('hidden');
     if (user) {
