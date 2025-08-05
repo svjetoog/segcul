@@ -6,6 +6,7 @@
     <title>Seguimiento de Cultivo</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" href="data:;base64,iVBORw0KGgo=">
     
     <script>
         if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
@@ -63,6 +64,22 @@
     .ciclo-item.maduracion::after { background-color: #fb923c; }
     .ciclo-item.lavado::after { background-color: #60a5fa; }
     .ciclo-item.secado::after { background-color: #facc15; }
+
+    .compact-list-item {
+        background-color: #ffffff;
+        border: 1px solid #e5e7eb;
+        padding: 0.5rem 1rem;
+        border-radius: 0.5rem;
+        transition: all 0.2s ease-out;
+    }
+    .dark .compact-list-item {
+        background-color: #262626;
+        border-color: #404040;
+    }
+    .compact-list-item:hover {
+        border-color: #f59e0b;
+        transform: translateY(-2px);
+    }
 
     #salaModal > div, #cicloModal > div, #logModal > div, #addWeekModal > div, #aiSummaryModal > div, #authView form, #toolsView .card, #germinateSeedModal > div, #addGeneticsToCicloModal > div, #moveCicloModal > div, #settingsView .card, #confirmationModal > div, #aboutModal > div { 
         background-color: #ffffff; 
@@ -221,7 +238,7 @@
                 Grupo Telegram
             </a>
             <div class="text-xs text-gray-500 dark:text-gray-600 font-mono">
-                SegCul v0.34 by svjeto
+                SegCul v0.341 by svjeto
             </div>
         </footer>
     </div>

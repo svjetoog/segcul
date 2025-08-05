@@ -373,16 +373,24 @@ export function renderToolsView() {
                 <button id="baulSemillasTabBtn" class="py-4 px-1 border-b-2 font-medium text-lg text-gray-500 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:border-gray-400 dark:hover:border-gray-300 whitespace-nowrap btn-base">Baúl de Semillas</button>
             </nav>
         </div>
-        <div class="my-4">
-            <input type="search" id="searchTools" placeholder="Buscar en la pestaña actual..." class="w-full max-w-lg p-2 rounded-md focus:ring-amber-500 focus:border-amber-500">
+        <div class="flex items-center justify-between my-4">
+            <input type="search" id="searchTools" placeholder="Buscar..." class="w-full max-w-xs p-2 rounded-md focus:ring-amber-500 focus:border-amber-500">
+            <div id="view-mode-toggle" class="flex items-center gap-2">
+                <button id="view-mode-card" class="btn-secondary p-2 rounded-md btn-base" title="Vista de tarjetas">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6ZM3.75 15.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25ZM13.5 6a2.25 2.25 0 0 1 2.25-2.25H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6ZM13.5 15.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25Z" /></svg>
+                </button>
+                <button id="view-mode-list" class="btn-secondary p-2 rounded-md btn-base" title="Vista de lista">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" /></svg>
+                </button>
+            </div>
         </div>
         <div id="geneticsContent">
-            <div class="flex flex-col md:flex-row gap-8">
+            <div id="geneticsListContainer" class="flex flex-col md:flex-row gap-8">
                 <div class="w-full md:w-2/5 lg:w-1/3">
                     <form id="geneticsForm" class="card p-6 space-y-4">
                         <h3 id="genetic-form-title" class="text-xl font-bold text-amber-400">Añadir Nueva Genética</h3>
                         <input type="text" id="genetic-name" placeholder="Nombre de la genética" required class="w-full p-2 rounded-md">
-                        <input type="text" id="genetic-parents" placeholder="Padres (ej: Blue Dream x AK-47)" class="w-full p-2 rounded-md">
+                        <input type="text" id="genetic-parents" placeholder="Padres" class="w-full p-2 rounded-md">
                         <input type="text" id="genetic-bank" placeholder="Banco" class="w-full p-2 rounded-md">
                         <input type="text" id="genetic-owner" placeholder="Dueño" class="w-full p-2 rounded-md">
                         <input type="number" id="genetic-stock" placeholder="Stock de clones inicial" class="w-full p-2 rounded-md">
@@ -393,10 +401,10 @@ export function renderToolsView() {
             </div>
         </div>
         <div id="stockContent" class="hidden">
-            <div id="stockList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+            <div id="stockList" class="space-y-4"></div>
         </div>
         <div id="baulSemillasContent" class="hidden">
-            <div class="flex flex-col md:flex-row gap-8">
+            <div id="baulSemillasListContainer" class="flex flex-col md:flex-row gap-8">
                 <div class="w-full md:w-2/5 lg:w-1/3">
                     <form id="seedForm" class="card p-6 space-y-4">
                         <h3 class="text-xl font-bold text-amber-400">Añadir Semillas al Baúl</h3>
@@ -508,18 +516,18 @@ export function createLogEntry(log, ciclo, handlers) {
         const title = log.type === 'Cambio de Solución' ? 'Cambio de Solución' : (ciclo.cultivationType === 'Hidroponia' ? 'Control de Solución' : 'Riego');
         const color = log.type === 'Cambio de Solución' ? 'text-blue-400' : 'text-amber-400';
         details = `<p class="font-semibold ${color}">${title}</p>
-                     <div class="text-sm text-gray-500 dark:text-gray-300 mt-1 grid grid-cols-2 gap-x-4 gap-y-1">
-                         ${log.litros ? `<span><strong>Litros:</strong> ${log.litros}</span>` : ''}
-                         <span><strong>pH:</strong> ${log.ph || 'N/A'}</span>
-                         <span><strong>EC:</strong> ${log.ec || 'N/A'}</span>
-                     </div>
-                     <div class="text-sm text-gray-500 dark:text-gray-300 mt-2"><strong>Fertilizantes:</strong> ${handlers.formatFertilizers(log.fertilizers)}</div>`;
+                         <div class="text-sm text-gray-500 dark:text-gray-300 mt-1 grid grid-cols-2 gap-x-4 gap-y-1">
+                             ${log.litros ? `<span><strong>Litros:</strong> ${log.litros}</span>` : ''}
+                             <span><strong>pH:</strong> ${log.ph || 'N/A'}</span>
+                             <span><strong>EC:</strong> ${log.ec || 'N/A'}</span>
+                         </div>
+                         <div class="text-sm text-gray-500 dark:text-gray-300 mt-2"><strong>Fertilizantes:</strong> ${handlers.formatFertilizers(log.fertilizers)}</div>`;
         borderColorClass = log.type === 'Cambio de Solución' ? 'border-blue-400' : 'border-amber-500';
 
     } else if (log.type === 'Control de Plagas') {
         borderColorClass = 'border-yellow-400';
         details = `<p class="font-semibold text-yellow-400">Control de Plagas</p>
-                   <p class="text-sm text-gray-500 dark:text-gray-300 mt-1 whitespace-pre-wrap">${log.notes || 'Sin notas.'}</p>`;
+                       <p class="text-sm text-gray-500 dark:text-gray-300 mt-1 whitespace-pre-wrap">${log.notes || 'Sin notas.'}</p>`;
     } else if (log.type === 'Podas') {
         borderColorClass = 'border-green-400';
         details = `<p class="font-semibold text-green-400">Poda: ${log.podaType || ''}</p>`;
@@ -616,7 +624,7 @@ export function renderSalasGrid(salas, ciclos, handlers) {
         });
         salaCard.querySelector('[data-action="quick-add-ciclo"]').addEventListener('click', (e) => {
             e.stopPropagation();
-            handlers.openCicloModal(null, e.currentTarget.dataset.salaId);
+            handlers.openCicloModal(null, null, e.currentTarget.dataset.salaId);
         });
         salasGrid.appendChild(salaCard);
     });
@@ -653,6 +661,37 @@ export function renderGeneticsList(genetics, handlers) {
     geneticsList.querySelectorAll('[data-action="delete-genetic"]').forEach(btn => btn.addEventListener('click', (e) => handlers.deleteGenetic(e.currentTarget.dataset.id)));
 }
 
+export function renderGeneticsListCompact(genetics, handlers) {
+    const geneticsList = getEl('geneticsList');
+    if (!geneticsList) return;
+    geneticsList.innerHTML = '';
+    if (genetics.length === 0) {
+        geneticsList.innerHTML = `<p class="text-center text-gray-500 dark:text-gray-400">No hay genéticas que coincidan con la búsqueda.</p>`;
+        return;
+    }
+    genetics.forEach(g => {
+        const item = document.createElement('div');
+        item.className = 'compact-list-item flex justify-between items-center';
+        item.innerHTML = `
+            <div>
+                <p class="font-semibold text-amber-400">${g.name}</p>
+                <p class="text-xs text-gray-500 dark:text-gray-400">${g.bank || 'Sin banco'}</p>
+            </div>
+            <div class="flex gap-2">
+                <button data-action="edit-genetic" data-id="${g.id}" class="btn-secondary btn-base p-2 rounded-lg" title="Editar">
+                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" /></svg>
+                </button>
+                <button data-action="delete-genetic" data-id="${g.id}" class="btn-danger btn-base p-2 rounded-lg" title="Eliminar">
+                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.134-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.067-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" /></svg>
+                </button>
+            </div>
+        `;
+        geneticsList.appendChild(item);
+    });
+    geneticsList.querySelectorAll('[data-action="edit-genetic"]').forEach(btn => btn.addEventListener('click', (e) => handlers.editGenetic(e.currentTarget.dataset.id)));
+    geneticsList.querySelectorAll('[data-action="delete-genetic"]').forEach(btn => btn.addEventListener('click', (e) => handlers.deleteGenetic(e.currentTarget.dataset.id)));
+}
+
 export function renderStockList(genetics, handlers) {
     const stockList = getEl('stockList');
     if (!stockList) return;
@@ -661,6 +700,8 @@ export function renderStockList(genetics, handlers) {
         stockList.innerHTML = `<p class="text-center text-gray-500 dark:text-gray-400">Añade genéticas para ver el stock.</p>`;
         return;
     }
+    // MODIFICADO: Cambiado a grid para que se vea mejor la vista de tarjetas
+    stockList.className = 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4';
     genetics.forEach(g => {
         const stockCard = document.createElement('div');
         stockCard.className = 'card p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center';
@@ -678,6 +719,38 @@ export function renderStockList(genetics, handlers) {
     });
     stockList.querySelectorAll('[data-action="update-stock"]').forEach(btn => btn.addEventListener('click', (e) => handlers.updateStock(e.currentTarget.dataset.id, parseInt(e.currentTarget.dataset.amount))));
 }
+
+// NUEVA FUNCIÓN
+export function renderStockListCompact(genetics, handlers) {
+    const stockList = getEl('stockList');
+    if (!stockList) return;
+    stockList.innerHTML = '';
+    if (genetics.length === 0) {
+        stockList.innerHTML = `<p class="text-center text-gray-500 dark:text-gray-400">No hay clones en stock.</p>`;
+        return;
+    }
+    // MODIFICADO: Quitado el grid para que sea una lista vertical
+    stockList.className = 'space-y-4';
+    genetics.forEach(g => {
+        const item = document.createElement('div');
+        item.className = 'compact-list-item flex justify-between items-center';
+        item.innerHTML = `
+            <div>
+                <p class="font-semibold text-amber-400">${g.name}</p>
+            </div>
+            <div class="flex items-center gap-4">
+                <span class="font-bold text-lg text-gray-700 dark:text-gray-300">${g.cloneStock || 0}</span>
+                <div class="flex items-center gap-2">
+                    <button data-action="update-stock" data-id="${g.id}" data-amount="-1" class="btn-secondary btn-base rounded-full w-8 h-8 flex items-center justify-center text-xl">-</button>
+                    <button data-action="update-stock" data-id="${g.id}" data-amount="1" class="btn-secondary btn-base rounded-full w-8 h-8 flex items-center justify-center text-xl">+</button>
+                </div>
+            </div>
+        `;
+        stockList.appendChild(item);
+    });
+    stockList.querySelectorAll('[data-action="update-stock"]').forEach(btn => btn.addEventListener('click', (e) => handlers.updateStock(e.currentTarget.dataset.id, parseInt(e.currentTarget.dataset.amount))));
+}
+
 
 export function renderBaulSemillasList(seeds, handlers) {
     const baulSemillasList = getEl('baulSemillasList');
@@ -704,6 +777,37 @@ export function renderBaulSemillasList(seeds, handlers) {
             </div>
         `;
         baulSemillasList.appendChild(seedCard);
+    });
+    baulSemillasList.querySelectorAll('[data-action="germinate-seed"]').forEach(btn => btn.addEventListener('click', (e) => handlers.openGerminateModal(e.currentTarget.dataset.id)));
+    baulSemillasList.querySelectorAll('[data-action="delete-seed"]').forEach(btn => btn.addEventListener('click', (e) => handlers.deleteSeed(e.currentTarget.dataset.id)));
+}
+
+export function renderBaulSemillasListCompact(seeds, handlers) {
+    const baulSemillasList = getEl('baulSemillasList');
+    if (!baulSemillasList) return;
+    baulSemillasList.innerHTML = '';
+    if (seeds.length === 0) {
+        baulSemillasList.innerHTML = `<p class="text-center text-gray-500 dark:text-gray-400">No hay semillas que coincidan con la búsqueda.</p>`;
+        return;
+    }
+    seeds.forEach(s => {
+        const item = document.createElement('div');
+        item.className = 'compact-list-item flex justify-between items-center';
+        item.innerHTML = `
+            <div>
+                <p class="font-semibold text-amber-400">${s.name} <span class="text-sm font-normal text-gray-500 dark:text-gray-400">(${s.quantity})</span></p>
+                <p class="text-xs text-gray-500 dark:text-gray-400">${s.bank || 'Banco Desconocido'}</p>
+            </div>
+            <div class="flex gap-2">
+                <button data-action="germinate-seed" data-id="${s.id}" class="btn-primary btn-base p-2 rounded-lg text-sm" ${s.quantity > 0 ? '' : 'disabled'} title="Germinar">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M5.636 5.636a9 9 0 1 0 12.728 0M12 3v9" /></svg>
+                </button>
+                <button data-action="delete-seed" data-id="${s.id}" class="btn-danger btn-base p-2 rounded-lg" title="Eliminar">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.134-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.067-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" /></svg>
+                </button>
+            </div>
+        `;
+        baulSemillasList.appendChild(item);
     });
     baulSemillasList.querySelectorAll('[data-action="germinate-seed"]').forEach(btn => btn.addEventListener('click', (e) => handlers.openGerminateModal(e.currentTarget.dataset.id)));
     baulSemillasList.querySelectorAll('[data-action="delete-seed"]').forEach(btn => btn.addEventListener('click', (e) => handlers.deleteSeed(e.currentTarget.dataset.id)));
@@ -740,7 +844,7 @@ export function initializeEventListeners(handlers) {
     window.addEventListener('click', (e) => {
         const menuBtn = getEl('menuBtn');
         const dropdownMenu = getEl('dropdownMenu');
-        if (menuBtn && dropdownMenu && !menuBtn.contains(e.target) && !menuBtn.contains(e.target)) {
+        if (menuBtn && dropdownMenu && !menuBtn.contains(e.target) && !dropdownMenu.contains(e.target)) {
             dropdownMenu.classList.add('hidden');
         }
     });

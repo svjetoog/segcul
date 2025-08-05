@@ -6,6 +6,7 @@ import {
     getEl, showNotification, renderSalasGrid, createCicloCard, createLogEntry,
     renderGeneticsList, renderStockList, 
     renderBaulSemillasList,
+    renderGeneticsListCompact, renderBaulSemillasListCompact, renderStockListCompact, // <--- MODIFICADO: importamos la nueva funcion
     initializeEventListeners,
     renderCicloDetails, renderToolsView, renderSettingsView,
     openSalaModal as uiOpenSalaModal, 
@@ -22,6 +23,7 @@ let currentSalas = [], currentCiclos = [], currentGenetics = [], currentSeeds = 
 let currentSalaId = null, currentSalaName = null;
 let confirmCallback = null;
 let activeToolsTab = 'genetics';
+let toolsViewMode = localStorage.getItem('toolsViewMode') || 'card';
 
 // --- 1. FUNCTION DEFINITIONS (LOGIC & DATA) ---
 
@@ -169,7 +171,7 @@ function loadLogsForCiclo(cicloId, weekNumbers) {
     logsUnsubscribe = onSnapshot(q, (snapshot) => {
         weekNumbers.forEach(weekNum => {
             const logContainer = getEl(`logs-week-${weekNum}`);
-            if(logContainer) logContainer.innerHTML = `<p class="text-gray-500 italic">No hay registros.</p>`;
+            if(logContainer) logContainer.innerHTML = `<p class="text-gray-500 dark:text-gray-400 italic">No hay registros.</p>`;
         });
         const allLogs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data(), date: doc.data().date.toDate() }));
         allLogs.sort((a, b) => b.date - a.date);
@@ -378,7 +380,7 @@ const handlers = {
         toolsView.classList.add('view-container');
         
         handlers.switchToolsTab('genetics'); 
-        handlers.handleToolsSearch({ target: { value: '' } });
+        handlers.handleViewModeToggle(toolsViewMode, true); 
         
         getEl('backToPanelBtn').addEventListener('click', handlers.hideToolsView);
         getEl('geneticsTabBtn').addEventListener('click', () => handlers.switchToolsTab('genetics'));
@@ -387,6 +389,8 @@ const handlers = {
         getEl('geneticsForm').addEventListener('submit', handlers.handleGeneticsFormSubmit);
         getEl('seedForm').addEventListener('submit', handlers.handleSeedFormSubmit);
         getEl('searchTools').addEventListener('input', handlers.handleToolsSearch);
+        getEl('view-mode-card').addEventListener('click', () => handlers.handleViewModeToggle('card'));
+        getEl('view-mode-list').addEventListener('click', () => handlers.handleViewModeToggle('list'));
     },
     hideToolsView: () => {
         const view = getEl('toolsView');
@@ -433,16 +437,36 @@ const handlers = {
     },
     handleToolsSearch: (e) => {
         const searchTerm = e.target.value.toLowerCase();
+        let filteredData;
+        let renderFunction;
+
         if (activeToolsTab === 'genetics') {
-            const filtered = currentGenetics.filter(g => g.name.toLowerCase().includes(searchTerm));
-            renderGeneticsList(filtered, handlers);
+            filteredData = currentGenetics.filter(g => g.name.toLowerCase().includes(searchTerm));
+            renderFunction = toolsViewMode === 'card' ? renderGeneticsList : renderGeneticsListCompact;
         } else if (activeToolsTab === 'baulSemillas') {
-            const filtered = currentSeeds.filter(s => s.name.toLowerCase().includes(searchTerm));
-            renderBaulSemillasList(filtered, handlers);
+            filteredData = currentSeeds.filter(s => s.name.toLowerCase().includes(searchTerm));
+            renderFunction = toolsViewMode === 'card' ? renderBaulSemillasList : renderBaulSemillasListCompact;
         } else if (activeToolsTab === 'stock') {
-            const filtered = currentGenetics.filter(g => g.name.toLowerCase().includes(searchTerm));
-            renderStockList(filtered, handlers);
+            filteredData = currentGenetics.filter(g => g.name.toLowerCase().includes(searchTerm));
+            // --- MODIFICADO ---
+            // Ahora la pestaña de Stock sí diferencia entre los modos de vista
+            renderFunction = toolsViewMode === 'card' ? renderStockList : renderStockListCompact;
         }
+        
+        if (renderFunction) {
+            renderFunction(filteredData, handlers);
+        }
+    },
+    handleViewModeToggle: (mode, isInitial = false) => {
+        if (!isInitial) {
+            toolsViewMode = mode;
+            localStorage.setItem('toolsViewMode', mode);
+        }
+        
+        getEl('view-mode-card').classList.toggle('bg-amber-500', toolsViewMode === 'card');
+        getEl('view-mode-list').classList.toggle('bg-amber-500', toolsViewMode === 'list');
+
+        handlers.handleToolsSearch({ target: getEl('searchTools') });
     },
     handleGeneticsFormSubmit: async (e) => {
         e.preventDefault();
