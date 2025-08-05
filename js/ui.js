@@ -6,27 +6,28 @@ let notificationTimeout;
 export function showNotification(message, type = 'success') {
     const container = getEl('notification-container');
     if (!container) return;
-    if (notificationTimeout) clearTimeout(notificationTimeout);
 
     // Create a new notification element
     const notif = document.createElement('div');
     notif.textContent = message;
-    notif.className = `p-3 rounded-lg shadow-lg mb-2 ${type === 'success' ? 'bg-green-500' : 'bg-red-500'} text-white`;
+    notif.className = `p-3 rounded-lg shadow-lg mb-2 ${type === 'success' ? 'bg-green-500' : 'bg-red-500'} text-white transition-opacity duration-500 ease-in-out opacity-100`;
 
     container.appendChild(notif);
-    container.style.display = 'block';
+    if (container.style.display !== 'block') {
+        container.style.display = 'block';
+    }
 
     setTimeout(() => {
         notif.style.opacity = '0';
-        notif.style.transition = 'opacity 0.5s ease';
-        setTimeout(() => {
+        notif.addEventListener('transitionend', () => {
             notif.remove();
             if (container.children.length === 0) {
                 container.style.display = 'none';
             }
-        }, 500);
+        });
     }, 4000);
 }
+
 
 // --- DYNAMIC CONTENT RENDERERS ---
 
@@ -259,10 +260,11 @@ export function renderCicloDetails(ciclo, handlers) {
         </div>
     `;
 
-    // After setting innerHTML, re-attach listeners
+    // After setting innerHTML, re-attach listeners for dynamically created buttons inside the weeks
     setTimeout(() => {
         document.querySelectorAll('.add-log-for-week-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
+                e.stopPropagation(); // Prevent the header click from firing
                 const weekData = JSON.parse(e.target.dataset.week);
                 openLogModal(ciclo, weekData);
             });
@@ -532,6 +534,7 @@ export function renderSalasGrid(currentSalas, currentCiclos, handlers) {
 
 export function renderGeneticsList(currentGenetics, handlers) {
     const geneticsList = getEl('geneticsList');
+    if (!geneticsList) return;
     geneticsList.innerHTML = '';
     if (currentGenetics.length === 0) {
         geneticsList.innerHTML = `<p class="text-center text-gray-500">No hay genéticas guardadas.</p>`;
@@ -562,6 +565,7 @@ export function renderGeneticsList(currentGenetics, handlers) {
 
 export function renderStockList(currentGenetics, handlers) {
     const stockList = getEl('stockList');
+    if (!stockList) return;
     stockList.innerHTML = '';
     if (currentGenetics.length === 0) {
         stockList.innerHTML = `<p class="text-center text-gray-500">Añade genéticas para ver el stock.</p>`;
@@ -587,6 +591,7 @@ export function renderStockList(currentGenetics, handlers) {
 
 export function renderSeedBankList(currentSeeds, handlers) {
     const seedBankList = getEl('seedBankList');
+    if (!seedBankList) return;
     seedBankList.innerHTML = '';
     if (currentSeeds.length === 0) {
         seedBankList.innerHTML = `<p class="text-center text-gray-500">No hay semillas en el banco.</p>`;
@@ -640,7 +645,7 @@ export function initializeEventListeners(handlers) {
     getEl('aboutBtnAuth').addEventListener('click', () => getEl('aboutModal').style.display = 'flex');
     getEl('aboutBtnAuthRegister').addEventListener('click', () => getEl('aboutModal').style.display = 'flex');
 
-    // Main App Listeners
+    // Main App Listeners (for elements that are always in the DOM)
     getEl('logoutBtn').addEventListener('click', () => handlers.signOut());
     getEl('menuBtn').addEventListener('click', (e) => {
         e.stopPropagation();
@@ -649,7 +654,7 @@ export function initializeEventListeners(handlers) {
     window.addEventListener('click', (e) => {
         const menuBtn = getEl('menuBtn');
         const dropdownMenu = getEl('dropdownMenu');
-        if (menuBtn && dropdownMenu && !dropdownMenu.contains(e.target) && !menuBtn.contains(e.target)) {
+        if (menuBtn && dropdownMenu && !menuBtn.contains(e.target) && !dropdownMenu.contains(e.target)) {
             dropdownMenu.classList.add('hidden');
         }
     });
@@ -659,6 +664,9 @@ export function initializeEventListeners(handlers) {
     getEl('menuTools').addEventListener('click', (e) => { e.preventDefault(); handlers.showToolsView(); getEl('dropdownMenu').classList.add('hidden'); });
     getEl('menuSettings').addEventListener('click', (e) => { e.preventDefault(); handlers.showSettingsView(); getEl('dropdownMenu').classList.add('hidden'); });
     
+    // Listener for the button that was causing issues. It's static, so it can be initialized here.
+    getEl('backToSalasBtn').addEventListener('click', handlers.hideCiclosView);
+
     // Dynamic modal/view listeners (using event delegation on a static parent)
     document.body.addEventListener('click', (e) => {
         // Modal cancel buttons
