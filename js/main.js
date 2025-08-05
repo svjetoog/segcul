@@ -5,7 +5,7 @@ import { collection, doc, addDoc, deleteDoc, onSnapshot, query, serverTimestamp,
 import { 
     getEl, showNotification, renderSalasGrid, createCicloCard, createLogEntry,
     renderGeneticsList, renderStockList, 
-    renderBaulSemillasList, // CAMBIO: Importa la función con el nuevo nombre
+    renderBaulSemillasList,
     initializeEventListeners,
     renderCicloDetails, renderToolsView, renderSettingsView,
     openSalaModal as uiOpenSalaModal, 
@@ -71,17 +71,30 @@ function generateStandardWeeks() {
     return weeks;
 }
 
-function formatFertilizers(ferts) {
-    if (!ferts) return 'Ninguno';
-    const used = [];
-    if (ferts.basesAmount && ferts.basesUnit) used.push(`Bases (${ferts.basesAmount} ${ferts.basesUnit})`);
-    if (ferts.enzimas) used.push('Enzimas');
-    if (ferts.candy) used.push('Candy');
-    if (ferts.bigBud) used.push('BigBud');
-    if (ferts.flawlessFinish) used.push('FlawlessFinish');
-    if (ferts.foliar && ferts.foliarProduct) used.push(`Foliar (${ferts.foliarProduct})`);
-    return used.length > 0 ? used.join(', ') : 'Ninguno';
+// CAMBIO MAYOR: formatFertilizers ahora es retrocompatible
+function formatFertilizers(fertilizers) {
+    if (!fertilizers) return 'Ninguno';
+
+    // Nuevo formato (array)
+    if (Array.isArray(fertilizers) && fertilizers.length > 0) {
+        return fertilizers.map(f => `${f.productName} (${f.dose} ${f.unit})`).join(', ');
+    }
+    
+    // Formato antiguo (objeto) para retrocompatibilidad
+    if (typeof fertilizers === 'object' && !Array.isArray(fertilizers)) {
+        const used = [];
+        if (fertilizers.basesAmount && fertilizers.basesUnit) used.push(`Bases (${fertilizers.basesAmount} ${fertilizers.basesUnit})`);
+        if (fertilizers.enzimas) used.push('Enzimas');
+        if (fertilizers.candy) used.push('Candy');
+        if (fertilizers.bigBud) used.push('BigBud');
+        if (fertilizers.flawlessFinish) used.push('FlawlessFinish');
+        if (fertilizers.foliar && fertilizers.foliarProduct) used.push(`Foliar (${fertilizers.foliarProduct})`);
+        return used.length > 0 ? used.join(', ') : 'Ninguno';
+    }
+
+    return 'Ninguno';
 }
+
 
 function loadSalas() {
     if (!userId) return;
@@ -137,7 +150,6 @@ function loadSeeds() {
     seedsUnsubscribe = onSnapshot(q, (snapshot) => {
         currentSeeds = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
          if(!getEl('toolsView').classList.contains('hidden')) {
-            // CAMBIO: Llama a la función con el nuevo nombre
             renderBaulSemillasList(currentSeeds, handlers);
         }
     });
@@ -251,11 +263,6 @@ const handlers = {
     // --- CICLOS ---
     openCicloModal: (ciclo = null) => {
         uiOpenCicloModal(ciclo, currentSalas);
-    },
-    updateCicloModalDateFields: () => {
-        const phase = getEl('cicloPhase').value;
-        getEl('vegetativeDateContainer').classList.toggle('hidden', phase !== 'Vegetativo');
-        getEl('floweringDateContainer').classList.toggle('hidden', phase !== 'Floración');
     },
     handleCicloFormSubmit: async (e) => {
         e.preventDefault();
@@ -372,12 +379,11 @@ const handlers = {
         
         renderGeneticsList(currentGenetics, handlers);
         renderStockList(currentGenetics, handlers);
-        renderBaulSemillasList(currentSeeds, handlers); // CAMBIO: Llama a la función con el nuevo nombre
+        renderBaulSemillasList(currentSeeds, handlers);
         
         getEl('backToPanelBtn').addEventListener('click', handlers.hideToolsView);
         getEl('geneticsTabBtn').addEventListener('click', () => handlers.switchToolsTab('genetics'));
         getEl('stockTabBtn').addEventListener('click', () => handlers.switchToolsTab('stock'));
-        // CAMBIO: ID del botón y nombre de la pestaña
         getEl('baulSemillasTabBtn').addEventListener('click', () => handlers.switchToolsTab('baulSemillas'));
         getEl('geneticsForm').addEventListener('submit', handlers.handleGeneticsFormSubmit);
         getEl('seedForm').addEventListener('submit', handlers.handleSeedFormSubmit);
@@ -409,7 +415,6 @@ const handlers = {
     
     // --- TOOLS ---
     switchToolsTab: (activeTab) => {
-        // CAMBIO: Se actualiza el array de pestañas con el nuevo nombre
         ['genetics', 'stock', 'baulSemillas'].forEach(tab => {
             getEl(`${tab}Content`).classList.toggle('hidden', tab !== activeTab);
             getEl(`${tab}TabBtn`).classList.toggle('border-amber-400', tab === activeTab);
@@ -555,15 +560,9 @@ const handlers = {
         }
     },
 
-    // --- GENETICS IN CICLO ---
-    handleAddGeneticToCiclo: async (type) => {
-        console.log(`Adding genetic via: ${type}`);
-        showNotification('Función no implementada completamente.', 'error');
-    },
-
     // --- SETTINGS ---
     handleDeleteAccount: () => {
-        handlers.showConfirmationModal('¿ESTÁS SEGURO? Esta acción eliminará permanentemente tu cuenta y todos tus datos (salas, ciclos, registros). No se puede deshacer.', async () => {
+        handlers.showConfirmationModal('¿ESTÁS SEGURO? Esta acción eliminará permanentemente tu cuenta y todos tus datos. No se puede deshacer.', async () => {
             try {
                 const user = auth.currentUser;
                 await deleteUser(user);
@@ -598,21 +597,10 @@ const handlers = {
     },
 
     // --- LOGS ---
-    closeLogModal: () => {
-        getEl('logModal').style.display = 'none';
-    },
-    toggleLogFields: () => {
-        const logType = getEl('logType').value;
-        getEl('riegoFields').style.display = logType === 'Riego' ? 'block' : 'none';
-        getEl('solucionFields').style.display = logType === 'Cambio de Solución' ? 'block' : 'none';
-        getEl('plagasFields').style.display = logType === 'Control de Plagas' ? 'block' : 'none';
-        getEl('podasFields').style.display = logType === 'Podas' ? 'block' : 'none';
-    },
     handleLogFormSubmit: async (e) => {
         e.preventDefault();
         const form = e.target;
         const cicloId = form.dataset.cicloId;
-        const logId = form.dataset.logId;
         const week = form.dataset.week;
 
         const logData = {
@@ -620,34 +608,57 @@ const handlers = {
             date: serverTimestamp(),
             week: parseInt(week)
         };
-
+        
         if (logData.type === 'Riego' || logData.type === 'Cambio de Solución') {
-            logData.ph = getEl('log-ph').value;
-            logData.ec = getEl('log-ec').value;
-            logData.fertilizers = {
-                basesAmount: getEl('fert-bases-amount').value,
-                basesUnit: getEl('fert-bases-unit').value,
-                enzimas: getEl('fert-enzimas').checked,
-                candy: getEl('fert-candy').checked,
-                bigBud: getEl('fert-bigbud').checked,
-                flawlessFinish: getEl('fert-flawless').checked,
-                foliar: getEl('fert-foliar').checked,
-                foliarProduct: getEl('fert-foliar-product').value,
-            };
-            if(logData.type === 'Cambio de Solución') logData.litros = getEl('log-litros').value;
+            logData.ph = getEl('log-ph').value || null;
+            logData.ec = getEl('log-ec').value || null;
+            if (logData.type === 'Cambio de Solución') {
+                logData.litros = getEl('log-litros').value || null;
+            }
+
+            // CAMBIO MAYOR: Lógica para leer los fertilizantes dinámicos
+            const fertilizersUsed = [];
+            const selectedLine = getEl('fert-line-select').value;
+
+            if (selectedLine === 'Personalizada') {
+                document.querySelectorAll('.custom-fert-row').forEach(row => {
+                    const productName = row.querySelector('.fert-product-name').value.trim();
+                    const dose = row.querySelector('.fert-dose').value;
+                    if (productName && dose) {
+                        fertilizersUsed.push({
+                            productName: productName,
+                            dose: parseFloat(dose),
+                            unit: row.querySelector('.fert-unit').value
+                        });
+                    }
+                });
+            } else {
+                document.querySelectorAll('.product-row').forEach(row => {
+                    const dose = row.querySelector('.fert-dose').value;
+                    if (dose) {
+                        fertilizersUsed.push({
+                            productName: row.querySelector('.fert-dose').dataset.productName,
+                            dose: parseFloat(dose),
+                            unit: row.querySelector('.fert-unit').value
+                        });
+                    }
+                });
+            }
+            logData.fertilizers = fertilizersUsed;
+
         } else if (logData.type === 'Control de Plagas') {
-            logData.notes = getEl('plagas-notes').value;
+            logData.notes = getEl('plagas-notes').value.trim();
         } else if (logData.type === 'Podas') {
             logData.podaType = getEl('podaType').value;
             if (logData.podaType === 'Clones') {
-                logData.clonesCount = getEl('clones-count').value;
+                logData.clonesCount = getEl('clones-count').value || 0;
             }
         }
 
         try {
             await addDoc(collection(db, `users/${userId}/ciclos/${cicloId}/logs`), logData);
             showNotification('Registro añadido.');
-            handlers.closeLogModal();
+            getEl('logModal').style.display = 'none';
         } catch (error) {
             console.error("Error guardando log:", error);
             showNotification('Error al guardar el registro.', 'error');
@@ -663,35 +674,6 @@ const handlers = {
                 showNotification('Error al eliminar el registro.', 'error');
             }
         });
-    },
-
-    // --- WEEKS ---
-    closeAddWeekModal: () => {
-        getEl('addWeekModal').style.display = 'none';
-    },
-    handleAddWeekSubmit: async (e) => {
-        e.preventDefault();
-        const form = e.target;
-        const cicloId = form.dataset.cicloId;
-        const weekNumber = parseInt(getEl('weekNumber').value);
-        const phaseName = getEl('weekPhase').value;
-
-        if (!cicloId || !weekNumber || !phaseName) {
-            showNotification('Datos de semana inválidos.', 'error');
-            return;
-        }
-
-        try {
-            const cicloRef = doc(db, `users/${userId}/ciclos`, cicloId);
-            await updateDoc(cicloRef, {
-                floweringWeeks: arrayUnion({ weekNumber, phaseName })
-            });
-            showNotification(`Semana ${weekNumber} añadida.`);
-            handlers.closeAddWeekModal();
-        } catch (error) {
-            console.error("Error adding week:", error);
-            showNotification('Error al añadir la semana.', 'error');
-        }
     },
 
     // --- MOVE CICLO ---

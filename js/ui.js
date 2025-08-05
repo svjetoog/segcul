@@ -3,6 +3,17 @@
 export const getEl = (id) => document.getElementById(id);
 let notificationTimeout;
 
+// CAMBIO: Base de datos de líneas de fertilizantes pre-cargadas
+const FERTILIZER_LINES = {
+  "Top Crop": ["Deeper Underground", "Top Veg", "Top Bloom", "Big One", "Top Candy", "Top Bud", "Micro Vita"],
+  "Namaste": ["Amazonia Roots", "Oro Negro", "Flora Booster", "Trico+", "Shanti", "Bio CaMg"],
+  "Kawsay": ["Nutri Base", "Amazonia", "Flora Booster", "Bud Engorde", "Super Candy"],
+  "Advanced Nutrients": ["Sensi Grow A+B", "Sensi Bloom A+B", "Voodoo Juice", "B-52", "Big Bud", "Overdrive", "Flawless Finish"],
+  "Athena (Blended)": ["Grow A", "Grow B", "Bloom A", "Bloom B", "CaMg", "PK", "Cleanse"],
+  "Orgánico / Living Soil": ["Humus de lombriz", "Compost", "Bokashi", "Guano de murciélago", "Harina de hueso", "Melaza", "Micorrizas", "Trichodermas"],
+  "Personalizada": [] // Array vacío para indicar lógica especial
+};
+
 export function showNotification(message, type = 'success') {
     const container = getEl('notification-container');
     if (!container) return;
@@ -114,11 +125,12 @@ export function openCicloModal(ciclo = null, salas = []) {
     modal.style.display = 'flex';
 }
 
+// CAMBIO MAYOR: La función openLogModal ha sido completamente reescrita
 export function openLogModal(ciclo, week, log = null) {
     const title = 'Añadir Registro';
+    const lineOptions = Object.keys(FERTILIZER_LINES).map(line => `<option value="${line}">${line}</option>`).join('');
+
     const content = `
-        <input type="hidden" id="log-ciclo-id" value="${ciclo.id}">
-        <input type="hidden" id="log-week-number" value="${week.weekNumber}">
         <div class="space-y-4">
             <div>
                 <label for="logType" class="block text-sm font-medium text-gray-300 mb-1">Tipo de Registro</label>
@@ -129,31 +141,14 @@ export function openLogModal(ciclo, week, log = null) {
                     <option value="Podas">Podas</option>
                 </select>
             </div>
-            <div id="riegoFields">
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div><label for="log-ph">pH</label><input type="number" step="0.1" id="log-ph" class="w-full p-2 rounded-md"></div>
-                    <div><label for="log-ec">EC</label><input type="number" step="0.1" id="log-ec" class="w-full p-2 rounded-md"></div>
-                </div>
-                 <fieldset class="mt-4 border border-gray-600 p-3 rounded-md">
-                    <legend class="px-2 text-sm font-medium">Fertilizantes</legend>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2">
-                        <div class="flex items-center gap-2"><input type="number" id="fert-bases-amount" placeholder="Cant." class="w-20 p-1 rounded"><select id="fert-bases-unit" class="p-1 rounded"><option>ml/L</option><option>gr/L</option></select></div>
-                        <div class="flex items-center gap-2"><input type="checkbox" id="fert-enzimas" class="h-4 w-4 rounded"><label for="fert-enzimas">Enzimas</label></div>
-                        <div class="flex items-center gap-2"><input type="checkbox" id="fert-candy" class="h-4 w-4 rounded"><label for="fert-candy">Candy</label></div>
-                        <div class="flex items-center gap-2"><input type="checkbox" id="fert-bigbud" class="h-4 w-4 rounded"><label for="fert-bigbud">BigBud</label></div>
-                        <div class="flex items-center gap-2"><input type="checkbox" id="fert-flawless" class="h-4 w-4 rounded"><label for="fert-flawless">Flawless Finish</label></div>
-                        <div class="flex items-center gap-2"><input type="checkbox" id="fert-foliar" class="h-4 w-4 rounded"><label for="fert-foliar">Foliar</label></div>
-                    </div>
-                     <input type="text" id="fert-foliar-product" placeholder="Producto foliar" class="w-full p-2 rounded-md mt-2 hidden">
-                </fieldset>
-            </div>
-            <div id="solucionFields" class="hidden">
-                 <div><label for="log-litros">Litros Totales</label><input type="number" id="log-litros" class="w-full p-2 rounded-md"></div>
-            </div>
+
+            <div id="log-fields-container"></div>
+
             <div id="plagasFields" class="hidden">
                 <label for="plagas-notes">Notas / Producto Aplicado</label>
                 <textarea id="plagas-notes" rows="3" class="w-full p-2 rounded-md"></textarea>
             </div>
+
             <div id="podasFields" class="hidden">
                  <label for="podaType">Tipo de Poda</label>
                  <select id="podaType" class="w-full p-2 rounded-md">
@@ -174,15 +169,122 @@ export function openLogModal(ciclo, week, log = null) {
     form.dataset.week = week.weekNumber;
     form.dataset.logId = log ? log.id : '';
     
+    // Lógica para mostrar/ocultar campos según el tipo de log
+    const logTypeSelect = getEl('logType');
+    const logFieldsContainer = getEl('log-fields-container');
+    const plagasFields = getEl('plagasFields');
+    const podasFields = getEl('podasFields');
+
+    const toggleLogFields = () => {
+        const type = logTypeSelect.value;
+        logFieldsContainer.innerHTML = ''; // Limpiar campos anteriores
+        plagasFields.classList.add('hidden');
+        podasFields.classList.add('hidden');
+
+        if (type === 'Riego' || type === 'Cambio de Solución') {
+            logFieldsContainer.innerHTML = getRiegoHTML(type, lineOptions);
+            const lineSelect = getEl('fert-line-select');
+            lineSelect.addEventListener('change', () => renderFertilizerProducts(lineSelect.value));
+            // Renderizar la primera línea por defecto
+            renderFertilizerProducts(lineSelect.value);
+        } else if (type === 'Control de Plagas') {
+            plagasFields.classList.remove('hidden');
+        } else if (type === 'Podas') {
+            podasFields.classList.remove('hidden');
+        }
+    };
+    
+    logTypeSelect.addEventListener('change', toggleLogFields);
+    // Disparar una vez al inicio para mostrar los campos correctos
+    toggleLogFields();
+
+    getEl('podaType').addEventListener('change', () => getEl('clonesSection').style.display = getEl('podaType').value === 'Clones' ? 'block' : 'none');
+
     modal.style.display = 'flex';
 }
+
+function getRiegoHTML(type, lineOptions) {
+    const litrosField = type === 'Cambio de Solución' ? `
+        <div>
+            <label for="log-litros">Litros Totales</label>
+            <input type="number" step="0.1" id="log-litros" class="w-full p-2 rounded-md">
+        </div>
+    ` : '';
+    
+    return `
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+                <label for="log-ph">pH</label>
+                <input type="number" step="0.1" id="log-ph" class="w-full p-2 rounded-md">
+            </div>
+            <div>
+                <label for="log-ec">EC</label>
+                <input type="number" step="0.1" id="log-ec" class="w-full p-2 rounded-md">
+            </div>
+            ${litrosField}
+        </div>
+        <fieldset class="mt-4 border border-gray-600 p-3 rounded-md">
+            <legend class="px-2 text-sm font-medium">Fertilizantes</legend>
+            <div class="space-y-4">
+                <div>
+                    <label for="fert-line-select" class="block text-sm font-medium text-gray-300 mb-1">Línea de Fertilizantes</label>
+                    <select id="fert-line-select" class="w-full p-2 rounded-md">${lineOptions}</select>
+                </div>
+                <div id="fertilizer-products-container" class="space-y-3">
+                    </div>
+            </div>
+        </fieldset>
+    `;
+}
+
+function renderFertilizerProducts(lineName) {
+    const container = getEl('fertilizer-products-container');
+    container.innerHTML = ''; // Limpiar
+
+    const products = FERTILIZER_LINES[lineName];
+
+    if (lineName === 'Personalizada') {
+        const addBtn = document.createElement('button');
+        addBtn.type = 'button';
+        addBtn.id = 'add-custom-fert-btn';
+        addBtn.textContent = '+ Añadir Producto Personalizado';
+        addBtn.className = 'btn-secondary py-2 px-3 text-sm rounded-md';
+        addBtn.onclick = () => {
+            const productRow = document.createElement('div');
+            productRow.className = 'grid grid-cols-3 gap-2 custom-fert-row';
+            productRow.innerHTML = `
+                <input type="text" placeholder="Nombre Producto" class="p-2 rounded-md col-span-1 fert-product-name">
+                <input type="number" step="0.1" placeholder="Dosis" class="p-2 rounded-md col-span-1 fert-dose">
+                <select class="p-2 rounded-md col-span-1 fert-unit">
+                    <option>ml/L</option><option>gr/L</option><option>ml</option><option>gr</option>
+                </select>
+            `;
+            // Insertar antes del botón
+            container.insertBefore(productRow, addBtn);
+        };
+        container.appendChild(addBtn);
+    } else {
+        products.forEach(productName => {
+            const productRow = document.createElement('div');
+            productRow.className = 'grid grid-cols-3 gap-2 items-center product-row';
+            productRow.innerHTML = `
+                <label class="text-gray-300 col-span-1">${productName}</label>
+                <input type="number" step="0.1" placeholder="Dosis" data-product-name="${productName}" class="p-2 rounded-md col-span-1 fert-dose">
+                <select class="p-2 rounded-md col-span-1 fert-unit">
+                    <option>ml/L</option><option>gr/L</option><option>ml</option><option>gr</option>
+                </select>
+            `;
+            container.appendChild(productRow);
+        });
+    }
+}
+
 
 export function openMoveCicloModal(ciclo, salas) {
     const title = `Mover Ciclo "${ciclo.name}"`;
     const salaOptions = salas
         .filter(s => s.id !== ciclo.salaId)
-        .map(s => `<option value="${s.id}">${s.name}</option>`)
-        .join('');
+        .map(s => `<option value="${s.id}">${s.name}</option>`).join('');
     
     const content = `
         <p class="mb-4">Selecciona la sala de destino:</p>
@@ -398,30 +500,24 @@ export function createCicloCard(ciclo, handlers) {
 export function createLogEntry(log, ciclo, handlers) {
     const entry = document.createElement('div');
     const logDate = log.date.toLocaleString('es-AR', { dateStyle: 'short', timeStyle: 'short'});
-    const dayTimeInfo = log.day && log.time ? `<span class="font-semibold">${log.day}, ${log.time}</span>` : '';
     let details = '';
     let borderColor = 'border-amber-500';
-    if (log.type === 'Riego') {
-        const title = ciclo.cultivationType === 'Hidroponia' ? 'Control de Solución' : 'Riego';
-        details = `<p class="font-semibold text-amber-400">${title}</p>
+    if (log.type === 'Riego' || log.type === 'Cambio de Solución') {
+        const title = log.type === 'Cambio de Solución' ? 'Cambio de Solución' : (ciclo.cultivationType === 'Hidroponia' ? 'Control de Solución' : 'Riego');
+        const color = log.type === 'Cambio de Solución' ? 'text-blue-400' : 'text-amber-400';
+        details = `<p class="font-semibold ${color}">${title}</p>
                      <div class="text-sm text-gray-300 mt-1 grid grid-cols-2 gap-x-4 gap-y-1">
+                         ${log.litros ? `<span><strong>Litros:</strong> ${log.litros}</span>` : ''}
                          <span><strong>pH:</strong> ${log.ph || 'N/A'}</span>
                          <span><strong>EC:</strong> ${log.ec || 'N/A'}</span>
                      </div>
                      <div class="text-sm text-gray-300 mt-2"><strong>Fertilizantes:</strong> ${handlers.formatFertilizers(log.fertilizers)}</div>`;
+        borderColor = log.type === 'Cambio de Solución' ? 'border-blue-400' : 'border-amber-500';
+
     } else if (log.type === 'Control de Plagas') {
         borderColor = 'border-yellow-400';
         details = `<p class="font-semibold text-yellow-400">Control de Plagas</p>
                    <p class="text-sm text-gray-300 mt-1 whitespace-pre-wrap">${log.notes || 'Sin notas.'}</p>`;
-    } else if (log.type === 'Cambio de Solución') {
-        borderColor = 'border-blue-400';
-        details = `<p class="font-semibold text-blue-400">Cambio de Solución</p>
-                     <div class="text-sm text-gray-300 mt-1 grid grid-cols-2 gap-x-4 gap-y-1">
-                         <span><strong>Litros:</strong> ${log.litros || 'N/A'}</span>
-                         <span><strong>pH:</strong> ${log.ph || 'N/A'}</span>
-                         <span><strong>EC:</strong> ${log.ec || 'N/A'}</span>
-                     </div>
-                     <div class="text-sm text-gray-300 mt-2"><strong>Fertilizantes:</strong> ${handlers.formatFertilizers(log.fertilizers)}</div>`;
     } else if (log.type === 'Podas') {
         borderColor = 'border-green-400';
         details = `<p class="font-semibold text-green-400">Poda: ${log.podaType || ''}</p>`;
@@ -432,7 +528,6 @@ export function createLogEntry(log, ciclo, handlers) {
         <div class="flex justify-between items-center">
             <div>
                 <span class="text-xs text-gray-400">${logDate}</span>
-                <span class="text-xs text-gray-300 ml-2">${dayTimeInfo}</span>
             </div>
             <button data-action="delete-log" data-ciclo-id="${ciclo.id}" data-log-id="${log.id}" class="p-1 rounded-md text-gray-500 hover:bg-red-800 hover:text-white transition">
                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
@@ -667,12 +762,5 @@ export function initializeEventListeners(handlers) {
         if (e.target.id === 'moveCicloForm') handlers.handleMoveCicloSubmit(e);
         if (e.target.id === 'germinateSeedForm') handlers.handleGerminateFormSubmit(e);
         if (e.target.id === 'seedForm') handlers.handleSeedFormSubmit(e);
-    });
-
-    document.body.addEventListener('change', (e) => {
-        if (e.target.id === 'cicloPhase') handlers.updateCicloModalDateFields();
-        if (e.target.id === 'logType') handlers.toggleLogFields();
-        if (e.target.id === 'podaType') getEl('clonesSection').style.display = e.target.value === 'Clones' ? 'block' : 'none';
-        if (e.target.id === 'fert-foliar') getEl('fert-foliar-product').classList.toggle('hidden', !e.target.checked);
     });
 }
