@@ -181,13 +181,43 @@
             </div>
         </div>
     </div>
+    
     <div id="aboutModal" class="fixed inset-0 modal-backdrop flex items-center justify-center z-50 p-4 hidden">
-        <div class="w-11/12 md:w-full md:max-w-lg p-6 rounded-lg shadow-lg">
-            <h2 class="text-2xl font-bold mb-4 text-amber-400">¿Qué onda esto?</h2>
-            <p class="mb-4 text-gray-300">"SegCul" (Seguimiento de Cultivo) es una PWA (Progressive Web App) sencilla para llevar un registro de tus cultivos. La idea es tener un lugar centralizado y privado para anotar todo lo importante: fechas, riegos, plagas, podas, etc.</p>
-            <p class="mb-4 text-gray-300">No es una red social. Tus datos son tuyos y se guardan en tu propia cuenta de Firebase. Nadie más puede verlos.</p>
-            <p class="mb-4 text-gray-300">Está en desarrollo, así que puede tener errores. Cualquier idea o bug, podés tirarla en el grupo de Telegram.</p>
-            <div class="text-right">
+        <div class="w-11/12 md:w-full max-w-lg p-6 rounded-lg shadow-lg max-h-[90vh] overflow-y-auto">
+            <h2 class="text-2xl font-bold mb-4 text-amber-400">¡Buenas!</h2>
+            <div class="text-gray-300 space-y-3">
+                <p>Para que le agarres la mano a la app de una, acá esta la data de cómo está organizado. La cosa es simple, va por niveles:</p>
+                
+                <div class="space-y-2 pl-2">
+                    <p><strong>1. Salas:</strong> Imaginate que son tus espacios: la carpa, el indoor, el balcón, el fondo... acá empieza todo. Creás una Sala para meterle los cultivos.</p>
+                    <p><strong>2. Ciclos:</strong> Es cada cultivo que empezás. Un ciclo siempre va adentro de una Sala. Le ponés un nombre, decís si arranca en vege o flora y listo, a darle seguimiento.</p>
+                    <p><strong>3. Registros:</strong> Este es el diario de tus plantas. Dentro de cada ciclo, vas anotando por semana todo lo que importa: el pH y la EC del riego, qué fertis le mandaste, si hiciste una poda, si apareció algún bicho, etc. Te queda el historial completo.</p>
+                </div>
+
+                <br>
+                
+                <div>
+                    <h3 class="font-bold text-lg text-amber-300 mb-2">Herramientas para no colgar</h3>
+                    <p class="mb-2">Aparte de anotar, tenés estas secciones para gestionar tu stock:</p>
+                    <ul class="list-disc list-inside space-y-2 pl-2">
+                        <li><strong>Genéticas:</strong> Es tu catálogo personal de cepas. Anotás todas las que tenés o tuviste para no olvidarte qué es cada cuál.</li>
+                        <li><strong>Stock de Clones:</strong> Va de la mano con Genéticas. Te sirve para saber al toque cuántos esquejes tenés listos para la batalla de cada genética.</li>
+                        <li><strong>Baúl de Semillas:</strong> Tu inventario de semillitas. Anotás las que tenés, y cuando usás la función "Germinar", se descuentan solas del stock.</li>
+                    </ul>
+                </div>
+                
+                <br>
+
+                <div>
+                     <h3 class="font-bold text-lg text-amber-300 mb-2">Sobre tus Datos</h3>
+                     <p>No es una red social. Tus datos son tuyos y se guardan en tu propia cuenta de Firebase. Nadie más puede verlos.</p>
+                </div>
+                 <div>
+                     <h3 class="font-bold text-lg text-amber-300 mb-2">En Desarrollo</h3>
+                     <p>La aplicación sigue mejorando. Cualquier idea, sugerencia o bug que encuentres, podés compartirla en el grupo de Telegram.</p>
+                </div>
+            </div>
+            <div class="text-right mt-6">
                 <button id="closeAboutBtn" class="btn-primary py-2 px-4 rounded-lg">Entendido</button>
             </div>
         </div>
