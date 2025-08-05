@@ -4,7 +4,9 @@ import { onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndP
 import { collection, doc, addDoc, deleteDoc, onSnapshot, query, serverTimestamp, getDocs, writeBatch, updateDoc, arrayUnion, where, increment } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 import { 
     getEl, showNotification, renderSalasGrid, createCicloCard, createLogEntry,
-    renderGeneticsList, renderStockList, renderSeedBankList, initializeEventListeners,
+    renderGeneticsList, renderStockList, 
+    renderBaulSemillasList, // CAMBIO: Importa la función con el nuevo nombre
+    initializeEventListeners,
     renderCicloDetails, renderToolsView, renderSettingsView,
     openSalaModal as uiOpenSalaModal, 
     openCicloModal as uiOpenCicloModal, 
@@ -102,11 +104,8 @@ function loadCiclos() {
     if (ciclosUnsubscribe) ciclosUnsubscribe();
     ciclosUnsubscribe = onSnapshot(q, (snapshot) => {
         currentCiclos = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        // Re-render main grid as it depends on ciclos
         renderSalasGrid(currentSalas, currentCiclos, handlers); 
-        // If ciclos view is open, update it
         if (!getEl('ciclosView').classList.contains('hidden')) handlers.showCiclosView(currentSalaId, currentSalaName);
-        // If detail view is open, update it
         if (!getEl('cicloDetailView').classList.contains('hidden')) {
             const activeCicloId = getEl('cicloDetailView').querySelector('[data-ciclo-id]')?.dataset.cicloId;
             if (activeCicloId) {
@@ -138,7 +137,8 @@ function loadSeeds() {
     seedsUnsubscribe = onSnapshot(q, (snapshot) => {
         currentSeeds = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
          if(!getEl('toolsView').classList.contains('hidden')) {
-            renderSeedBankList(currentSeeds, handlers);
+            // CAMBIO: Llama a la función con el nuevo nombre
+            renderBaulSemillasList(currentSeeds, handlers);
         }
     });
 }
@@ -147,13 +147,12 @@ function loadLogsForCiclo(cicloId, weekNumbers) {
     if (logsUnsubscribe) logsUnsubscribe();
     const q = query(collection(db, `users/${userId}/ciclos/${cicloId}/logs`));
     logsUnsubscribe = onSnapshot(q, (snapshot) => {
-        // Clear previous logs
         weekNumbers.forEach(weekNum => {
             const logContainer = getEl(`logs-week-${weekNum}`);
             if(logContainer) logContainer.innerHTML = `<p class="text-gray-500 italic">No hay registros.</p>`;
         });
         const allLogs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data(), date: doc.data().date.toDate() }));
-        allLogs.sort((a, b) => b.date - a.date); // Sort by most recent first
+        allLogs.sort((a, b) => b.date - a.date);
         allLogs.forEach(log => {
             const logContainer = getEl(`logs-week-${log.week}`);
             if (logContainer) {
@@ -234,16 +233,12 @@ const handlers = {
         handlers.showConfirmationModal(`¿Seguro que quieres eliminar la sala "${name}"? Todos los ciclos dentro de ella también serán eliminados. Esta acción no se puede deshacer.`, async () => {
             try {
                 const batch = writeBatch(db);
-                // Find all ciclos in the sala to be deleted
                 const ciclosQuery = query(collection(db, `users/${userId}/ciclos`), where("salaId", "==", id));
                 const ciclosSnapshot = await getDocs(ciclosQuery);
-                // Add deletion of each ciclo to the batch
                 ciclosSnapshot.forEach(cicloDoc => {
                     batch.delete(cicloDoc.ref);
                 });
-                // Add deletion of the sala itself to the batch
                 batch.delete(doc(db, `users/${userId}/salas`, id));
-                // Commit the batch
                 await batch.commit();
                 showNotification(`Sala "${name}" y sus ciclos eliminados.`);
             } catch (error) {
@@ -301,7 +296,6 @@ const handlers = {
     deleteCiclo: (cicloId, cicloName) => {
          handlers.showConfirmationModal(`¿Seguro que quieres eliminar el ciclo "${cicloName}"? Todos sus registros serán eliminados.`, async () => {
             try {
-                // It's good practice to delete subcollections if they exist
                 const logsRef = collection(db, `users/${userId}/ciclos/${cicloId}/logs`);
                 const logsSnapshot = await getDocs(logsRef);
                 const batch = writeBatch(db);
@@ -323,10 +317,7 @@ const handlers = {
     showCiclosView: (salaId, salaName) => {
         currentSalaId = salaId;
         currentSalaName = salaName;
-        getEl('app').classList.add('hidden');
-        getEl('cicloDetailView').classList.add('hidden');
-        getEl('toolsView').classList.add('hidden');
-        getEl('settingsView').classList.add('hidden');
+        handlers.hideAllViews();
 
         getEl('salaNameHeader').innerText = `Sala: ${salaName}`;
         const ciclosGrid = getEl('ciclosGrid');
@@ -356,7 +347,6 @@ const handlers = {
         detailView.innerHTML = renderCicloDetails(ciclo, handlers);
         detailView.classList.remove('hidden');
         
-        // Setup listeners for the newly created detail view
         getEl('backToCiclosBtn').addEventListener('click', () => handlers.showCiclosView(ciclo.salaId, currentSalas.find(s=>s.id === ciclo.salaId)?.name));
         
         const weekNumbers = ciclo.floweringWeeks ? ciclo.floweringWeeks.map(w => w.weekNumber) : [];
@@ -370,7 +360,7 @@ const handlers = {
         if (currentSalaId && currentSalaName) {
             handlers.showCiclosView(currentSalaId, currentSalaName);
         } else {
-            handlers.hideCiclosView(); // Go back to main panel
+            handlers.hideCiclosView();
         }
     },
     showToolsView: () => {
@@ -378,16 +368,17 @@ const handlers = {
         const toolsView = getEl('toolsView');
         toolsView.innerHTML = renderToolsView();
         toolsView.classList.remove('hidden');
-        handlers.switchToolsTab('genetics'); // Default tab
-        // Re-render lists
+        handlers.switchToolsTab('genetics'); 
+        
         renderGeneticsList(currentGenetics, handlers);
         renderStockList(currentGenetics, handlers);
-        renderSeedBankList(currentSeeds, handlers);
-        // Add event listeners for the new view
+        renderBaulSemillasList(currentSeeds, handlers); // CAMBIO: Llama a la función con el nuevo nombre
+        
         getEl('backToPanelBtn').addEventListener('click', handlers.hideToolsView);
         getEl('geneticsTabBtn').addEventListener('click', () => handlers.switchToolsTab('genetics'));
         getEl('stockTabBtn').addEventListener('click', () => handlers.switchToolsTab('stock'));
-        getEl('seedBankTabBtn').addEventListener('click', () => handlers.switchToolsTab('seedBank'));
+        // CAMBIO: ID del botón y nombre de la pestaña
+        getEl('baulSemillasTabBtn').addEventListener('click', () => handlers.switchToolsTab('baulSemillas'));
         getEl('geneticsForm').addEventListener('submit', handlers.handleGeneticsFormSubmit);
         getEl('seedForm').addEventListener('submit', handlers.handleSeedFormSubmit);
     },
@@ -400,7 +391,7 @@ const handlers = {
         const settingsView = getEl('settingsView');
         settingsView.innerHTML = renderSettingsView();
         settingsView.classList.remove('hidden');
-        // Add event listeners
+        
         getEl('backToPanelFromSettingsBtn').addEventListener('click', handlers.hideSettingsView);
         getEl('changePasswordForm').addEventListener('submit', handlers.handleChangePassword);
         getEl('deleteAccountBtn').addEventListener('click', handlers.handleDeleteAccount);
@@ -410,12 +401,16 @@ const handlers = {
         getEl('app').classList.remove('hidden');
     },
     hideAllViews: () => {
-        ['app', 'ciclosView', 'cicloDetailView', 'toolsView', 'settingsView'].forEach(id => getEl(id).classList.add('hidden'));
+        ['app', 'ciclosView', 'cicloDetailView', 'toolsView', 'settingsView'].forEach(id => {
+            const el = getEl(id);
+            if (el) el.classList.add('hidden');
+        });
     },
     
     // --- TOOLS ---
     switchToolsTab: (activeTab) => {
-        ['genetics', 'stock', 'seedBank'].forEach(tab => {
+        // CAMBIO: Se actualiza el array de pestañas con el nuevo nombre
+        ['genetics', 'stock', 'baulSemillas'].forEach(tab => {
             getEl(`${tab}Content`).classList.toggle('hidden', tab !== activeTab);
             getEl(`${tab}TabBtn`).classList.toggle('border-amber-400', tab === activeTab);
             getEl(`${tab}TabBtn`).classList.toggle('border-transparent', tab !== activeTab);
@@ -504,7 +499,7 @@ const handlers = {
         }
         try {
             await addDoc(collection(db, `users/${userId}/seeds`), seedData);
-            showNotification('Semillas añadidas al banco.');
+            showNotification('Semillas añadidas al baúl.');
             form.reset();
         } catch (error) {
             console.error("Error saving seed:", error);
@@ -514,7 +509,7 @@ const handlers = {
     deleteSeed: (id) => {
         const seed = currentSeeds.find(s => s.id === id);
         if(seed) {
-            handlers.showConfirmationModal(`¿Seguro que quieres eliminar las semillas "${seed.name}" del banco?`, async () => {
+            handlers.showConfirmationModal(`¿Seguro que quieres eliminar las semillas "${seed.name}" del baúl?`, async () => {
                 try {
                     await deleteDoc(doc(db, `users/${userId}/seeds`, id));
                     showNotification('Semillas eliminadas.');
@@ -562,8 +557,6 @@ const handlers = {
 
     // --- GENETICS IN CICLO ---
     handleAddGeneticToCiclo: async (type) => {
-        // This is a placeholder as the UI for this modal wasn't fully defined.
-        // It would typically involve showing a list of genetics and adding the selected one to the ciclo.
         console.log(`Adding genetic via: ${type}`);
         showNotification('Función no implementada completamente.', 'error');
     },
@@ -572,12 +565,9 @@ const handlers = {
     handleDeleteAccount: () => {
         handlers.showConfirmationModal('¿ESTÁS SEGURO? Esta acción eliminará permanentemente tu cuenta y todos tus datos (salas, ciclos, registros). No se puede deshacer.', async () => {
             try {
-                // It's complex to delete all subcollections. For now, we delete the user.
-                // A more robust solution uses a Firebase Function to clean up data.
                 const user = auth.currentUser;
                 await deleteUser(user);
                 showNotification('Cuenta eliminada. Serás desconectado.');
-                // App will reload due to onAuthStateChanged
             } catch (error) {
                 console.error("Error deleting account:", error);
                 showNotification('Error al eliminar la cuenta. Es posible que necesites volver a iniciar sesión para completar esta acción.', 'error');
@@ -724,7 +714,6 @@ const handlers = {
             await updateDoc(doc(db, `users/${userId}/ciclos`, cicloId), { salaId: newSalaId });
             showNotification('Ciclo movido de sala.');
             getEl('moveCicloModal').style.display = 'none';
-            // If we are in the ciclos view, we might need to go back to the main view
             if (!getEl('ciclosView').classList.contains('hidden')) {
                 handlers.hideCiclosView();
             }
@@ -749,7 +738,7 @@ onAuthStateChanged(auth, user => {
         loadCiclos();
         loadGenetics();
         loadSeeds();
-        initializeEventListeners(handlers); // Initialize listeners once the user is logged in
+        initializeEventListeners(handlers);
     } else {
         userId = null;
         if (salasUnsubscribe) salasUnsubscribe();
@@ -759,6 +748,6 @@ onAuthStateChanged(auth, user => {
         
         handlers.hideAllViews();
         getEl('authView').classList.remove('hidden');
-        initializeEventListeners(handlers); // Also initialize for login/register
+        initializeEventListeners(handlers);
     }
 });

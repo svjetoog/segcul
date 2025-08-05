@@ -7,7 +7,6 @@ export function showNotification(message, type = 'success') {
     const container = getEl('notification-container');
     if (!container) return;
 
-    // Create a new notification element
     const notif = document.createElement('div');
     notif.textContent = message;
     notif.className = `p-3 rounded-lg shadow-lg mb-2 ${type === 'success' ? 'bg-green-500' : 'bg-red-500'} text-white transition-opacity duration-500 ease-in-out opacity-100`;
@@ -33,7 +32,7 @@ export function showNotification(message, type = 'success') {
 
 function createModalHTML(id, title, formId, content, submitText, cancelId, submitId = "submitBtn") {
     return `
-        <div class="w-full max-w-lg p-6 rounded-lg shadow-lg">
+        <div class="w-11/12 md:w-full max-w-lg p-6 rounded-lg shadow-lg overflow-y-auto max-h-screen">
             <h2 class="text-2xl font-bold mb-6 text-amber-400">${title}</h2>
             <form id="${formId}">
                 ${content}
@@ -77,7 +76,7 @@ export function openCicloModal(ciclo = null, salas = []) {
                 <label for="ciclo-sala-select" class="block text-sm font-medium text-gray-300 mb-1">Sala</label>
                 <select id="ciclo-sala-select" required class="w-full p-2 rounded-md">${salaOptions}</select>
             </div>
-            <div class="grid grid-cols-2 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                     <label for="cicloPhase" class="block text-sm font-medium text-gray-300 mb-1">Fase Inicial</label>
                     <select id="cicloPhase" class="w-full p-2 rounded-md">
@@ -130,15 +129,14 @@ export function openLogModal(ciclo, week, log = null) {
                     <option value="Podas">Podas</option>
                 </select>
             </div>
-
             <div id="riegoFields">
-                <div class="grid grid-cols-2 gap-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div><label for="log-ph">pH</label><input type="number" step="0.1" id="log-ph" class="w-full p-2 rounded-md"></div>
                     <div><label for="log-ec">EC</label><input type="number" step="0.1" id="log-ec" class="w-full p-2 rounded-md"></div>
                 </div>
                  <fieldset class="mt-4 border border-gray-600 p-3 rounded-md">
                     <legend class="px-2 text-sm font-medium">Fertilizantes</legend>
-                    <div class="grid grid-cols-2 gap-x-4 gap-y-2">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2">
                         <div class="flex items-center gap-2"><input type="number" id="fert-bases-amount" placeholder="Cant." class="w-20 p-1 rounded"><select id="fert-bases-unit" class="p-1 rounded"><option>ml/L</option><option>gr/L</option></select></div>
                         <div class="flex items-center gap-2"><input type="checkbox" id="fert-enzimas" class="h-4 w-4 rounded"><label for="fert-enzimas">Enzimas</label></div>
                         <div class="flex items-center gap-2"><input type="checkbox" id="fert-candy" class="h-4 w-4 rounded"><label for="fert-candy">Candy</label></div>
@@ -149,16 +147,13 @@ export function openLogModal(ciclo, week, log = null) {
                      <input type="text" id="fert-foliar-product" placeholder="Producto foliar" class="w-full p-2 rounded-md mt-2 hidden">
                 </fieldset>
             </div>
-
             <div id="solucionFields" class="hidden">
                  <div><label for="log-litros">Litros Totales</label><input type="number" id="log-litros" class="w-full p-2 rounded-md"></div>
             </div>
-
             <div id="plagasFields" class="hidden">
                 <label for="plagas-notes">Notas / Producto Aplicado</label>
                 <textarea id="plagas-notes" rows="3" class="w-full p-2 rounded-md"></textarea>
             </div>
-
             <div id="podasFields" class="hidden">
                  <label for="podaType">Tipo de Poda</label>
                  <select id="podaType" class="w-full p-2 rounded-md">
@@ -177,7 +172,7 @@ export function openLogModal(ciclo, week, log = null) {
     const form = getEl('logForm');
     form.dataset.cicloId = ciclo.id;
     form.dataset.week = week.weekNumber;
-    form.dataset.logId = log ? log.id : ''; // For editing later
+    form.dataset.logId = log ? log.id : '';
     
     modal.style.display = 'flex';
 }
@@ -221,7 +216,6 @@ export function renderCicloDetails(ciclo, handlers) {
     let weeksHTML = '<p class="text-gray-500">Este ciclo no tiene seguimiento por semanas (es vegetativo o finalizado).</p>';
 
     if (ciclo.phase === 'Floración' && ciclo.floweringWeeks) {
-        // Sort weeks just in case they are not in order
         ciclo.floweringWeeks.sort((a, b) => a.weekNumber - b.weekNumber);
         
         weeksHTML = ciclo.floweringWeeks.map(week => {
@@ -232,8 +226,7 @@ export function renderCicloDetails(ciclo, handlers) {
                         <h4 class="font-bold text-lg">Semana ${week.weekNumber} <span class="text-sm font-normal px-2 py-1 rounded-full ${phaseInfo.color}">${phaseInfo.name}</span></h4>
                         <button class="btn-primary text-xs py-1 px-2 rounded-md add-log-for-week-btn" data-week='${JSON.stringify(week)}'>+ Registro</button>
                     </div>
-                    <div class="p-4 bg-[#262626] rounded-b-lg space-y-3" id="logs-week-${week.weekNumber}">
-                        </div>
+                    <div class="p-4 bg-[#262626] rounded-b-lg space-y-3" id="logs-week-${week.weekNumber}"></div>
                 </div>
             `;
         }).join('');
@@ -249,7 +242,7 @@ export function renderCicloDetails(ciclo, handlers) {
         <div data-ciclo-id="${ciclo.id}">
              <header class="flex justify-between items-start mb-6">
                 <div>
-                    <h2 class="text-4xl font-bold text-white">${ciclo.name}</h2>
+                    <h2 class="text-3xl font-bold text-white font-mono tracking-wider">${ciclo.name}</h2>
                     <p class="text-gray-400">${statusText}</p>
                 </div>
                 <button id="backToCiclosBtn" class="btn-secondary py-2 px-4 rounded-lg">Volver</button>
@@ -260,11 +253,10 @@ export function renderCicloDetails(ciclo, handlers) {
         </div>
     `;
 
-    // After setting innerHTML, re-attach listeners for dynamically created buttons inside the weeks
     setTimeout(() => {
         document.querySelectorAll('.add-log-for-week-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
-                e.stopPropagation(); // Prevent the header click from firing
+                e.stopPropagation();
                 const weekData = JSON.parse(e.target.dataset.week);
                 openLogModal(ciclo, weekData);
             });
@@ -277,21 +269,19 @@ export function renderCicloDetails(ciclo, handlers) {
 export function renderToolsView() {
     return `
         <header class="flex justify-between items-center mb-8">
-            <h1 class="text-3xl font-bold text-white">Herramientas</h1>
+            <h1 class="text-3xl font-bold text-white font-mono tracking-wider">Herramientas</h1>
             <button id="backToPanelBtn" class="btn-secondary py-2 px-4 rounded-lg">Volver al Panel</button>
         </header>
-
         <div class="mb-6 border-b border-gray-700">
-            <nav class="flex space-x-8" aria-label="Tabs">
-                <button id="geneticsTabBtn" class="py-4 px-1 border-b-2 font-medium text-lg text-gray-300 hover:text-white hover:border-gray-300">Genéticas</button>
-                <button id="stockTabBtn" class="py-4 px-1 border-b-2 font-medium text-lg text-gray-300 hover:text-white hover:border-gray-300">Stock Clones</button>
-                <button id="seedBankTabBtn" class="py-4 px-1 border-b-2 font-medium text-lg text-gray-300 hover:text-white hover:border-gray-300">Banco Semillas</button>
+            <nav class="flex space-x-4 sm:space-x-8 overflow-x-auto" aria-label="Tabs">
+                <button id="geneticsTabBtn" class="py-4 px-1 border-b-2 font-medium text-lg text-gray-300 hover:text-white hover:border-gray-300 whitespace-nowrap">Genéticas</button>
+                <button id="stockTabBtn" class="py-4 px-1 border-b-2 font-medium text-lg text-gray-300 hover:text-white hover:border-gray-300 whitespace-nowrap">Stock Clones</button>
+                <button id="baulSemillasTabBtn" class="py-4 px-1 border-b-2 font-medium text-lg text-gray-300 hover:text-white hover:border-gray-300 whitespace-nowrap">Baúl de Semillas</button>
             </nav>
         </div>
-
         <div id="geneticsContent">
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <div class="lg:col-span-1">
+            <div class="flex flex-col md:flex-row gap-8">
+                <div class="w-full md:w-2/5 lg:w-1/3">
                     <form id="geneticsForm" class="card p-6 space-y-4">
                         <h3 id="genetic-form-title" class="text-xl font-bold text-amber-400">Añadir Nueva Genética</h3>
                         <input type="text" id="genetic-name" placeholder="Nombre de la genética" required class="w-full p-2 rounded-md">
@@ -302,29 +292,24 @@ export function renderToolsView() {
                         <button type="submit" class="btn-primary w-full py-2 rounded-lg">Guardar Genética</button>
                     </form>
                 </div>
-                <div id="geneticsList" class="lg:col-span-2 space-y-4">
-                    </div>
+                <div id="geneticsList" class="w-full md:w-3/5 lg:w-2/3 space-y-4"></div>
             </div>
         </div>
-
         <div id="stockContent" class="hidden">
-            <div id="stockList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                </div>
+            <div id="stockList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
         </div>
-
-        <div id="seedBankContent" class="hidden">
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <div class="lg:col-span-1">
+        <div id="baulSemillasContent" class="hidden">
+            <div class="flex flex-col md:flex-row gap-8">
+                <div class="w-full md:w-2/5 lg:w-1/3">
                     <form id="seedForm" class="card p-6 space-y-4">
-                        <h3 class="text-xl font-bold text-amber-400">Añadir Semillas al Banco</h3>
+                        <h3 class="text-xl font-bold text-amber-400">Añadir Semillas al Baúl</h3>
                         <input type="text" id="seed-name" placeholder="Nombre de la semilla" required class="w-full p-2 rounded-md">
-                        <input type="text" id="seed-bank" placeholder="Banco" class="w-full p-2 rounded-md">
+                        <input type="text" id="seed-bank" placeholder="Banco de origen" class="w-full p-2 rounded-md">
                         <input type="number" id="seed-quantity" placeholder="Cantidad" required class="w-full p-2 rounded-md">
-                        <button type="submit" class="btn-primary w-full py-2 rounded-lg">Añadir al Banco</button>
+                        <button type="submit" class="btn-primary w-full py-2 rounded-lg">Añadir al Baúl</button>
                     </form>
                 </div>
-                <div id="seedBankList" class="lg:col-span-2 space-y-4">
-                    </div>
+                <div id="baulSemillasList" class="w-full md:w-3/5 lg:w-2/3 space-y-4"></div>
             </div>
         </div>
     `;
@@ -333,7 +318,7 @@ export function renderToolsView() {
 export function renderSettingsView() {
     return `
         <header class="flex justify-between items-center mb-8">
-            <h1 class="text-3xl font-bold text-white">Ajustes</h1>
+            <h1 class="text-3xl font-bold text-white font-mono tracking-wider">Ajustes</h1>
             <button id="backToPanelFromSettingsBtn" class="btn-secondary py-2 px-4 rounded-lg">Volver al Panel</button>
         </header>
         <div class="max-w-2xl mx-auto space-y-8">
@@ -354,7 +339,6 @@ export function renderSettingsView() {
     `;
 }
 
-// --- CARD AND LIST ITEM CREATORS (EXISTING CODE) ---
 export function createCicloCard(ciclo, handlers) {
     const card = document.createElement('div');
     card.className = 'card rounded-xl p-5 flex flex-col justify-between';
@@ -388,7 +372,7 @@ export function createCicloCard(ciclo, handlers) {
             </div>
             ${statusInfo}
         </div>
-        <div class="mt-6 flex gap-2 justify-end">
+        <div class="mt-6 flex flex-wrap justify-end gap-2">
             <button data-action="move-ciclo" class="btn-secondary p-2 rounded-lg transition" title="Mover Ciclo">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" /></svg>
             </button>
@@ -398,7 +382,7 @@ export function createCicloCard(ciclo, handlers) {
             <button data-action="delete-ciclo" class="btn-danger p-2 rounded-lg transition">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
             </button>
-            <button data-action="view-details" class="btn-primary flex-grow font-semibold py-2 px-3 rounded-lg text-sm transition">Ver Detalles</button>
+            <button data-action="view-details" class="btn-primary flex-grow sm:flex-grow-0 font-semibold py-2 px-3 rounded-lg text-sm transition">Ver Detalles</button>
         </div>
     `;
     card.querySelector('[data-action="edit-ciclo"]').addEventListener('click', () => handlers.openCicloModal(ciclo));
@@ -505,9 +489,9 @@ export function renderSalasGrid(currentSalas, currentCiclos, handlers) {
             <div class="flex-grow flex flex-col">
                 <h3 class="text-2xl font-bold text-white">${sala.name}</h3>
                 <p class="text-gray-400 mb-4">${activeCiclos.length} ciclo(s) activo(s)</p>
-                <div class="flex-grow relative overflow-hidden">${ciclosPreviewHTML}</div>
+                <div class="flex-grow relative overflow-y-auto">${ciclosPreviewHTML}</div>
             </div>
-            <div class="flex justify-end gap-2 mt-4">
+            <div class="flex justify-end gap-2 mt-4 flex-wrap">
                 <button data-action="edit-sala" class="btn-secondary p-2 rounded-lg transition">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.5L14.732 3.732z" /></svg>
                 </button>
@@ -542,13 +526,13 @@ export function renderGeneticsList(currentGenetics, handlers) {
     }
     currentGenetics.forEach(g => {
         const geneticCard = document.createElement('div');
-        geneticCard.className = 'card p-4 flex justify-between items-center';
+        geneticCard.className = 'card p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center';
         geneticCard.innerHTML = `
-            <div>
+            <div class="mb-3 sm:mb-0">
                 <p class="font-bold text-lg flex items-center gap-2">${g.name}</p>
-                <p class="text-sm text-gray-400">${g.parents || ''} | ${g.bank || ''} | ${g.owner || ''}</p>
+                <p class="text-sm text-gray-400">${g.parents || 'Sin padres definidos'} | ${g.bank || 'Sin banco'} | ${g.owner || 'Sin dueño'}</p>
             </div>
-            <div class="flex gap-2">
+            <div class="flex gap-2 flex-wrap">
                 <button data-action="edit-genetic" data-id="${g.id}" class="btn-secondary p-2 rounded-lg transition">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.5L14.732 3.732z" /></svg>
                 </button>
@@ -573,9 +557,9 @@ export function renderStockList(currentGenetics, handlers) {
     }
     currentGenetics.forEach(g => {
         const stockCard = document.createElement('div');
-        stockCard.className = 'card p-4 flex justify-between items-center';
+        stockCard.className = 'card p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center';
         stockCard.innerHTML = `
-            <div>
+            <div class="mb-3 sm:mb-0">
                 <p class="font-bold text-lg">${g.name}</p>
                 <p class="text-sm text-gray-400">Clones en stock: <span class="font-bold text-xl text-amber-400">${g.cloneStock || 0}</span></p>
             </div>
@@ -589,39 +573,37 @@ export function renderStockList(currentGenetics, handlers) {
     stockList.querySelectorAll('[data-action="update-stock"]').forEach(btn => btn.addEventListener('click', (e) => handlers.updateStock(e.currentTarget.dataset.id, parseInt(e.currentTarget.dataset.amount))));
 }
 
-export function renderSeedBankList(currentSeeds, handlers) {
-    const seedBankList = getEl('seedBankList');
-    if (!seedBankList) return;
-    seedBankList.innerHTML = '';
+export function renderBaulSemillasList(currentSeeds, handlers) {
+    const baulSemillasList = getEl('baulSemillasList');
+    if (!baulSemillasList) return;
+    baulSemillasList.innerHTML = '';
     if (currentSeeds.length === 0) {
-        seedBankList.innerHTML = `<p class="text-center text-gray-500">No hay semillas en el banco.</p>`;
+        baulSemillasList.innerHTML = `<p class="text-center text-gray-500">No hay semillas en el baúl.</p>`;
         return;
     }
     currentSeeds.forEach(s => {
         const seedCard = document.createElement('div');
-        seedCard.className = 'card p-4 flex justify-between items-center';
+        seedCard.className = 'card p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center';
         seedCard.innerHTML = `
-            <div>
+            <div class="mb-3 sm:mb-0">
                 <p class="font-bold text-lg">${s.name}</p>
                 <p class="text-sm text-gray-400">${s.bank || 'Banco Desconocido'}</p>
                 <p class="text-sm text-gray-400">Cantidad: <span class="font-bold text-amber-400">${s.quantity || 0}</span></p>
             </div>
-            <div class="flex gap-2">
+            <div class="flex gap-2 flex-wrap">
                 <button data-action="germinate-seed" data-id="${s.id}" class="btn-primary py-2 px-4 rounded-lg text-sm" ${s.quantity > 0 ? '' : 'disabled'}>Germinar</button>
                 <button data-action="delete-seed" data-id="${s.id}" class="btn-danger p-2 rounded-lg transition">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                 </button>
             </div>
         `;
-        seedBankList.appendChild(seedCard);
+        baulSemillasList.appendChild(seedCard);
     });
-    seedBankList.querySelectorAll('[data-action="germinate-seed"]').forEach(btn => btn.addEventListener('click', (e) => handlers.openGerminateModal(e.currentTarget.dataset.id)));
-    seedBankList.querySelectorAll('[data-action="delete-seed"]').forEach(btn => btn.addEventListener('click', (e) => handlers.deleteSeed(e.currentTarget.dataset.id)));
+    baulSemillasList.querySelectorAll('[data-action="germinate-seed"]').forEach(btn => btn.addEventListener('click', (e) => handlers.openGerminateModal(e.currentTarget.dataset.id)));
+    baulSemillasList.querySelectorAll('[data-action="delete-seed"]').forEach(btn => btn.addEventListener('click', (e) => handlers.deleteSeed(e.currentTarget.dataset.id)));
 }
 
-// --- EVENT LISTENERS INITIALIZER ---
 export function initializeEventListeners(handlers) {
-    // Auth listeners
     getEl('loginForm').addEventListener('submit', (e) => {
         e.preventDefault();
         handlers.handleLogin(getEl('login-email').value, getEl('login-password').value);
@@ -644,8 +626,6 @@ export function initializeEventListeners(handlers) {
     });
     getEl('aboutBtnAuth').addEventListener('click', () => getEl('aboutModal').style.display = 'flex');
     getEl('aboutBtnAuthRegister').addEventListener('click', () => getEl('aboutModal').style.display = 'flex');
-
-    // Main App Listeners (for elements that are always in the DOM)
     getEl('logoutBtn').addEventListener('click', () => handlers.signOut());
     getEl('menuBtn').addEventListener('click', (e) => {
         e.stopPropagation();
@@ -654,7 +634,7 @@ export function initializeEventListeners(handlers) {
     window.addEventListener('click', (e) => {
         const menuBtn = getEl('menuBtn');
         const dropdownMenu = getEl('dropdownMenu');
-        if (menuBtn && dropdownMenu && !menuBtn.contains(e.target) && !dropdownMenu.contains(e.target)) {
+        if (menuBtn && dropdownMenu && !menuBtn.contains(e.target) && !menuBtn.contains(e.target)) {
             dropdownMenu.classList.add('hidden');
         }
     });
@@ -664,12 +644,9 @@ export function initializeEventListeners(handlers) {
     getEl('menuTools').addEventListener('click', (e) => { e.preventDefault(); handlers.showToolsView(); getEl('dropdownMenu').classList.add('hidden'); });
     getEl('menuSettings').addEventListener('click', (e) => { e.preventDefault(); handlers.showSettingsView(); getEl('dropdownMenu').classList.add('hidden'); });
     
-    // Listener for the button that was causing issues. It's static, so it can be initialized here.
     getEl('backToSalasBtn').addEventListener('click', handlers.hideCiclosView);
 
-    // Dynamic modal/view listeners (using event delegation on a static parent)
     document.body.addEventListener('click', (e) => {
-        // Modal cancel buttons
         if (e.target.id === 'cancelSalaBtn') getEl('salaModal').style.display = 'none';
         if (e.target.id === 'cancelCicloBtn') getEl('cicloModal').style.display = 'none';
         if (e.target.id === 'cancelLogBtn') getEl('logModal').style.display = 'none';
@@ -689,6 +666,7 @@ export function initializeEventListeners(handlers) {
         if (e.target.id === 'logForm') handlers.handleLogFormSubmit(e);
         if (e.target.id === 'moveCicloForm') handlers.handleMoveCicloSubmit(e);
         if (e.target.id === 'germinateSeedForm') handlers.handleGerminateFormSubmit(e);
+        if (e.target.id === 'seedForm') handlers.handleSeedFormSubmit(e);
     });
 
     document.body.addEventListener('change', (e) => {

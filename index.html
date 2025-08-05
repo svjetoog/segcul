@@ -109,10 +109,10 @@
         </div>
     </div>
 
-    <div id="app" class="relative min-h-screen p-4 sm:p-6 lg:p-8 pb-20 hidden">
+    <div id="app" class="p-4 sm:p-6 lg:p-8 hidden">
         <header class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8">
             <div>
-                <h1 class="text-4xl font-mono tracking-wider font-bold text-white">Panel de Salas</h1>
+                <h1 class="text-3xl font-mono tracking-wider font-bold text-white">Panel de Salas</h1>
                 <p id="welcomeUser" class="text-gray-400 mt-1"></p>
             </div>
             <div class="relative mt-4 sm:mt-0 self-end sm:self-auto flex items-center gap-2">
@@ -133,55 +133,46 @@
                 </div>
             </div>
         </header>
-        <div id="salasGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-6"></div>
-        <div id="loadingSalas" class="text-center py-10 text-gray-400">Cargando salas...</div>
-        <div id="emptySalasState" class="text-center py-10 text-gray-400 hidden">No tienes salas. ¡Añade una para empezar!</div>
-        <div class="absolute bottom-4 right-6 flex items-center gap-4">
-            <a href="https://t.me/+Uk-oVUNEmTM3YzFh" target="_blank" rel="noopener noreferrer" class="bg-sky-500 hover:bg-sky-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md text-sm transition-colors" title="Unite al grupo de Telegram">
+        <main>
+            <div id="salasGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-6"></div>
+            <div id="loadingSalas" class="text-center py-10 text-gray-400">Cargando salas...</div>
+            <div id="emptySalasState" class="text-center py-10 text-gray-400 hidden">No tienes salas. ¡Añade una para empezar!</div>
+        </main>
+        
+        <footer class="mt-12 flex flex-col sm:flex-row justify-center items-center gap-4 py-4 text-center">
+             <a href="https://t.me/+Uk-oVUNEmTM3YzFh" target="_blank" rel="noopener noreferrer" class="bg-sky-500 hover:bg-sky-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md text-sm transition-colors" title="Unite al grupo de Telegram">
                 Grupo Telegram
             </a>
             <div class="text-xs text-gray-600 font-mono">
-                SegCul v0.3 by svjeto
+                SegCul v0.5 by svjeto
             </div>
-        </div>
+        </footer>
     </div>
     
-    <div id="ciclosView" class="min-h-screen p-4 sm:p-6 lg:p-8 hidden">
+    <div id="ciclosView" class="p-4 sm:p-6 lg:p-8 hidden">
         <header class="flex justify-between items-center mb-8">
-            <h1 id="salaNameHeader" class="text-3xl font-bold text-white"></h1>
+            <h1 id="salaNameHeader" class="text-3xl font-bold text-white font-mono tracking-wider"></h1>
             <button id="backToSalasBtn" class="btn-secondary py-2 px-4 rounded-lg">Volver a Salas</button>
         </header>
         <div id="ciclosGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"></div>
         <div id="emptyCiclosState" class="text-center py-10 text-gray-400 hidden">No hay ciclos en esta sala.</div>
     </div>
 
-    <div id="cicloDetailView" class="p-4 sm:p-6 lg:p-8 hidden">
-        </div>
+    <div id="cicloDetailView" class="p-4 sm:p-6 lg:p-8 hidden"></div>
+    <div id="toolsView" class="p-4 sm:p-6 lg:p-8 hidden"></div>
+    <div id="settingsView" class="p-4 sm:p-6 lg:p-8 hidden"></div>
 
-    <div id="toolsView" class="min-h-screen p-4 sm:p-6 lg:p-8 hidden">
-        </div>
-
-    <div id="settingsView" class="min-h-screen p-4 sm:p-6 lg:p-8 hidden">
-        </div>
-
-    <div id="salaModal" class="fixed inset-0 modal-backdrop items-center justify-center z-50 hidden">
-        </div>
-    <div id="cicloModal" class="fixed inset-0 modal-backdrop items-center justify-center z-50 hidden">
-        </div>
-    <div id="logModal" class="fixed inset-0 modal-backdrop items-center justify-center z-50 hidden">
-        </div>
-    <div id="addWeekModal" class="fixed inset-0 modal-backdrop items-center justify-center z-50 hidden">
-         </div>
-    <div id="aiSummaryModal" class="fixed inset-0 modal-backdrop items-center justify-center z-50 hidden">
-        </div>
-    <div id="germinateSeedModal" class="fixed inset-0 modal-backdrop items-center justify-center z-50 hidden">
-         </div>
-    <div id="addGeneticsToCicloModal" class="fixed inset-0 modal-backdrop items-center justify-center z-50 hidden">
-         </div>
-    <div id="moveCicloModal" class="fixed inset-0 modal-backdrop items-center justify-center z-50 hidden">
-         </div>
-    <div id="confirmationModal" class="fixed inset-0 modal-backdrop items-center justify-center z-50 hidden">
-         <div class="w-full max-w-md p-6 rounded-lg shadow-lg">
+    <div id="salaModal" class="fixed inset-0 modal-backdrop flex items-center justify-center z-50 p-4 hidden"></div>
+    <div id="cicloModal" class="fixed inset-0 modal-backdrop flex items-center justify-center z-50 p-4 hidden"></div>
+    <div id="logModal" class="fixed inset-0 modal-backdrop flex items-center justify-center z-50 p-4 hidden"></div>
+    <div id="addWeekModal" class="fixed inset-0 modal-backdrop flex items-center justify-center z-50 p-4 hidden"></div>
+    <div id="aiSummaryModal" class="fixed inset-0 modal-backdrop flex items-center justify-center z-50 p-4 hidden"></div>
+    <div id="germinateSeedModal" class="fixed inset-0 modal-backdrop flex items-center justify-center z-50 p-4 hidden"></div>
+    <div id="addGeneticsToCicloModal" class="fixed inset-0 modal-backdrop flex items-center justify-center z-50 p-4 hidden"></div>
+    <div id="moveCicloModal" class="fixed inset-0 modal-backdrop flex items-center justify-center z-50 p-4 hidden"></div>
+    
+    <div id="confirmationModal" class="fixed inset-0 modal-backdrop flex items-center justify-center z-50 p-4 hidden">
+         <div class="w-11/12 md:w-full md:max-w-md p-6 rounded-lg shadow-lg">
             <h2 class="text-xl font-bold mb-4">Confirmar Acción</h2>
             <p id="confirmationMessage" class="mb-6"></p>
             <div class="flex justify-end gap-4">
@@ -190,8 +181,8 @@
             </div>
         </div>
     </div>
-    <div id="aboutModal" class="fixed inset-0 modal-backdrop items-center justify-center z-50 hidden">
-        <div class="w-full max-w-lg p-6 rounded-lg shadow-lg">
+    <div id="aboutModal" class="fixed inset-0 modal-backdrop flex items-center justify-center z-50 p-4 hidden">
+        <div class="w-11/12 md:w-full md:max-w-lg p-6 rounded-lg shadow-lg">
             <h2 class="text-2xl font-bold mb-4 text-amber-400">¿Qué onda esto?</h2>
             <p class="mb-4 text-gray-300">"SegCul" (Seguimiento de Cultivo) es una PWA (Progressive Web App) sencilla para llevar un registro de tus cultivos. La idea es tener un lugar centralizado y privado para anotar todo lo importante: fechas, riegos, plagas, podas, etc.</p>
             <p class="mb-4 text-gray-300">No es una red social. Tus datos son tuyos y se guardan en tu propia cuenta de Firebase. Nadie más puede verlos.</p>
