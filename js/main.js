@@ -2,15 +2,15 @@
 import { auth, db } from './firebase.js';
 import { onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, updatePassword, deleteUser } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 import { collection, doc, addDoc, deleteDoc, onSnapshot, query, serverTimestamp, getDocs, writeBatch, updateDoc, arrayUnion, where, increment } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-import { 
+import {
     getEl, showNotification, renderSalasGrid, createCicloCard, createLogEntry,
-    renderGeneticsList, renderStockList, 
+    renderGeneticsList, renderStockList,
     renderBaulSemillasList,
     renderGeneticsListCompact, renderBaulSemillasListCompact, renderStockListCompact,
     initializeEventListeners,
     renderCicloDetails, renderToolsView, renderSettingsView,
-    openSalaModal as uiOpenSalaModal, 
-    openCicloModal as uiOpenCicloModal, 
+    openSalaModal as uiOpenSalaModal,
+    openCicloModal as uiOpenCicloModal,
     openLogModal as uiOpenLogModal,
     openGerminateModal as uiOpenGerminateModal,
     openMoveCicloModal as uiOpenMoveCicloModal
@@ -24,7 +24,11 @@ let currentSalaId = null, currentSalaName = null;
 let confirmCallback = null;
 let activeToolsTab = 'genetics';
 let toolsViewMode = localStorage.getItem('toolsViewMode') || 'card';
-let sortable = null; // NUEVO: Variable para la instancia de SortableJS
+let sortableSalas = null;
+let sortableGenetics = null;
+let sortableStock = null;
+let sortableSeeds = null;
+
 
 // --- 1. FUNCTION DEFINITIONS (LOGIC & DATA) ---
 
@@ -93,34 +97,99 @@ function formatFertilizers(fertilizers) {
     return 'Ninguno';
 }
 
-// NUEVO: Función para inicializar el Drag & Drop
 function initializeDragAndDrop() {
     const salasGrid = getEl('salasGrid');
-    if (sortable) {
-        sortable.destroy(); // Destruimos la instancia anterior para evitar duplicados
-    }
-    sortable = new Sortable(salasGrid, {
-        animation: 150,
-        ghostClass: 'sortable-ghost',
-        onEnd: async (evt) => {
-            const batch = writeBatch(db);
-            Array.from(evt.to.children).forEach((item, index) => {
-                const salaId = item.dataset.salaId;
-                if (salaId) {
-                    const salaRef = doc(db, `users/${userId}/salas`, salaId);
-                    batch.update(salaRef, { position: index });
+    if (sortableSalas) sortableSalas.destroy();
+    
+    // CAMBIO: Añadida una guarda para asegurar que el elemento existe antes de inicializar.
+    if (salasGrid) {
+        sortableSalas = new Sortable(salasGrid, {
+            animation: 150,
+            ghostClass: 'sortable-ghost',
+            onEnd: async (evt) => {
+                const batch = writeBatch(db);
+                Array.from(evt.to.children).forEach((item, index) => {
+                    const salaId = item.dataset.salaId;
+                    if (salaId) {
+                        const salaRef = doc(db, `users/${userId}/salas`, salaId);
+                        batch.update(salaRef, { position: index });
+                    }
+                });
+                try {
+                    await batch.commit();
+                    showNotification('Orden de salas guardado.');
+                } catch (error) {
+                    console.error("Error saving new sala order:", error);
+                    showNotification('Error al guardar el nuevo orden.', 'error');
                 }
-            });
-            try {
-                await batch.commit();
-                showNotification('Orden de salas guardado.');
-            } catch (error) {
-                console.error("Error saving new sala order:", error);
-                showNotification('Error al guardar el nuevo orden.', 'error');
-            }
-        },
-    });
+            },
+        });
+    }
 }
+
+// CAMBIO: La función de destrucción ahora también limpia las variables, evitando estados inconsistentes.
+function destroyToolSortables() {
+    // EXPLICACIÓN: Al poner la variable a null después de destruirla, evitamos cualquier error
+    // si esta función es llamada múltiples veces seguidas antes de una reinicialización.
+    if (sortableGenetics) {
+        sortableGenetics.destroy();
+        sortableGenetics = null;
+    }
+    if (sortableStock) {
+        sortableStock.destroy();
+        sortableStock = null;
+    }
+    if (sortableSeeds) {
+        sortableSeeds.destroy();
+        sortableSeeds = null;
+    }
+}
+
+// CAMBIO: Función reescrita para ser más robusta y evitar el error de elemento nulo.
+function initializeToolsDragAndDrop() {
+    // EXPLICACIÓN: Esta función ahora es a prueba de fallos. Solo intentará inicializar Sortable
+    // si el elemento correspondiente a la pestaña activa existe en el DOM. Esto soluciona
+    // el crash, aunque la raíz del problema (por qué el elemento no se renderiza)
+    // probablemente esté en tu archivo `ui.js`.
+    const onSortEnd = async (evt, collectionName) => {
+        const batch = writeBatch(db);
+        Array.from(evt.to.children).forEach((item, index) => {
+            const docId = item.dataset.id;
+            if (docId) {
+                const docRef = doc(db, `users/${userId}/${collectionName}`, docId);
+                batch.update(docRef, { position: index });
+            }
+        });
+        try {
+            await batch.commit();
+            showNotification('Orden guardado.');
+        } catch (error) {
+            console.error(`Error saving new ${collectionName} order:`, error);
+            showNotification('Error al guardar el nuevo orden.', 'error');
+        }
+    };
+    
+    destroyToolSortables(); // Se asegura de limpiar cualquier instancia previa.
+
+    if (activeToolsTab === 'genetics') {
+        const geneticsList = getEl('geneticsList');
+        if (geneticsList) { // Guarda de seguridad
+            sortableGenetics = new Sortable(geneticsList, { animation: 150, ghostClass: 'sortable-ghost', onEnd: (evt) => onSortEnd(evt, 'genetics') });
+        }
+    } else if (activeToolsTab === 'stock') {
+        const stockList = getEl('stockList');
+        if (stockList) { // Guarda de seguridad
+            // La colección es 'genetics' porque el stock de clones modifica las genéticas. Esto es correcto.
+            sortableStock = new Sortable(stockList, { animation: 150, ghostClass: 'sortable-ghost', onEnd: (evt) => onSortEnd(evt, 'genetics') });
+        }
+    } else if (activeToolsTab === 'baulSemillas') {
+        const seedsList = getEl('baulSemillasList');
+        if (seedsList) { // Guarda de seguridad
+            sortableSeeds = new Sortable(seedsList, { animation: 150, ghostClass: 'sortable-ghost', onEnd: (evt) => onSortEnd(evt, 'seeds') });
+        }
+    }
+}
+
 
 function loadSalas() {
     if (!userId) return;
@@ -130,12 +199,10 @@ function loadSalas() {
     if (salasUnsubscribe) salasUnsubscribe();
     salasUnsubscribe = onSnapshot(q, (snapshot) => {
         currentSalas = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        
-        // MODIFICADO: Esta es la corrección clave.
-        // Ordenamos la lista "maestra" de salas aquí mismo.
         currentSalas.sort((a, b) => (a.position || 0) - (b.position || 0));
 
         const searchInput = getEl('searchSalas');
+        if (sortableSalas) sortableSalas.destroy(); // Limpiamos antes de re-renderizar por si acaso
         if (searchInput && searchInput.value) {
             const searchTerm = searchInput.value.toLowerCase();
             const filteredSalas = currentSalas.filter(sala => sala.name.toLowerCase().includes(searchTerm));
@@ -143,7 +210,7 @@ function loadSalas() {
         } else {
             renderSalasGrid(currentSalas, currentCiclos, handlers);
         }
-        initializeDragAndDrop(); // Se llama después de renderizar las salas
+        initializeDragAndDrop();
     }, error => {
         console.error("Error loading salas:", error);
         getEl('loadingSalas').innerText = "Error al cargar las salas.";
@@ -183,6 +250,7 @@ function loadGenetics() {
     if (geneticsUnsubscribe) geneticsUnsubscribe();
     geneticsUnsubscribe = onSnapshot(q, (snapshot) => {
         currentGenetics = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        currentGenetics.sort((a, b) => (a.position || 0) - (b.position || 0));
         if(!getEl('toolsView').classList.contains('hidden')) {
             handlers.handleToolsSearch({ target: getEl('searchTools') });
         }
@@ -195,6 +263,7 @@ function loadSeeds() {
     if (seedsUnsubscribe) seedsUnsubscribe();
     seedsUnsubscribe = onSnapshot(q, (snapshot) => {
         currentSeeds = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        currentSeeds.sort((a, b) => (a.position || 0) - (b.position || 0));
          if(!getEl('toolsView').classList.contains('hidden')) {
             handlers.handleToolsSearch({ target: getEl('searchTools') });
         }
@@ -270,7 +339,7 @@ const handlers = {
             } else {
                 const newSalaData = {
                     name: salaName,
-                    position: currentSalas.length // Esto ahora es seguro porque currentSalas ya está ordenado
+                    position: currentSalas.length
                 };
                 await addDoc(collection(db, `users/${userId}/salas`), newSalaData);
                 showNotification('Sala creada correctamente.');
@@ -419,10 +488,13 @@ const handlers = {
         toolsView.classList.remove('hidden');
         toolsView.classList.add('view-container');
         
-        handlers.switchToolsTab('genetics'); 
-        handlers.handleViewModeToggle(toolsViewMode, true); 
+        handlers.switchToolsTab('genetics');
+        handlers.handleViewModeToggle(toolsViewMode, true);
         
-        getEl('backToPanelBtn').addEventListener('click', handlers.hideToolsView);
+        getEl('backToPanelBtn').addEventListener('click', () => {
+            destroyToolSortables();
+            handlers.hideToolsView();
+        });
         getEl('geneticsTabBtn').addEventListener('click', () => handlers.switchToolsTab('genetics'));
         getEl('stockTabBtn').addEventListener('click', () => handlers.switchToolsTab('stock'));
         getEl('baulSemillasTabBtn').addEventListener('click', () => handlers.switchToolsTab('baulSemillas'));
@@ -465,12 +537,12 @@ const handlers = {
             }
         });
     },
-    switchToolsTab: (activeTab) => {
-        activeToolsTab = activeTab;
+    switchToolsTab: (newTab) => {
+        activeToolsTab = newTab;
         ['genetics', 'stock', 'baulSemillas'].forEach(tab => {
-            getEl(`${tab}Content`).classList.toggle('hidden', tab !== activeTab);
-            getEl(`${tab}TabBtn`).classList.toggle('border-amber-400', tab === activeTab);
-            getEl(`${tab}TabBtn`).classList.toggle('border-transparent', tab !== activeTab);
+            getEl(`${tab}Content`).classList.toggle('hidden', tab !== activeToolsTab);
+            getEl(`${tab}TabBtn`).classList.toggle('border-amber-400', tab === activeToolsTab);
+            getEl(`${tab}TabBtn`).classList.toggle('border-transparent', tab !== activeToolsTab);
         });
         getEl('searchTools').value = '';
         handlers.handleToolsSearch({ target: { value: '' } });
@@ -493,6 +565,9 @@ const handlers = {
         
         if (renderFunction) {
             renderFunction(filteredData, handlers);
+            // CAMBIO: La inicialización ahora se llama aquí, DESPUÉS de que el DOM ha sido actualizado por la función de render.
+            // La nueva función `initializeToolsDragAndDrop` es más segura.
+            initializeToolsDragAndDrop();
         }
     },
     handleViewModeToggle: (mode, isInitial = false) => {
@@ -526,6 +601,7 @@ const handlers = {
                 await updateDoc(doc(db, `users/${userId}/genetics`, geneticId), geneticData);
                 showNotification('Genética actualizada.');
             } else {
+                geneticData.position = currentGenetics.length;
                 await addDoc(collection(db, `users/${userId}/genetics`), geneticData);
                 showNotification('Genética añadida.');
             }
@@ -588,6 +664,7 @@ const handlers = {
             return;
         }
         try {
+            seedData.position = currentSeeds.length;
             await addDoc(collection(db, `users/${userId}/seeds`), seedData);
             showNotification('Semillas añadidas al baúl.');
             form.reset();
@@ -824,8 +901,8 @@ onAuthStateChanged(auth, user => {
         getEl('searchSalas').addEventListener('input', e => {
             const searchTerm = e.target.value.toLowerCase();
             const filteredSalas = currentSalas.filter(sala => sala.name.toLowerCase().includes(searchTerm));
+            if (sortableSalas) sortableSalas.destroy();
             renderSalasGrid(filteredSalas, currentCiclos, handlers);
-            // Re-inicializamos el drag and drop en la lista filtrada
             initializeDragAndDrop();
         });
 

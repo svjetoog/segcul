@@ -563,6 +563,9 @@ export function renderSalasGrid(salas, ciclos, handlers) {
     }
     getEl('emptySalasState').style.display = 'none';
 
+    // Se ordenan las salas por la nueva propiedad 'position'
+    salas.sort((a, b) => (a.position || 0) - (b.position || 0));
+
     salas.forEach(sala => {
         const ciclosInSala = ciclos.filter(c => c.salaId === sala.id);
         const activeCiclos = ciclosInSala.filter(c => c.phase !== 'Finalizado');
@@ -638,9 +641,13 @@ export function renderGeneticsList(genetics, handlers) {
         geneticsList.innerHTML = `<p class="text-center text-gray-500 dark:text-gray-400">No hay genéticas que coincidan con la búsqueda.</p>`;
         return;
     }
+    // MODIFICADO: Se ordenan las genéticas por la nueva propiedad 'position'
+    genetics.sort((a, b) => (a.position || 0) - (b.position || 0));
     genetics.forEach(g => {
         const geneticCard = document.createElement('div');
         geneticCard.className = 'card p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center';
+        // MODIFICADO: Se añade el data-id para el drag & drop
+        geneticCard.dataset.id = g.id;
         geneticCard.innerHTML = `
             <div class="mb-3 sm:mb-0">
                 <p class="font-bold text-lg text-amber-400 flex items-center gap-2">${g.name}</p>
@@ -669,9 +676,11 @@ export function renderGeneticsListCompact(genetics, handlers) {
         geneticsList.innerHTML = `<p class="text-center text-gray-500 dark:text-gray-400">No hay genéticas que coincidan con la búsqueda.</p>`;
         return;
     }
+    genetics.sort((a, b) => (a.position || 0) - (b.position || 0));
     genetics.forEach(g => {
         const item = document.createElement('div');
         item.className = 'compact-list-item flex justify-between items-center';
+        item.dataset.id = g.id;
         item.innerHTML = `
             <div>
                 <p class="font-semibold text-amber-400">${g.name}</p>
@@ -700,11 +709,12 @@ export function renderStockList(genetics, handlers) {
         stockList.innerHTML = `<p class="text-center text-gray-500 dark:text-gray-400">Añade genéticas para ver el stock.</p>`;
         return;
     }
-    // MODIFICADO: Cambiado a grid para que se vea mejor la vista de tarjetas
     stockList.className = 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4';
+    genetics.sort((a, b) => (a.position || 0) - (b.position || 0));
     genetics.forEach(g => {
         const stockCard = document.createElement('div');
         stockCard.className = 'card p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center';
+        stockCard.dataset.id = g.id;
         stockCard.innerHTML = `
             <div class="mb-3 sm:mb-0">
                 <p class="font-bold text-lg text-amber-400">${g.name}</p>
@@ -720,7 +730,6 @@ export function renderStockList(genetics, handlers) {
     stockList.querySelectorAll('[data-action="update-stock"]').forEach(btn => btn.addEventListener('click', (e) => handlers.updateStock(e.currentTarget.dataset.id, parseInt(e.currentTarget.dataset.amount))));
 }
 
-// NUEVA FUNCIÓN
 export function renderStockListCompact(genetics, handlers) {
     const stockList = getEl('stockList');
     if (!stockList) return;
@@ -729,11 +738,12 @@ export function renderStockListCompact(genetics, handlers) {
         stockList.innerHTML = `<p class="text-center text-gray-500 dark:text-gray-400">No hay clones en stock.</p>`;
         return;
     }
-    // MODIFICADO: Quitado el grid para que sea una lista vertical
     stockList.className = 'space-y-4';
+    genetics.sort((a, b) => (a.position || 0) - (b.position || 0));
     genetics.forEach(g => {
         const item = document.createElement('div');
         item.className = 'compact-list-item flex justify-between items-center';
+        item.dataset.id = g.id;
         item.innerHTML = `
             <div>
                 <p class="font-semibold text-amber-400">${g.name}</p>
@@ -751,7 +761,6 @@ export function renderStockListCompact(genetics, handlers) {
     stockList.querySelectorAll('[data-action="update-stock"]').forEach(btn => btn.addEventListener('click', (e) => handlers.updateStock(e.currentTarget.dataset.id, parseInt(e.currentTarget.dataset.amount))));
 }
 
-
 export function renderBaulSemillasList(seeds, handlers) {
     const baulSemillasList = getEl('baulSemillasList');
     if (!baulSemillasList) return;
@@ -760,9 +769,11 @@ export function renderBaulSemillasList(seeds, handlers) {
         baulSemillasList.innerHTML = `<p class="text-center text-gray-500 dark:text-gray-400">No hay semillas que coincidan con la búsqueda.</p>`;
         return;
     }
+    seeds.sort((a, b) => (a.position || 0) - (b.position || 0));
     seeds.forEach(s => {
         const seedCard = document.createElement('div');
         seedCard.className = 'card p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center';
+        seedCard.dataset.id = s.id;
         seedCard.innerHTML = `
             <div class="mb-3 sm:mb-0">
                 <p class="font-bold text-lg text-amber-400">${s.name}</p>
@@ -790,9 +801,11 @@ export function renderBaulSemillasListCompact(seeds, handlers) {
         baulSemillasList.innerHTML = `<p class="text-center text-gray-500 dark:text-gray-400">No hay semillas que coincidan con la búsqueda.</p>`;
         return;
     }
+    seeds.sort((a, b) => (a.position || 0) - (b.position || 0));
     seeds.forEach(s => {
         const item = document.createElement('div');
         item.className = 'compact-list-item flex justify-between items-center';
+        item.dataset.id = s.id;
         item.innerHTML = `
             <div>
                 <p class="font-semibold text-amber-400">${s.name} <span class="text-sm font-normal text-gray-500 dark:text-gray-400">(${s.quantity})</span></p>
