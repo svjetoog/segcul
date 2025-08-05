@@ -7,6 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="icon" href="data:;base64,iVBORw0KGgo=">
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
     
     <script>
         if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
@@ -23,6 +24,12 @@
     }
     .dark body {
         background-color: #171717;
+    }
+
+    /* NUEVO: Estilo para el elemento fantasma durante el drag & drop */
+    .sortable-ghost {
+        opacity: 0.4;
+        background-color: #fbbf24 !important;
     }
 
     .modal-backdrop { background-color: rgba(0, 0, 0, 0.75); }
@@ -238,7 +245,7 @@
                 Grupo Telegram
             </a>
             <div class="text-xs text-gray-500 dark:text-gray-600 font-mono">
-                SegCul v0.341 by svjeto
+                SegCul v0.3411 by svjeto
             </div>
         </footer>
     </div>

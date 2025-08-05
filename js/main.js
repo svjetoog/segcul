@@ -6,7 +6,7 @@ import {
     getEl, showNotification, renderSalasGrid, createCicloCard, createLogEntry,
     renderGeneticsList, renderStockList, 
     renderBaulSemillasList,
-    renderGeneticsListCompact, renderBaulSemillasListCompact, renderStockListCompact, // <--- MODIFICADO: importamos la nueva funcion
+    renderGeneticsListCompact, renderBaulSemillasListCompact, renderStockListCompact,
     initializeEventListeners,
     renderCicloDetails, renderToolsView, renderSettingsView,
     openSalaModal as uiOpenSalaModal, 
@@ -24,6 +24,7 @@ let currentSalaId = null, currentSalaName = null;
 let confirmCallback = null;
 let activeToolsTab = 'genetics';
 let toolsViewMode = localStorage.getItem('toolsViewMode') || 'card';
+let sortable = null; // NUEVO: Variable para la instancia de SortableJS
 
 // --- 1. FUNCTION DEFINITIONS (LOGIC & DATA) ---
 
@@ -92,6 +93,35 @@ function formatFertilizers(fertilizers) {
     return 'Ninguno';
 }
 
+// NUEVO: Función para inicializar el Drag & Drop
+function initializeDragAndDrop() {
+    const salasGrid = getEl('salasGrid');
+    if (sortable) {
+        sortable.destroy(); // Destruimos la instancia anterior para evitar duplicados
+    }
+    sortable = new Sortable(salasGrid, {
+        animation: 150,
+        ghostClass: 'sortable-ghost',
+        onEnd: async (evt) => {
+            const batch = writeBatch(db);
+            Array.from(evt.to.children).forEach((item, index) => {
+                const salaId = item.dataset.salaId;
+                if (salaId) {
+                    const salaRef = doc(db, `users/${userId}/salas`, salaId);
+                    batch.update(salaRef, { position: index });
+                }
+            });
+            try {
+                await batch.commit();
+                showNotification('Orden de salas guardado.');
+            } catch (error) {
+                console.error("Error saving new sala order:", error);
+                showNotification('Error al guardar el nuevo orden.', 'error');
+            }
+        },
+    });
+}
+
 function loadSalas() {
     if (!userId) return;
     getEl('loadingSalas').style.display = 'block';
@@ -100,6 +130,11 @@ function loadSalas() {
     if (salasUnsubscribe) salasUnsubscribe();
     salasUnsubscribe = onSnapshot(q, (snapshot) => {
         currentSalas = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        
+        // MODIFICADO: Esta es la corrección clave.
+        // Ordenamos la lista "maestra" de salas aquí mismo.
+        currentSalas.sort((a, b) => (a.position || 0) - (b.position || 0));
+
         const searchInput = getEl('searchSalas');
         if (searchInput && searchInput.value) {
             const searchTerm = searchInput.value.toLowerCase();
@@ -108,6 +143,7 @@ function loadSalas() {
         } else {
             renderSalasGrid(currentSalas, currentCiclos, handlers);
         }
+        initializeDragAndDrop(); // Se llama después de renderizar las salas
     }, error => {
         console.error("Error loading salas:", error);
         getEl('loadingSalas').innerText = "Error al cargar las salas.";
@@ -232,7 +268,11 @@ const handlers = {
                 await updateDoc(doc(db, `users/${userId}/salas`, salaId), { name: salaName });
                 showNotification('Sala actualizada correctamente.');
             } else {
-                await addDoc(collection(db, `users/${userId}/salas`), { name: salaName });
+                const newSalaData = {
+                    name: salaName,
+                    position: currentSalas.length // Esto ahora es seguro porque currentSalas ya está ordenado
+                };
+                await addDoc(collection(db, `users/${userId}/salas`), newSalaData);
                 showNotification('Sala creada correctamente.');
             }
             getEl('salaModal').style.display = 'none';
@@ -448,8 +488,6 @@ const handlers = {
             renderFunction = toolsViewMode === 'card' ? renderBaulSemillasList : renderBaulSemillasListCompact;
         } else if (activeToolsTab === 'stock') {
             filteredData = currentGenetics.filter(g => g.name.toLowerCase().includes(searchTerm));
-            // --- MODIFICADO ---
-            // Ahora la pestaña de Stock sí diferencia entre los modos de vista
             renderFunction = toolsViewMode === 'card' ? renderStockList : renderStockListCompact;
         }
         
@@ -787,6 +825,8 @@ onAuthStateChanged(auth, user => {
             const searchTerm = e.target.value.toLowerCase();
             const filteredSalas = currentSalas.filter(sala => sala.name.toLowerCase().includes(searchTerm));
             renderSalasGrid(filteredSalas, currentCiclos, handlers);
+            // Re-inicializamos el drag and drop en la lista filtrada
+            initializeDragAndDrop();
         });
 
     } else {
