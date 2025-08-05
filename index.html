@@ -7,171 +7,38 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-    body {
-        font-family: 'Inter', sans-serif;
-        background-color: #171717; /* Fondo principal */
-        color: #e5e5e5;
-    }
-    .modal-backdrop {
-        background-color: rgba(0, 0, 0, 0.75);
-    }
-    
-    /* --- Estilo de Tarjeta de Sala (Resplandor Neón) --- */
-    .card {
-        background-color: #262626;
-        border: 1px solid #f59e0b;
-        box-shadow: 0 0 5px rgba(245, 158, 11, 0.5), 
-                    0 0 10px rgba(245, 158, 11, 0.3);
-        transition: all 0.3s ease;
-    }
-    .card:hover {
-        transform: translateY(-5px);
-        border-color: #fbbf24; /* Amarillo más brillante al pasar el mouse */
-        box-shadow: 0 0 10px rgba(251, 191, 36, 0.6), 
-                    0 0 20px rgba(251, 191, 36, 0.4);
-    }
-
-    /* --- Estilo de Ciclos (Lista) --- */
-    .ciclos-list {
-       display: flex;
-       flex-direction: column;
-       gap: 0.35rem; /* Espacio entre items */
-     }
-    .ciclo-item {
-       background-color: #404040;
-       border: 1px solid #525252;
-       padding: 0.35rem 2rem 0.35rem 0.75rem; /* Más padding a la derecha para el punto */
-       border-radius: 0.5rem;
-       box-shadow: 0 2px 4px rgba(0,0,0,0.4);
-       transition: all 0.2s ease-out;
-       font-size: 0.875rem;
-       position: relative; /* Para posicionar el punto */
-       overflow: hidden;
-       white-space: nowrap;
-       text-overflow: ellipsis;
-     }
-    .ciclo-item:hover {
-       transform: translateY(-2px);
-       border-color: #f59e0b;
-       z-index: 10;
-     }
-    /* Punto de estado */
-    .ciclo-item::after {
-       content: '';
-       position: absolute;
-       right: 0.75rem;
-       top: 50%;
-       transform: translateY(-50%);
-       width: 0.65rem;
-       height: 0.65rem;
-       border-radius: 9999px;
-       border: 1px solid rgba(0,0,0,0.5);
-     }
-    .ciclo-item.vege::after { background-color: #4ade80; } /* green-400 */
-    .ciclo-item.pre-flora::after { background-color: #c084fc; } /* purple-400 */
-    .ciclo-item.flora::after { background-color: #f472b6; } /* pink-400 */
-    .ciclo-item.maduracion::after { background-color: #fb923c; } /* orange-400 */
-    .ciclo-item.lavado::after { background-color: #60a5fa; } /* blue-400 */
-    .ciclo-item.secado::after { background-color: #facc15; } /* yellow-400 */
-
-
-    /* --- Otros Estilos --- */
-    #salaModal > div, #cicloModal > div, #logModal > div, #addWeekModal > div, #aiSummaryModal > div, #authView form, #toolsView .card, #germinateSeedModal > div, #addGeneticsToCicloModal > div, #moveCicloModal > div, #settingsView .card, #confirmationModal > div, #aboutModal > div {
-        background-color: #262626;
-        border: 1px solid #404040;
-    }
-    .btn-primary, #authView button[type="submit"] {
-        background-color: #f59e0b;
-        color: #171717;
-        font-weight: 600;
-        transition: background-color 0.2s;
-    }
-    .btn-primary:hover, #authView button[type="submit"]:hover {
-        background-color: #d97706;
-    }
-    .btn-secondary {
-        background-color: #525252;
-        color: #ffffff;
-        font-weight: 500;
-        transition: background-color 0.2s;
-    }
-    .btn-secondary:hover {
-        background-color: #404040;
-    }
-    .btn-danger {
-        background-color: #ef4444;
-        color: #ffffff;
-        font-weight: 500;
-        transition: background-color 0.2s;
-    }
-    .btn-danger:hover {
-        background-color: #dc2626;
-    }
-    .btn-ai {
-        background: linear-gradient(90deg, #f59e0b, #ef4444);
-        color: white;
-        font-weight: 600;
-        transition: all 0.2s;
-    }
-    .btn-ai:hover {
-        box-shadow: 0 0 15px rgba(239, 68, 68, 0.5);
-    }
-    .week-header {
-        background-color: #404040;
-    }
-    .log-entry {
-        border-left: 4px solid #f59e0b;
-        background-color: #262626;
-    }
-    input, select, textarea {
-        background-color: #404040 !important;
-        border-color: #525252 !important;
-        color: #e5e5e5 !important;
-    }
-    input::placeholder {
-        color: #a3a3a3 !important;
-    }
-    .spinner {
-        border: 4px solid rgba(255, 255, 255, 0.3);
-        border-radius: 50%;
-        border-top: 4px solid #fff;
-        width: 24px;
-        height: 24px;
-        animation: spin 1s linear infinite;
-    }
-    @keyframes spin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
-    }
-
-    /* --- Estilo de Notificaciones (Toast) --- */
-    #notification-container {
-        position: fixed;
-        bottom: 20px;
-        left: 50%;
-        transform: translateX(-50%);
-        z-index: 200; /* Por encima de todo */
-        display: none; /* Oculto por defecto */
-        padding: 12px 24px;
-        border-radius: 8px;
-        color: white;
-        font-weight: 600;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-        animation: fadeInOut 4s ease-in-out;
-    }
-    #notification-container.success {
-        background-color: #22c55e; /* green-500 */
-    }
-    #notification-container.error {
-        background-color: #ef4444; /* red-500 */
-    }
-    @keyframes fadeInOut {
-        0% { opacity: 0; transform: translate(-50%, 20px); }
-        15% { opacity: 1; transform: translate(-50%, 0); }
-        85% { opacity: 1; transform: translate(-50%, 0); }
-        100% { opacity: 0; transform: translate(-50%, 20px); }
-    }
-</style>
+    body { font-family: 'Inter', sans-serif; background-color: #171717; color: #e5e5e5; }
+    .modal-backdrop { background-color: rgba(0, 0, 0, 0.75); }
+    .card { background-color: #262626; border: 1px solid #f59e0b; box-shadow: 0 0 5px rgba(245, 158, 11, 0.5), 0 0 10px rgba(245, 158, 11, 0.3); transition: all 0.3s ease; }
+    .card:hover { transform: translateY(-5px); border-color: #fbbf24; box-shadow: 0 0 10px rgba(251, 191, 36, 0.6), 0 0 20px rgba(251, 191, 36, 0.4); }
+    .ciclos-list { display: flex; flex-direction: column; gap: 0.35rem; }
+    .ciclo-item { background-color: #404040; border: 1px solid #525252; padding: 0.35rem 2rem 0.35rem 0.75rem; border-radius: 0.5rem; box-shadow: 0 2px 4px rgba(0,0,0,0.4); transition: all 0.2s ease-out; font-size: 0.875rem; position: relative; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+    .ciclo-item:hover { transform: translateY(-2px); border-color: #f59e0b; z-index: 10; }
+    .ciclo-item::after { content: ''; position: absolute; right: 0.75rem; top: 50%; transform: translateY(-50%); width: 0.65rem; height: 0.65rem; border-radius: 9999px; border: 1px solid rgba(0,0,0,0.5); }
+    .ciclo-item.vege::after { background-color: #4ade80; }
+    .ciclo-item.pre-flora::after { background-color: #c084fc; }
+    .ciclo-item.flora::after { background-color: #f472b6; }
+    .ciclo-item.maduracion::after { background-color: #fb923c; }
+    .ciclo-item.lavado::after { background-color: #60a5fa; }
+    .ciclo-item.secado::after { background-color: #facc15; }
+    #salaModal > div, #cicloModal > div, #logModal > div, #addWeekModal > div, #aiSummaryModal > div, #authView form, #toolsView .card, #germinateSeedModal > div, #addGeneticsToCicloModal > div, #moveCicloModal > div, #settingsView .card, #confirmationModal > div, #aboutModal > div { background-color: #262626; border: 1px solid #404040; }
+    .btn-primary, #authView button[type="submit"] { background-color: #f59e0b; color: #171717; font-weight: 600; transition: background-color 0.2s; }
+    .btn-primary:hover, #authView button[type="submit"]:hover { background-color: #d97706; }
+    .btn-secondary { background-color: #525252; color: #ffffff; font-weight: 500; transition: background-color 0.2s; }
+    .btn-secondary:hover { background-color: #404040; }
+    .btn-danger { background-color: #ef4444; color: #ffffff; font-weight: 500; transition: background-color 0.2s; }
+    .btn-danger:hover { background-color: #dc2626; }
+    .week-header { background-color: #404040; }
+    .log-entry { border-left: 4px solid #f59e0b; background-color: #262626; }
+    input, select, textarea { background-color: #404040 !important; border-color: #525252 !important; color: #e5e5e5 !important; }
+    input::placeholder { color: #a3a3a3 !important; }
+    .spinner { border: 4px solid rgba(255, 255, 255, 0.3); border-radius: 50%; border-top: 4px solid #fff; width: 24px; height: 24px; animation: spin 1s linear infinite; }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    #notification-container { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 200; display: none; padding: 12px 24px; border-radius: 8px; color: white; font-weight: 600; box-shadow: 0 4px 15px rgba(0,0,0,0.5); animation: fadeInOut 4s ease-in-out; }
+    #notification-container.success { background-color: #22c55e; }
+    #notification-container.error { background-color: #ef4444; }
+    @keyframes fadeInOut { 0% { opacity: 0; transform: translate(-50%, 20px); } 15% { opacity: 1; transform: translate(-50%, 0); } 85% { opacity: 1; transform: translate(-50%, 0); } 100% { opacity: 0; transform: translate(-50%, 20px); } }
+    </style>
 </head>
 <body class="antialiased">
 
@@ -213,7 +80,6 @@
                     </a>
                 </p>
             </form>
-            
             <form id="registerForm" class="mt-8 space-y-6 p-8 rounded-xl shadow-lg hidden">
                 <div class="rounded-md shadow-sm -space-y-px">
                     <div>
@@ -244,7 +110,6 @@
     </div>
 
     <div id="app" class="relative min-h-screen p-4 sm:p-6 lg:p-8 pb-20 hidden">
-        
         <header class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8">
             <div>
                 <h1 class="text-4xl font-mono tracking-wider font-bold text-white">Panel de Salas</h1>
@@ -268,11 +133,9 @@
                 </div>
             </div>
         </header>
-
         <div id="salasGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-6"></div>
         <div id="loadingSalas" class="text-center py-10 text-gray-400">Cargando salas...</div>
         <div id="emptySalasState" class="text-center py-10 text-gray-400 hidden">No tienes salas. ¡Añade una para empezar!</div>
-
         <div class="absolute bottom-4 right-6 flex items-center gap-4">
             <a href="https://t.me/+Uk-oVUNEmTM3YzFh" target="_blank" rel="noopener noreferrer" class="bg-sky-500 hover:bg-sky-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md text-sm transition-colors" title="Unite al grupo de Telegram">
                 Grupo Telegram
@@ -283,8 +146,63 @@
         </div>
     </div>
     
-    <div id="notification-container"></div>
+    <div id="ciclosView" class="min-h-screen p-4 sm:p-6 lg:p-8 hidden">
+        <header class="flex justify-between items-center mb-8">
+            <h1 id="salaNameHeader" class="text-3xl font-bold text-white"></h1>
+            <button id="backToSalasBtn" class="btn-secondary py-2 px-4 rounded-lg">Volver a Salas</button>
+        </header>
+        <div id="ciclosGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"></div>
+        <div id="emptyCiclosState" class="text-center py-10 text-gray-400 hidden">No hay ciclos en esta sala.</div>
+    </div>
 
+    <div id="cicloDetailView" class="p-4 sm:p-6 lg:p-8 hidden">
+        </div>
+
+    <div id="toolsView" class="min-h-screen p-4 sm:p-6 lg:p-8 hidden">
+        </div>
+
+    <div id="settingsView" class="min-h-screen p-4 sm:p-6 lg:p-8 hidden">
+        </div>
+
+    <div id="salaModal" class="fixed inset-0 modal-backdrop items-center justify-center z-50 hidden">
+        </div>
+    <div id="cicloModal" class="fixed inset-0 modal-backdrop items-center justify-center z-50 hidden">
+        </div>
+    <div id="logModal" class="fixed inset-0 modal-backdrop items-center justify-center z-50 hidden">
+        </div>
+    <div id="addWeekModal" class="fixed inset-0 modal-backdrop items-center justify-center z-50 hidden">
+         </div>
+    <div id="aiSummaryModal" class="fixed inset-0 modal-backdrop items-center justify-center z-50 hidden">
+        </div>
+    <div id="germinateSeedModal" class="fixed inset-0 modal-backdrop items-center justify-center z-50 hidden">
+         </div>
+    <div id="addGeneticsToCicloModal" class="fixed inset-0 modal-backdrop items-center justify-center z-50 hidden">
+         </div>
+    <div id="moveCicloModal" class="fixed inset-0 modal-backdrop items-center justify-center z-50 hidden">
+         </div>
+    <div id="confirmationModal" class="fixed inset-0 modal-backdrop items-center justify-center z-50 hidden">
+         <div class="w-full max-w-md p-6 rounded-lg shadow-lg">
+            <h2 class="text-xl font-bold mb-4">Confirmar Acción</h2>
+            <p id="confirmationMessage" class="mb-6"></p>
+            <div class="flex justify-end gap-4">
+                <button id="cancelActionBtn" class="btn-secondary py-2 px-4 rounded-lg">Cancelar</button>
+                <button id="confirmActionBtn" class="btn-danger py-2 px-4 rounded-lg">Confirmar</button>
+            </div>
+        </div>
+    </div>
+    <div id="aboutModal" class="fixed inset-0 modal-backdrop items-center justify-center z-50 hidden">
+        <div class="w-full max-w-lg p-6 rounded-lg shadow-lg">
+            <h2 class="text-2xl font-bold mb-4 text-amber-400">¿Qué onda esto?</h2>
+            <p class="mb-4 text-gray-300">"SegCul" (Seguimiento de Cultivo) es una PWA (Progressive Web App) sencilla para llevar un registro de tus cultivos. La idea es tener un lugar centralizado y privado para anotar todo lo importante: fechas, riegos, plagas, podas, etc.</p>
+            <p class="mb-4 text-gray-300">No es una red social. Tus datos son tuyos y se guardan en tu propia cuenta de Firebase. Nadie más puede verlos.</p>
+            <p class="mb-4 text-gray-300">Está en desarrollo, así que puede tener errores. Cualquier idea o bug, podés tirarla en el grupo de Telegram.</p>
+            <div class="text-right">
+                <button id="closeAboutBtn" class="btn-primary py-2 px-4 rounded-lg">Entendido</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="notification-container"></div>
     <script type="module" src="js/main.js"></script>
 </body>
 </html>

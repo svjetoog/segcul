@@ -4,120 +4,34 @@ import { onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndP
 import { collection, doc, addDoc, deleteDoc, onSnapshot, query, serverTimestamp, getDocs, writeBatch, updateDoc, arrayUnion, where, increment } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 import { 
     getEl, showNotification, renderSalasGrid, createCicloCard, createLogEntry,
-    renderGeneticsList, renderStockList, renderSeedBankList, initializeAppEventListeners
+    renderGeneticsList, renderStockList, renderSeedBankList, initializeEventListeners,
+    renderCicloDetails, renderToolsView, renderSettingsView,
+    openSalaModal as uiOpenSalaModal, 
+    openCicloModal as uiOpenCicloModal, 
+    openLogModal as uiOpenLogModal,
+    openGerminateModal as uiOpenGerminateModal,
+    openMoveCicloModal as uiOpenMoveCicloModal
 } from './ui.js';
 
 // --- STATE MANAGEMENT ---
 let userId = null;
-let salasUnsubscribe = null;
-let ciclosUnsubscribe = null;
-let logsUnsubscribe = null;
-let geneticsUnsubscribe = null;
-let seedsUnsubscribe = null;
-let currentSalas = [];
-let currentCiclos = [];
-let currentGenetics = [];
-let currentSeeds = [];
-let currentSalaId = null; 
-let currentSalaName = null;
+let salasUnsubscribe = null, ciclosUnsubscribe = null, logsUnsubscribe = null, geneticsUnsubscribe = null, seedsUnsubscribe = null;
+let currentSalas = [], currentCiclos = [], currentGenetics = [], currentSeeds = [];
+let currentSalaId = null, currentSalaName = null;
 let confirmCallback = null;
-let mainAppListenersInitialized = false;
 
-// --- AUTHENTICATION & VIEW MANAGEMENT ---
-onAuthStateChanged(auth, user => {
-    // Oculta el spinner inicial porque la verificación de Firebase ya terminó.
-    getEl('initial-loader').classList.add('hidden');
+// --- 1. FUNCTION DEFINITIONS (LOGIC & DATA) ---
 
-    if (user) {
-        if (user.isAnonymous) {
-            signOut(auth);
-            return; 
-        }
-        
-        userId = user.uid;
-        getEl('authView').classList.add('hidden');
-        getEl('app').classList.remove('hidden');
-        getEl('welcomeUser').innerText = `Anota todo, no seas pancho.`;
-
-        if (!mainAppListenersInitialized) {
-            initializeAppEventListeners(handlers);
-            mainAppListenersInitialized = true;
-        }
-
-        loadSalas();
-        loadCiclos();
-        loadGenetics();
-        loadSeeds();
-    } else {
-        userId = null;
-        if(salasUnsubscribe) salasUnsubscribe();
-        if(ciclosUnsubscribe) ciclosUnsubscribe();
-        if(geneticsUnsubscribe) geneticsUnsubscribe();
-        if(seedsUnsubscribe) seedsUnsubscribe();
-        
-        getEl('app').classList.add('hidden');
-        getEl('ciclosView').classList.add('hidden');
-        getEl('cicloDetailView').classList.add('hidden');
-        getEl('toolsView').classList.add('hidden');
-        getEl('settingsView').classList.add('hidden');
-        getEl('authView').classList.remove('hidden'); // Muestra el login
-        mainAppListenersInitialized = false;
-    }
-});
-
-const handleAuthError = (error) => {
+function handleAuthError(error) {
     switch (error.code) {
         case 'auth/invalid-email': return 'El formato del email no es válido.';
-        case 'auth/user-not-found':
-        case 'auth/wrong-password': return 'Email o contraseña incorrectos.';
+        case 'auth/user-not-found': case 'auth/wrong-password': return 'Email o contraseña incorrectos.';
         case 'auth/email-already-in-use': return 'Este email ya está registrado.';
         case 'auth/weak-password': return 'La contraseña debe tener al menos 6 caracteres.';
         default: return 'Ocurrió un error. Inténtalo de nuevo.';
     }
-};
+}
 
-// --- AUTH VIEW LISTENERS ---
-getEl('loginForm').addEventListener('submit', (e) => {
-    e.preventDefault();
-    const email = getEl('login-email').value;
-    const password = getEl('login-password').value;
-    signInWithEmailAndPassword(auth, email, password)
-        .catch(error => {
-            getEl('authError').innerText = handleAuthError(error);
-            getEl('authError').classList.remove('hidden');
-        });
-});
-
-getEl('registerForm').addEventListener('submit', (e) => {
-    e.preventDefault();
-    const email = getEl('register-email').value;
-    const password = getEl('register-password').value;
-    createUserWithEmailAndPassword(auth, email, password)
-        .catch(error => {
-            getEl('authError').innerText = handleAuthError(error);
-            getEl('authError').classList.remove('hidden');
-        });
-});
-
-getEl('showRegister').addEventListener('click', (e) => {
-    e.preventDefault();
-    getEl('loginForm').classList.add('hidden');
-    getEl('registerForm').classList.remove('hidden');
-    getEl('authError').classList.add('hidden');
-});
-
-getEl('showLogin').addEventListener('click', (e) => {
-    e.preventDefault();
-    getEl('registerForm').classList.add('hidden');
-    getEl('loginForm').classList.remove('hidden');
-    getEl('authError').classList.add('hidden');
-});
-
-getEl('aboutBtnAuth').addEventListener('click', () => getEl('aboutModal').style.display = 'flex');
-getEl('aboutBtnAuthRegister').addEventListener('click', () => getEl('aboutModal').style.display = 'flex');
-getEl('closeAboutBtn').addEventListener('click', () => getEl('aboutModal').style.display = 'none');
-
-// --- HELPERS ---
 function calculateDaysSince(startDateString) {
     if (!startDateString) return null;
     const start = new Date(startDateString + 'T00:00:00Z');
@@ -158,28 +72,20 @@ function generateStandardWeeks() {
 function formatFertilizers(ferts) {
     if (!ferts) return 'Ninguno';
     const used = [];
-    if (ferts.basesAmount && ferts.basesUnit) {
-        used.push(`Bases (${ferts.basesAmount} ${ferts.basesUnit})`);
-    }
+    if (ferts.basesAmount && ferts.basesUnit) used.push(`Bases (${ferts.basesAmount} ${ferts.basesUnit})`);
     if (ferts.enzimas) used.push('Enzimas');
     if (ferts.candy) used.push('Candy');
     if (ferts.bigBud) used.push('BigBud');
     if (ferts.flawlessFinish) used.push('FlawlessFinish');
-    if (ferts.foliar && ferts.foliarProduct) {
-        used.push(`Foliar (${ferts.foliarProduct})`);
-    }
+    if (ferts.foliar && ferts.foliarProduct) used.push(`Foliar (${ferts.foliarProduct})`);
     return used.length > 0 ? used.join(', ') : 'Ninguno';
 }
 
-// --- DATA LOADING ---
 function loadSalas() {
     if (!userId) return;
     getEl('loadingSalas').style.display = 'block';
     getEl('emptySalasState').style.display = 'none';
-
-    const salasRef = collection(db, `users/${userId}/salas`);
-    const q = query(salasRef);
-
+    const q = query(collection(db, `users/${userId}/salas`));
     if (salasUnsubscribe) salasUnsubscribe();
     salasUnsubscribe = onSnapshot(q, (snapshot) => {
         currentSalas = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -192,28 +98,21 @@ function loadSalas() {
 
 function loadCiclos() {
     if (!userId) return;
-    const ciclosRef = collection(db, `users/${userId}/ciclos`);
-    const q = query(ciclosRef);
-
+    const q = query(collection(db, `users/${userId}/ciclos`));
     if (ciclosUnsubscribe) ciclosUnsubscribe();
     ciclosUnsubscribe = onSnapshot(q, (snapshot) => {
         currentCiclos = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        
+        // Re-render main grid as it depends on ciclos
         renderSalasGrid(currentSalas, currentCiclos, handlers); 
-
-        if (!getEl('ciclosView').classList.contains('hidden')) {
-            handlers.showCiclosView(currentSalaId, currentSalaName);
-        }
-        
+        // If ciclos view is open, update it
+        if (!getEl('ciclosView').classList.contains('hidden')) handlers.showCiclosView(currentSalaId, currentSalaName);
+        // If detail view is open, update it
         if (!getEl('cicloDetailView').classList.contains('hidden')) {
-            const activeCicloId = getEl('cicloDetailContent').querySelector('[data-ciclo-id]')?.dataset.cicloId;
+            const activeCicloId = getEl('cicloDetailView').querySelector('[data-ciclo-id]')?.dataset.cicloId;
             if (activeCicloId) {
                 const updatedCiclo = currentCiclos.find(c => c.id === activeCicloId);
-                if (updatedCiclo) {
-                    handlers.showCicloDetails(updatedCiclo);
-                } else {
-                    handlers.hideCicloDetails();
-                }
+                if (updatedCiclo) handlers.showCicloDetails(updatedCiclo);
+                else handlers.hideCicloDetails();
             }
         }
     });
@@ -221,70 +120,645 @@ function loadCiclos() {
 
 function loadGenetics() {
     if (!userId) return;
-    const geneticsRef = collection(db, `users/${userId}/genetics`);
-    const q = query(geneticsRef);
-
+    const q = query(collection(db, `users/${userId}/genetics`));
     if (geneticsUnsubscribe) geneticsUnsubscribe();
     geneticsUnsubscribe = onSnapshot(q, (snapshot) => {
         currentGenetics = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        renderGeneticsList(currentGenetics, handlers);
-        renderStockList(currentGenetics, handlers);
+        if(!getEl('toolsView').classList.contains('hidden')) {
+            renderGeneticsList(currentGenetics, handlers);
+            renderStockList(currentGenetics, handlers);
+        }
     });
 }
 
 function loadSeeds() {
     if (!userId) return;
-    const seedsRef = collection(db, `users/${userId}/seeds`);
-    const q = query(seedsRef);
-
+    const q = query(collection(db, `users/${userId}/seeds`));
     if (seedsUnsubscribe) seedsUnsubscribe();
     seedsUnsubscribe = onSnapshot(q, (snapshot) => {
         currentSeeds = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        renderSeedBankList(currentSeeds, handlers);
+         if(!getEl('toolsView').classList.contains('hidden')) {
+            renderSeedBankList(currentSeeds, handlers);
+        }
     });
 }
 
 function loadLogsForCiclo(cicloId, weekNumbers) {
     if (logsUnsubscribe) logsUnsubscribe();
-    
-    const logsRef = collection(db, `users/${userId}/ciclos/${cicloId}/logs`);
-    const q = query(logsRef);
-
+    const q = query(collection(db, `users/${userId}/ciclos/${cicloId}/logs`));
     logsUnsubscribe = onSnapshot(q, (snapshot) => {
+        // Clear previous logs
         weekNumbers.forEach(weekNum => {
-             const logContainer = getEl(`logs-week-${weekNum}`);
-            if(logContainer) {
-                   logContainer.innerHTML = `<p class="text-gray-500 italic">No hay registros para esta semana.</p>`;
-            }
+            const logContainer = getEl(`logs-week-${weekNum}`);
+            if(logContainer) logContainer.innerHTML = `<p class="text-gray-500 italic">No hay registros.</p>`;
         });
-
-        const allLogs = snapshot.docs.map(doc => {
-            const data = doc.data();
-            const logDate = data.date && data.date.toDate ? data.date.toDate() : new Date();
-            return { id: doc.id, ...data, date: logDate };
-        });
-
-        allLogs.sort((a, b) => b.date - a.date);
-
+        const allLogs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data(), date: doc.data().date.toDate() }));
+        allLogs.sort((a, b) => b.date - a.date); // Sort by most recent first
         allLogs.forEach(log => {
             const logContainer = getEl(`logs-week-${log.week}`);
             if (logContainer) {
-                if (logContainer.querySelector('p.italic')) {
-                    logContainer.innerHTML = '';
-                }
+                if (logContainer.querySelector('p.italic')) logContainer.innerHTML = '';
                 const ciclo = currentCiclos.find(c => c.id === cicloId);
-                const logEntry = createLogEntry(log, ciclo, handlers);
-                logContainer.appendChild(logEntry);
+                logContainer.appendChild(createLogEntry(log, ciclo, handlers));
             }
         });
     });
 }
 
-// --- HANDLERS & LOGIC FUNCTIONS ---
+
+// --- 2. HANDLERS OBJECT DEFINITION ---
+
 const handlers = {
+    // --- AUTH ---
     signOut: () => signOut(auth),
+    handleLogin: (email, password) => {
+        signInWithEmailAndPassword(auth, email, password)
+            .catch(error => {
+                getEl('authError').innerText = handleAuthError(error);
+                getEl('authError').classList.remove('hidden');
+            });
+    },
+    handleRegister: (email, password) => {
+        createUserWithEmailAndPassword(auth, email, password)
+            .catch(error => {
+                getEl('authError').innerText = handleAuthError(error);
+                getEl('authError').classList.remove('hidden');
+            });
+    },
+
+    // --- HELPERS & UTILS ---
     calculateDaysSince,
     getPhaseInfo,
     formatFertilizers,
-    // Resto de los handlers...
+    getConfirmCallback: () => confirmCallback,
+
+    // --- CONFIRMATION MODAL ---
+    hideConfirmationModal: () => {
+        getEl('confirmationModal').style.display = 'none';
+        confirmCallback = null;
+    },
+    showConfirmationModal: (message, onConfirm) => {
+        getEl('confirmationMessage').textContent = message;
+        confirmCallback = onConfirm;
+        getEl('confirmationModal').style.display = 'flex';
+    },
+
+    // --- SALAS ---
+    openSalaModal: (sala = null) => {
+        uiOpenSalaModal(sala);
+    },
+    handleSalaFormSubmit: async (e) => {
+        e.preventDefault();
+        const form = e.target;
+        const salaName = getEl('sala-name').value.trim();
+        if (!salaName) {
+            showNotification('El nombre de la sala no puede estar vacío.', 'error');
+            return;
+        }
+        const salaId = form.dataset.id;
+        try {
+            if (salaId) {
+                await updateDoc(doc(db, `users/${userId}/salas`, salaId), { name: salaName });
+                showNotification('Sala actualizada correctamente.');
+            } else {
+                await addDoc(collection(db, `users/${userId}/salas`), { name: salaName });
+                showNotification('Sala creada correctamente.');
+            }
+            getEl('salaModal').style.display = 'none';
+        } catch (error) {
+            console.error("Error guardando sala:", error);
+            showNotification('Error al guardar la sala.', 'error');
+        }
+    },
+    deleteSala: (id, name) => {
+        handlers.showConfirmationModal(`¿Seguro que quieres eliminar la sala "${name}"? Todos los ciclos dentro de ella también serán eliminados. Esta acción no se puede deshacer.`, async () => {
+            try {
+                const batch = writeBatch(db);
+                // Find all ciclos in the sala to be deleted
+                const ciclosQuery = query(collection(db, `users/${userId}/ciclos`), where("salaId", "==", id));
+                const ciclosSnapshot = await getDocs(ciclosQuery);
+                // Add deletion of each ciclo to the batch
+                ciclosSnapshot.forEach(cicloDoc => {
+                    batch.delete(cicloDoc.ref);
+                });
+                // Add deletion of the sala itself to the batch
+                batch.delete(doc(db, `users/${userId}/salas`, id));
+                // Commit the batch
+                await batch.commit();
+                showNotification(`Sala "${name}" y sus ciclos eliminados.`);
+            } catch (error) {
+                console.error("Error deleting sala and its ciclos:", error);
+                showNotification('Error al eliminar la sala.', 'error');
+            }
+        });
+    },
+
+    // --- CICLOS ---
+    openCicloModal: (ciclo = null) => {
+        uiOpenCicloModal(ciclo, currentSalas);
+    },
+    updateCicloModalDateFields: () => {
+        const phase = getEl('cicloPhase').value;
+        getEl('vegetativeDateContainer').classList.toggle('hidden', phase !== 'Vegetativo');
+        getEl('floweringDateContainer').classList.toggle('hidden', phase !== 'Floración');
+    },
+    handleCicloFormSubmit: async (e) => {
+        e.preventDefault();
+        const form = e.target;
+        const cicloId = form.dataset.id;
+        const cicloData = {
+            name: getEl('ciclo-name').value.trim(),
+            salaId: getEl('ciclo-sala-select').value,
+            phase: getEl('cicloPhase').value,
+            cultivationType: getEl('cultivationType').value,
+            vegetativeStartDate: getEl('vegetativeStartDate').value,
+            floweringStartDate: getEl('floweringStartDate').value,
+            notes: getEl('ciclo-notes').value.trim()
+        };
+
+        if (!cicloData.name || !cicloData.salaId) {
+            showNotification('Nombre y sala son obligatorios.', 'error');
+            return;
+        }
+
+        try {
+            if (cicloId) {
+                await updateDoc(doc(db, `users/${userId}/ciclos`, cicloId), cicloData);
+                showNotification('Ciclo actualizado.');
+            } else {
+                if (cicloData.phase === 'Floración') {
+                    cicloData.floweringWeeks = generateStandardWeeks();
+                }
+                await addDoc(collection(db, `users/${userId}/ciclos`), cicloData);
+                showNotification('Ciclo creado.');
+            }
+            getEl('cicloModal').style.display = 'none';
+        } catch (error) {
+            console.error("Error guardando ciclo:", error);
+            showNotification('Error al guardar el ciclo.', 'error');
+        }
+    },
+    deleteCiclo: (cicloId, cicloName) => {
+         handlers.showConfirmationModal(`¿Seguro que quieres eliminar el ciclo "${cicloName}"? Todos sus registros serán eliminados.`, async () => {
+            try {
+                // It's good practice to delete subcollections if they exist
+                const logsRef = collection(db, `users/${userId}/ciclos/${cicloId}/logs`);
+                const logsSnapshot = await getDocs(logsRef);
+                const batch = writeBatch(db);
+                logsSnapshot.forEach(logDoc => {
+                    batch.delete(logDoc.ref);
+                });
+                batch.delete(doc(db, `users/${userId}/ciclos`, cicloId));
+                await batch.commit();
+
+                showNotification('Ciclo eliminado correctamente.');
+            } catch (error) {
+                console.error("Error deleting ciclo: ", error);
+                showNotification('Error al eliminar el ciclo.', 'error');
+            }
+        });
+    },
+
+    // --- VIEW MANAGEMENT ---
+    showCiclosView: (salaId, salaName) => {
+        currentSalaId = salaId;
+        currentSalaName = salaName;
+        getEl('app').classList.add('hidden');
+        getEl('cicloDetailView').classList.add('hidden');
+        getEl('toolsView').classList.add('hidden');
+        getEl('settingsView').classList.add('hidden');
+
+        getEl('salaNameHeader').innerText = `Sala: ${salaName}`;
+        const ciclosGrid = getEl('ciclosGrid');
+        ciclosGrid.innerHTML = '';
+        const ciclosInSala = currentCiclos.filter(c => c.salaId === salaId);
+
+        if (ciclosInSala.length > 0) {
+            getEl('emptyCiclosState').classList.add('hidden');
+            ciclosInSala.forEach(ciclo => {
+                ciclosGrid.appendChild(createCicloCard(ciclo, handlers));
+            });
+        } else {
+            getEl('emptyCiclosState').classList.remove('hidden');
+        }
+        getEl('ciclosView').classList.remove('hidden');
+    },
+    hideCiclosView: () => {
+        getEl('ciclosView').classList.add('hidden');
+        getEl('app').classList.remove('hidden');
+        currentSalaId = null;
+        currentSalaName = null;
+    },
+    showCicloDetails: (ciclo) => {
+        if (logsUnsubscribe) logsUnsubscribe();
+        handlers.hideAllViews();
+        const detailView = getEl('cicloDetailView');
+        detailView.innerHTML = renderCicloDetails(ciclo, handlers);
+        detailView.classList.remove('hidden');
+        
+        // Setup listeners for the newly created detail view
+        getEl('backToCiclosBtn').addEventListener('click', () => handlers.showCiclosView(ciclo.salaId, currentSalas.find(s=>s.id === ciclo.salaId)?.name));
+        
+        const weekNumbers = ciclo.floweringWeeks ? ciclo.floweringWeeks.map(w => w.weekNumber) : [];
+        if (ciclo.phase === 'Floración' && weekNumbers.length > 0) {
+            loadLogsForCiclo(ciclo.id, weekNumbers);
+        }
+    },
+    hideCicloDetails: () => {
+        if (logsUnsubscribe) logsUnsubscribe();
+        getEl('cicloDetailView').classList.add('hidden');
+        if (currentSalaId && currentSalaName) {
+            handlers.showCiclosView(currentSalaId, currentSalaName);
+        } else {
+            handlers.hideCiclosView(); // Go back to main panel
+        }
+    },
+    showToolsView: () => {
+        handlers.hideAllViews();
+        const toolsView = getEl('toolsView');
+        toolsView.innerHTML = renderToolsView();
+        toolsView.classList.remove('hidden');
+        handlers.switchToolsTab('genetics'); // Default tab
+        // Re-render lists
+        renderGeneticsList(currentGenetics, handlers);
+        renderStockList(currentGenetics, handlers);
+        renderSeedBankList(currentSeeds, handlers);
+        // Add event listeners for the new view
+        getEl('backToPanelBtn').addEventListener('click', handlers.hideToolsView);
+        getEl('geneticsTabBtn').addEventListener('click', () => handlers.switchToolsTab('genetics'));
+        getEl('stockTabBtn').addEventListener('click', () => handlers.switchToolsTab('stock'));
+        getEl('seedBankTabBtn').addEventListener('click', () => handlers.switchToolsTab('seedBank'));
+        getEl('geneticsForm').addEventListener('submit', handlers.handleGeneticsFormSubmit);
+        getEl('seedForm').addEventListener('submit', handlers.handleSeedFormSubmit);
+    },
+    hideToolsView: () => {
+        getEl('toolsView').classList.add('hidden');
+        getEl('app').classList.remove('hidden');
+    },
+    showSettingsView: () => {
+        handlers.hideAllViews();
+        const settingsView = getEl('settingsView');
+        settingsView.innerHTML = renderSettingsView();
+        settingsView.classList.remove('hidden');
+        // Add event listeners
+        getEl('backToPanelFromSettingsBtn').addEventListener('click', handlers.hideSettingsView);
+        getEl('changePasswordForm').addEventListener('submit', handlers.handleChangePassword);
+        getEl('deleteAccountBtn').addEventListener('click', handlers.handleDeleteAccount);
+    },
+    hideSettingsView: () => {
+        getEl('settingsView').classList.add('hidden');
+        getEl('app').classList.remove('hidden');
+    },
+    hideAllViews: () => {
+        ['app', 'ciclosView', 'cicloDetailView', 'toolsView', 'settingsView'].forEach(id => getEl(id).classList.add('hidden'));
+    },
+    
+    // --- TOOLS ---
+    switchToolsTab: (activeTab) => {
+        ['genetics', 'stock', 'seedBank'].forEach(tab => {
+            getEl(`${tab}Content`).classList.toggle('hidden', tab !== activeTab);
+            getEl(`${tab}TabBtn`).classList.toggle('border-amber-400', tab === activeTab);
+            getEl(`${tab}TabBtn`).classList.toggle('border-transparent', tab !== activeTab);
+        });
+    },
+    handleGeneticsFormSubmit: async (e) => {
+        e.preventDefault();
+        const form = e.target;
+        const geneticId = form.dataset.id;
+        const geneticData = {
+            name: getEl('genetic-name').value.trim(),
+            parents: getEl('genetic-parents').value.trim(),
+            bank: getEl('genetic-bank').value.trim(),
+            owner: getEl('genetic-owner').value.trim(),
+            cloneStock: parseInt(getEl('genetic-stock').value) || 0
+        };
+        if (!geneticData.name) {
+            showNotification('El nombre es obligatorio.', 'error');
+            return;
+        }
+        try {
+            if (geneticId) {
+                await updateDoc(doc(db, `users/${userId}/genetics`, geneticId), geneticData);
+                showNotification('Genética actualizada.');
+            } else {
+                await addDoc(collection(db, `users/${userId}/genetics`), geneticData);
+                showNotification('Genética añadida.');
+            }
+            form.reset();
+            delete form.dataset.id;
+            getEl('genetic-form-title').innerText = 'Añadir Nueva Genética';
+        } catch (error) {
+            console.error("Error saving genetic:", error);
+            showNotification('Error al guardar la genética.', 'error');
+        }
+    },
+    editGenetic: (id) => {
+        const genetic = currentGenetics.find(g => g.id === id);
+        if (genetic) {
+            getEl('genetic-form-title').innerText = 'Editar Genética';
+            getEl('genetic-name').value = genetic.name;
+            getEl('genetic-parents').value = genetic.parents || '';
+            getEl('genetic-bank').value = genetic.bank || '';
+            getEl('genetic-owner').value = genetic.owner || '';
+            getEl('genetic-stock').value = genetic.cloneStock || 0;
+            getEl('geneticsForm').dataset.id = id;
+            getEl('genetic-name').focus();
+        }
+    },
+    deleteGenetic: (id) => {
+        const genetic = currentGenetics.find(g => g.id === id);
+        if (genetic) {
+            handlers.showConfirmationModal(`¿Seguro que quieres eliminar la genética "${genetic.name}"?`, async () => {
+                try {
+                    await deleteDoc(doc(db, `users/${userId}/genetics`, id));
+                    showNotification('Genética eliminada.');
+                } catch (error) {
+                    console.error("Error deleting genetic:", error);
+                    showNotification('Error al eliminar la genética.', 'error');
+                }
+            });
+        }
+    },
+    updateStock: async (id, amount) => {
+        try {
+            const geneticRef = doc(db, `users/${userId}/genetics`, id);
+            await updateDoc(geneticRef, {
+                cloneStock: increment(amount)
+            });
+        } catch (error) {
+            console.error("Error updating stock:", error);
+            showNotification('Error al actualizar el stock.', 'error');
+        }
+    },
+    handleSeedFormSubmit: async (e) => {
+        e.preventDefault();
+        const form = e.target;
+        const seedData = {
+            name: getEl('seed-name').value.trim(),
+            bank: getEl('seed-bank').value.trim(),
+            quantity: parseInt(getEl('seed-quantity').value) || 0
+        };
+        if (!seedData.name || seedData.quantity <= 0) {
+            showNotification('Nombre y cantidad (mayor a 0) son obligatorios.', 'error');
+            return;
+        }
+        try {
+            await addDoc(collection(db, `users/${userId}/seeds`), seedData);
+            showNotification('Semillas añadidas al banco.');
+            form.reset();
+        } catch (error) {
+            console.error("Error saving seed:", error);
+            showNotification('Error al guardar las semillas.', 'error');
+        }
+    },
+    deleteSeed: (id) => {
+        const seed = currentSeeds.find(s => s.id === id);
+        if(seed) {
+            handlers.showConfirmationModal(`¿Seguro que quieres eliminar las semillas "${seed.name}" del banco?`, async () => {
+                try {
+                    await deleteDoc(doc(db, `users/${userId}/seeds`, id));
+                    showNotification('Semillas eliminadas.');
+                } catch (error) {
+                    console.error("Error deleting seed:", error);
+                    showNotification('Error al eliminar las semillas.', 'error');
+                }
+            });
+        }
+    },
+    openGerminateModal: (id) => {
+        const seed = currentSeeds.find(s => s.id === id);
+        if(seed) {
+           uiOpenGerminateModal(seed);
+        }
+    },
+    handleGerminateFormSubmit: async (e) => {
+        e.preventDefault();
+        const form = e.target;
+        const seedId = form.dataset.id;
+        const quantity = parseInt(getEl('germinate-quantity').value);
+
+        if (!seedId || !quantity || quantity <= 0) {
+            showNotification('Cantidad inválida.', 'error');
+            return;
+        }
+
+        const seed = currentSeeds.find(s => s.id === seedId);
+        if (quantity > seed.quantity) {
+             showNotification('No puedes germinar más semillas de las que tienes.', 'error');
+             return;
+        }
+
+        try {
+            await updateDoc(doc(db, `users/${userId}/seeds`, seedId), {
+                quantity: increment(-quantity)
+            });
+            showNotification(`${quantity} semilla(s) de ${seed.name} puestas a germinar.`);
+            getEl('germinateSeedModal').style.display = 'none';
+        } catch(error) {
+            console.error("Error germinating seed:", error);
+            showNotification('Error al germinar la semilla.', 'error');
+        }
+    },
+
+    // --- GENETICS IN CICLO ---
+    handleAddGeneticToCiclo: async (type) => {
+        // This is a placeholder as the UI for this modal wasn't fully defined.
+        // It would typically involve showing a list of genetics and adding the selected one to the ciclo.
+        console.log(`Adding genetic via: ${type}`);
+        showNotification('Función no implementada completamente.', 'error');
+    },
+
+    // --- SETTINGS ---
+    handleDeleteAccount: () => {
+        handlers.showConfirmationModal('¿ESTÁS SEGURO? Esta acción eliminará permanentemente tu cuenta y todos tus datos (salas, ciclos, registros). No se puede deshacer.', async () => {
+            try {
+                // It's complex to delete all subcollections. For now, we delete the user.
+                // A more robust solution uses a Firebase Function to clean up data.
+                const user = auth.currentUser;
+                await deleteUser(user);
+                showNotification('Cuenta eliminada. Serás desconectado.');
+                // App will reload due to onAuthStateChanged
+            } catch (error) {
+                console.error("Error deleting account:", error);
+                showNotification('Error al eliminar la cuenta. Es posible que necesites volver a iniciar sesión para completar esta acción.', 'error');
+            }
+        });
+    },
+    handleChangePassword: async (e) => {
+        e.preventDefault();
+        const newPassword = getEl('newPassword').value;
+        const confirmPassword = getEl('confirmPassword').value;
+        if (newPassword.length < 6) {
+            showNotification('La nueva contraseña debe tener al menos 6 caracteres.', 'error');
+            return;
+        }
+        if (newPassword !== confirmPassword) {
+            showNotification('Las contraseñas no coinciden.', 'error');
+            return;
+        }
+        try {
+            const user = auth.currentUser;
+            await updatePassword(user, newPassword);
+            showNotification('Contraseña cambiada correctamente.');
+            e.target.reset();
+        } catch (error) {
+            console.error("Error changing password:", error);
+            showNotification('Error al cambiar la contraseña. Es posible que necesites volver a iniciar sesión.', 'error');
+        }
+    },
+
+    // --- LOGS ---
+    closeLogModal: () => {
+        getEl('logModal').style.display = 'none';
+    },
+    toggleLogFields: () => {
+        const logType = getEl('logType').value;
+        getEl('riegoFields').style.display = logType === 'Riego' ? 'block' : 'none';
+        getEl('solucionFields').style.display = logType === 'Cambio de Solución' ? 'block' : 'none';
+        getEl('plagasFields').style.display = logType === 'Control de Plagas' ? 'block' : 'none';
+        getEl('podasFields').style.display = logType === 'Podas' ? 'block' : 'none';
+    },
+    handleLogFormSubmit: async (e) => {
+        e.preventDefault();
+        const form = e.target;
+        const cicloId = form.dataset.cicloId;
+        const logId = form.dataset.logId;
+        const week = form.dataset.week;
+
+        const logData = {
+            type: getEl('logType').value,
+            date: serverTimestamp(),
+            week: parseInt(week)
+        };
+
+        if (logData.type === 'Riego' || logData.type === 'Cambio de Solución') {
+            logData.ph = getEl('log-ph').value;
+            logData.ec = getEl('log-ec').value;
+            logData.fertilizers = {
+                basesAmount: getEl('fert-bases-amount').value,
+                basesUnit: getEl('fert-bases-unit').value,
+                enzimas: getEl('fert-enzimas').checked,
+                candy: getEl('fert-candy').checked,
+                bigBud: getEl('fert-bigbud').checked,
+                flawlessFinish: getEl('fert-flawless').checked,
+                foliar: getEl('fert-foliar').checked,
+                foliarProduct: getEl('fert-foliar-product').value,
+            };
+            if(logData.type === 'Cambio de Solución') logData.litros = getEl('log-litros').value;
+        } else if (logData.type === 'Control de Plagas') {
+            logData.notes = getEl('plagas-notes').value;
+        } else if (logData.type === 'Podas') {
+            logData.podaType = getEl('podaType').value;
+            if (logData.podaType === 'Clones') {
+                logData.clonesCount = getEl('clones-count').value;
+            }
+        }
+
+        try {
+            await addDoc(collection(db, `users/${userId}/ciclos/${cicloId}/logs`), logData);
+            showNotification('Registro añadido.');
+            handlers.closeLogModal();
+        } catch (error) {
+            console.error("Error guardando log:", error);
+            showNotification('Error al guardar el registro.', 'error');
+        }
+    },
+    deleteLog: (cicloId, logId) => {
+        handlers.showConfirmationModal('¿Seguro que quieres eliminar este registro?', async () => {
+            try {
+                await deleteDoc(doc(db, `users/${userId}/ciclos/${cicloId}/logs`, logId));
+                showNotification('Registro eliminado.');
+            } catch (error) {
+                console.error("Error deleting log:", error);
+                showNotification('Error al eliminar el registro.', 'error');
+            }
+        });
+    },
+
+    // --- WEEKS ---
+    closeAddWeekModal: () => {
+        getEl('addWeekModal').style.display = 'none';
+    },
+    handleAddWeekSubmit: async (e) => {
+        e.preventDefault();
+        const form = e.target;
+        const cicloId = form.dataset.cicloId;
+        const weekNumber = parseInt(getEl('weekNumber').value);
+        const phaseName = getEl('weekPhase').value;
+
+        if (!cicloId || !weekNumber || !phaseName) {
+            showNotification('Datos de semana inválidos.', 'error');
+            return;
+        }
+
+        try {
+            const cicloRef = doc(db, `users/${userId}/ciclos`, cicloId);
+            await updateDoc(cicloRef, {
+                floweringWeeks: arrayUnion({ weekNumber, phaseName })
+            });
+            showNotification(`Semana ${weekNumber} añadida.`);
+            handlers.closeAddWeekModal();
+        } catch (error) {
+            console.error("Error adding week:", error);
+            showNotification('Error al añadir la semana.', 'error');
+        }
+    },
+
+    // --- MOVE CICLO ---
+    openMoveCicloModal: (cicloId) => {
+        const ciclo = currentCiclos.find(c => c.id === cicloId);
+        if (ciclo) {
+            uiOpenMoveCicloModal(ciclo, currentSalas);
+        }
+    },
+    handleMoveCicloSubmit: async (e) => {
+        e.preventDefault();
+        const form = e.target;
+        const cicloId = form.dataset.cicloId;
+        const newSalaId = getEl('move-ciclo-sala-select').value;
+        if (!cicloId || !newSalaId) {
+            showNotification('Selección inválida.', 'error');
+            return;
+        }
+        try {
+            await updateDoc(doc(db, `users/${userId}/ciclos`, cicloId), { salaId: newSalaId });
+            showNotification('Ciclo movido de sala.');
+            getEl('moveCicloModal').style.display = 'none';
+            // If we are in the ciclos view, we might need to go back to the main view
+            if (!getEl('ciclosView').classList.contains('hidden')) {
+                handlers.hideCiclosView();
+            }
+        } catch (error) {
+            console.error("Error moving ciclo:", error);
+            showNotification('Error al mover el ciclo.', 'error');
+        }
+    }
 };
+
+
+// --- 3. INICIALIZACIÓN Y MANEJO DE ESTADO ---
+onAuthStateChanged(auth, user => {
+    getEl('initial-loader').classList.add('hidden');
+    if (user) {
+        userId = user.uid;
+        handlers.hideAllViews();
+        getEl('app').classList.remove('hidden');
+        getEl('welcomeUser').innerText = `Anota todo, no seas pancho.`;
+        
+        loadSalas();
+        loadCiclos();
+        loadGenetics();
+        loadSeeds();
+        initializeEventListeners(handlers); // Initialize listeners once the user is logged in
+    } else {
+        userId = null;
+        if (salasUnsubscribe) salasUnsubscribe();
+        if (ciclosUnsubscribe) ciclosUnsubscribe();
+        if (geneticsUnsubscribe) geneticsUnsubscribe();
+        if (seedsUnsubscribe) seedsUnsubscribe();
+        
+        handlers.hideAllViews();
+        getEl('authView').classList.remove('hidden');
+        initializeEventListeners(handlers); // Also initialize for login/register
+    }
+});
