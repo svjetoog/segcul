@@ -9,8 +9,8 @@
     <style>
     body { font-family: 'Inter', sans-serif; background-color: #171717; color: #e5e5e5; }
     .modal-backdrop { background-color: rgba(0, 0, 0, 0.75); }
-    .card { background-color: #262626; border: 1px solid #f59e0b; box-shadow: 0 0 5px rgba(245, 158, 11, 0.5), 0 0 10px rgba(245, 158, 11, 0.3); transition: all 0.3s ease; }
-    .card:hover { transform: translateY(-5px); border-color: #fbbf24; box-shadow: 0 0 10px rgba(251, 191, 36, 0.6), 0 0 20px rgba(251, 191, 36, 0.4); }
+    .card { background-color: #262626; border: 1px solid #f59e0b; box-shadow: 0 0 5px rgba(245, 158, 11, 0.5), 0 0 10px rgba(245, 158, 11, 0.3); transition: all 0.2s ease-in-out; }
+    .card:hover { transform: translateY(-5px) scale(1.02); border-color: #fbbf24; box-shadow: 0 0 10px rgba(251, 191, 36, 0.6), 0 0 20px rgba(251, 191, 36, 0.4); }
     .ciclos-list { display: flex; flex-direction: column; gap: 0.35rem; }
     .ciclo-item { background-color: #404040; border: 1px solid #525252; padding: 0.35rem 2rem 0.35rem 0.75rem; border-radius: 0.5rem; box-shadow: 0 2px 4px rgba(0,0,0,0.4); transition: all 0.2s ease-out; font-size: 0.875rem; position: relative; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
     .ciclo-item:hover { transform: translateY(-2px); border-color: #f59e0b; z-index: 10; }
@@ -22,12 +22,13 @@
     .ciclo-item.lavado::after { background-color: #60a5fa; }
     .ciclo-item.secado::after { background-color: #facc15; }
     #salaModal > div, #cicloModal > div, #logModal > div, #addWeekModal > div, #aiSummaryModal > div, #authView form, #toolsView .card, #germinateSeedModal > div, #addGeneticsToCicloModal > div, #moveCicloModal > div, #settingsView .card, #confirmationModal > div, #aboutModal > div { background-color: #262626; border: 1px solid #404040; }
-    .btn-primary, #authView button[type="submit"] { background-color: #f59e0b; color: #171717; font-weight: 600; transition: background-color 0.2s; }
+    .btn-primary, #authView button[type="submit"] { background-color: #f59e0b; color: #171717; font-weight: 600; }
     .btn-primary:hover, #authView button[type="submit"]:hover { background-color: #d97706; }
-    .btn-secondary { background-color: #525252; color: #ffffff; font-weight: 500; transition: background-color 0.2s; }
+    .btn-secondary { background-color: #525252; color: #ffffff; font-weight: 500; }
     .btn-secondary:hover { background-color: #404040; }
-    .btn-danger { background-color: #ef4444; color: #ffffff; font-weight: 500; transition: background-color 0.2s; }
+    .btn-danger { background-color: #ef4444; color: #ffffff; font-weight: 500; }
     .btn-danger:hover { background-color: #dc2626; }
+    .btn-base { transition: all 0.15s ease-in-out; } .btn-base:hover { transform: scale(1.05); filter: brightness(1.1); } .btn-base:active { transform: scale(0.98); filter: brightness(0.9); }
     .week-header { background-color: #404040; }
     .log-entry { border-left: 4px solid #f59e0b; background-color: #262626; }
     input, select, textarea { background-color: #404040 !important; border-color: #525252 !important; color: #e5e5e5 !important; }
@@ -38,6 +39,8 @@
     #notification-container.success { background-color: #22c55e; }
     #notification-container.error { background-color: #ef4444; }
     @keyframes fadeInOut { 0% { opacity: 0; transform: translate(-50%, 20px); } 15% { opacity: 1; transform: translate(-50%, 0); } 85% { opacity: 1; transform: translate(-50%, 0); } 100% { opacity: 0; transform: translate(-50%, 20px); } }
+    .view-container { animation: fadeIn 0.4s ease-in-out; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body class="antialiased">
@@ -65,11 +68,11 @@
                     </div>
                 </div>
                 <div class="text-center pt-2">
-                    <button type="button" id="aboutBtnAuth" class="btn-secondary py-2 px-4 rounded-lg text-sm">¿Qué onda esto?</button>
+                    <button type="button" id="aboutBtnAuth" class="btn-secondary btn-base py-2 px-4 rounded-lg text-sm">¿Qué onda esto?</button>
                 </div>
                 <div id="authError" class="text-red-400 text-sm hidden"></div>
                 <div>
-                    <button type="submit" class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md btn-primary">
+                    <button type="submit" class="btn-primary btn-base group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md">
                         Iniciar Sesión
                     </button>
                 </div>
@@ -92,10 +95,10 @@
                     </div>
                 </div>
                 <div class="text-center pt-2">
-                    <button type="button" id="aboutBtnAuthRegister" class="btn-secondary py-2 px-4 rounded-lg text-sm">¿Qué onda esto?</button>
+                    <button type="button" id="aboutBtnAuthRegister" class="btn-secondary btn-base py-2 px-4 rounded-lg text-sm">¿Qué onda esto?</button>
                 </div>
                  <div>
-                    <button type="submit" class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md btn-primary">
+                    <button type="submit" class="btn-primary btn-base group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md">
                         Crear Cuenta
                     </button>
                 </div>
@@ -116,12 +119,12 @@
                 <p id="welcomeUser" class="text-gray-400 mt-1"></p>
             </div>
             <div class="relative mt-4 sm:mt-0 self-end sm:self-auto flex items-center gap-2">
-                <button id="aboutBtn" class="btn-secondary py-2 px-4 rounded-lg shadow-md">
+                <button id="aboutBtn" class="btn-secondary btn-base py-2 px-4 rounded-lg shadow-md">
                     ¿Qué onda esto?
                 </button>
-                <button id="menuBtn" class="btn-primary p-2 rounded-lg shadow-md">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+                <button id="menuBtn" class="btn-primary btn-base p-2 rounded-lg shadow-md">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
                     </svg>
                 </button>
                 <div id="dropdownMenu" class="absolute right-0 top-full mt-2 w-48 bg-[#262626] border border-[#404040] rounded-md shadow-lg z-20 hidden">
@@ -134,17 +137,21 @@
             </div>
         </header>
         <main>
+            <div class="mb-8">
+                <input type="search" id="searchSalas" placeholder="Buscar sala por nombre..." class="w-full max-w-lg p-2 rounded-md focus:ring-amber-500 focus:border-amber-500">
+            </div>
+
             <div id="salasGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-6"></div>
             <div id="loadingSalas" class="text-center py-10 text-gray-400">Cargando salas...</div>
             <div id="emptySalasState" class="text-center py-10 text-gray-400 hidden">No tienes salas. ¡Añade una para empezar!</div>
         </main>
         
         <footer class="mt-12 flex flex-col sm:flex-row justify-center items-center gap-4 py-4 text-center">
-             <a href="https://t.me/+Uk-oVUNEmTM3YzFh" target="_blank" rel="noopener noreferrer" class="bg-sky-500 hover:bg-sky-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md text-sm transition-colors" title="Unite al grupo de Telegram">
+             <a href="https://t.me/+Uk-oVUNEmTM3YzFh" target="_blank" rel="noopener noreferrer" class="bg-sky-500 hover:bg-sky-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md text-sm transition-colors btn-base" title="Unite al grupo de Telegram">
                 Grupo Telegram
             </a>
             <div class="text-xs text-gray-600 font-mono">
-                SegCul v0.32 by svjeto
+                SegCul v0.33 by svjeto
             </div>
         </footer>
     </div>
@@ -152,7 +159,7 @@
     <div id="ciclosView" class="p-4 sm:p-6 lg:p-8 hidden">
         <header class="flex justify-between items-center mb-8">
             <h1 id="salaNameHeader" class="text-3xl font-bold text-white font-mono tracking-wider"></h1>
-            <button id="backToSalasBtn" class="btn-secondary py-2 px-4 rounded-lg">Volver a Salas</button>
+            <button id="backToSalasBtn" class="btn-secondary btn-base py-2 px-4 rounded-lg">Volver a Salas</button>
         </header>
         <div id="ciclosGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"></div>
         <div id="emptyCiclosState" class="text-center py-10 text-gray-400 hidden">No hay ciclos en esta sala.</div>
@@ -176,8 +183,8 @@
             <h2 class="text-xl font-bold mb-4">Confirmar Acción</h2>
             <p id="confirmationMessage" class="mb-6"></p>
             <div class="flex justify-end gap-4">
-                <button id="cancelActionBtn" class="btn-secondary py-2 px-4 rounded-lg">Cancelar</button>
-                <button id="confirmActionBtn" class="btn-danger py-2 px-4 rounded-lg">Confirmar</button>
+                <button id="cancelActionBtn" class="btn-secondary btn-base py-2 px-4 rounded-lg">Cancelar</button>
+                <button id="confirmActionBtn" class="btn-danger btn-base py-2 px-4 rounded-lg">Confirmar</button>
             </div>
         </div>
     </div>
@@ -193,9 +200,7 @@
                     <p><strong>2. Ciclos:</strong> Es cada cultivo que empezás. Un ciclo siempre va adentro de una Sala. Le ponés un nombre, decís si arranca en vege o flora y listo, a darle seguimiento.</p>
                     <p><strong>3. Registros:</strong> Este es el diario de tus plantas. Dentro de cada ciclo, vas anotando por semana todo lo que importa: el pH y la EC del riego, qué fertis le mandaste, si hiciste una poda, si apareció algún bicho, etc. Te queda el historial completo.</p>
                 </div>
-
                 <br>
-                
                 <div>
                     <h3 class="font-bold text-lg text-amber-300 mb-2">Herramientas para no colgar</h3>
                     <p class="mb-2">Aparte de anotar, tenés estas secciones para gestionar tu stock:</p>
@@ -205,9 +210,7 @@
                         <li><strong>Baúl de Semillas:</strong> Tu inventario de semillitas. Anotás las que tenés, y cuando usás la función "Germinar", se descuentan solas del stock.</li>
                     </ul>
                 </div>
-                
                 <br>
-
                 <div>
                      <h3 class="font-bold text-lg text-amber-300 mb-2">Sobre tus Datos</h3>
                      <p>No es una red social. Tus datos son tuyos y se guardan en tu propia cuenta de Firebase. Nadie más puede verlos.</p>
@@ -218,7 +221,7 @@
                 </div>
             </div>
             <div class="text-right mt-6">
-                <button id="closeAboutBtn" class="btn-primary py-2 px-4 rounded-lg">Entendido</button>
+                <button id="closeAboutBtn" class="btn-primary btn-base py-2 px-4 rounded-lg">Entendido</button>
             </div>
         </div>
     </div>

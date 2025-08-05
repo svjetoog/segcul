@@ -3,7 +3,6 @@
 export const getEl = (id) => document.getElementById(id);
 let notificationTimeout;
 
-// CAMBIO: Base de datos de líneas de fertilizantes pre-cargadas
 const FERTILIZER_LINES = {
   "Top Crop": ["Deeper Underground", "Top Veg", "Top Bloom", "Big One", "Top Candy", "Top Bud", "Micro Vita"],
   "Namaste": ["Amazonia Roots", "Oro Negro", "Flora Booster", "Trico+", "Shanti", "Bio CaMg"],
@@ -11,7 +10,7 @@ const FERTILIZER_LINES = {
   "Advanced Nutrients": ["Sensi Grow A+B", "Sensi Bloom A+B", "Voodoo Juice", "B-52", "Big Bud", "Overdrive", "Flawless Finish"],
   "Athena (Blended)": ["Grow A", "Grow B", "Bloom A", "Bloom B", "CaMg", "PK", "Cleanse"],
   "Orgánico / Living Soil": ["Humus de lombriz", "Compost", "Bokashi", "Guano de murciélago", "Harina de hueso", "Melaza", "Micorrizas", "Trichodermas"],
-  "Personalizada": [] // Array vacío para indicar lógica especial
+  "Personalizada": []
 };
 
 export function showNotification(message, type = 'success') {
@@ -48,8 +47,8 @@ function createModalHTML(id, title, formId, content, submitText, cancelId, submi
             <form id="${formId}">
                 ${content}
                 <div class="flex justify-end gap-4 mt-8">
-                    <button type="button" id="${cancelId}" class="btn-secondary py-2 px-4 rounded-lg">Cancelar</button>
-                    <button type="submit" id="${submitId}" class="btn-primary py-2 px-4 rounded-lg">${submitText}</button>
+                    <button type="button" id="${cancelId}" class="btn-secondary btn-base py-2 px-4 rounded-lg">Cancelar</button>
+                    <button type="submit" id="${submitId}" class="btn-primary btn-base py-2 px-4 rounded-lg">${submitText}</button>
                 </div>
             </form>
         </div>
@@ -71,10 +70,11 @@ export function openSalaModal(sala = null) {
     modal.style.display = 'flex';
 }
 
-export function openCicloModal(ciclo = null, salas = []) {
+// CAMBIO: La función ahora acepta un ID de sala pre-seleccionada para la "Acción Rápida"
+export function openCicloModal(ciclo = null, salas = [], preselectedSalaId = null) {
     const title = ciclo ? 'Editar Ciclo' : 'Añadir Ciclo';
     const salaOptions = salas.length > 0
-        ? salas.map(s => `<option value="${s.id}" ${ciclo && ciclo.salaId === s.id ? 'selected' : ''}>${s.name}</option>`).join('')
+        ? salas.map(s => `<option value="${s.id}" ${ (ciclo && ciclo.salaId === s.id) || (preselectedSalaId === s.id) ? 'selected' : ''}>${s.name}</option>`).join('')
         : '<option value="" disabled>Crea una sala primero</option>';
     
     const content = `
@@ -125,7 +125,6 @@ export function openCicloModal(ciclo = null, salas = []) {
     modal.style.display = 'flex';
 }
 
-// CAMBIO MAYOR: La función openLogModal ha sido completamente reescrita
 export function openLogModal(ciclo, week, log = null) {
     const title = 'Añadir Registro';
     const lineOptions = Object.keys(FERTILIZER_LINES).map(line => `<option value="${line}">${line}</option>`).join('');
@@ -141,14 +140,11 @@ export function openLogModal(ciclo, week, log = null) {
                     <option value="Podas">Podas</option>
                 </select>
             </div>
-
             <div id="log-fields-container"></div>
-
             <div id="plagasFields" class="hidden">
                 <label for="plagas-notes">Notas / Producto Aplicado</label>
                 <textarea id="plagas-notes" rows="3" class="w-full p-2 rounded-md"></textarea>
             </div>
-
             <div id="podasFields" class="hidden">
                  <label for="podaType">Tipo de Poda</label>
                  <select id="podaType" class="w-full p-2 rounded-md">
@@ -169,7 +165,6 @@ export function openLogModal(ciclo, week, log = null) {
     form.dataset.week = week.weekNumber;
     form.dataset.logId = log ? log.id : '';
     
-    // Lógica para mostrar/ocultar campos según el tipo de log
     const logTypeSelect = getEl('logType');
     const logFieldsContainer = getEl('log-fields-container');
     const plagasFields = getEl('plagasFields');
@@ -177,7 +172,7 @@ export function openLogModal(ciclo, week, log = null) {
 
     const toggleLogFields = () => {
         const type = logTypeSelect.value;
-        logFieldsContainer.innerHTML = ''; // Limpiar campos anteriores
+        logFieldsContainer.innerHTML = '';
         plagasFields.classList.add('hidden');
         podasFields.classList.add('hidden');
 
@@ -185,7 +180,6 @@ export function openLogModal(ciclo, week, log = null) {
             logFieldsContainer.innerHTML = getRiegoHTML(type, lineOptions);
             const lineSelect = getEl('fert-line-select');
             lineSelect.addEventListener('change', () => renderFertilizerProducts(lineSelect.value));
-            // Renderizar la primera línea por defecto
             renderFertilizerProducts(lineSelect.value);
         } else if (type === 'Control de Plagas') {
             plagasFields.classList.remove('hidden');
@@ -195,7 +189,6 @@ export function openLogModal(ciclo, week, log = null) {
     };
     
     logTypeSelect.addEventListener('change', toggleLogFields);
-    // Disparar una vez al inicio para mostrar los campos correctos
     toggleLogFields();
 
     getEl('podaType').addEventListener('change', () => getEl('clonesSection').style.display = getEl('podaType').value === 'Clones' ? 'block' : 'none');
@@ -230,8 +223,7 @@ function getRiegoHTML(type, lineOptions) {
                     <label for="fert-line-select" class="block text-sm font-medium text-gray-300 mb-1">Línea de Fertilizantes</label>
                     <select id="fert-line-select" class="w-full p-2 rounded-md">${lineOptions}</select>
                 </div>
-                <div id="fertilizer-products-container" class="space-y-3">
-                    </div>
+                <div id="fertilizer-products-container" class="space-y-3"></div>
             </div>
         </fieldset>
     `;
@@ -239,7 +231,7 @@ function getRiegoHTML(type, lineOptions) {
 
 function renderFertilizerProducts(lineName) {
     const container = getEl('fertilizer-products-container');
-    container.innerHTML = ''; // Limpiar
+    container.innerHTML = '';
 
     const products = FERTILIZER_LINES[lineName];
 
@@ -247,8 +239,8 @@ function renderFertilizerProducts(lineName) {
         const addBtn = document.createElement('button');
         addBtn.type = 'button';
         addBtn.id = 'add-custom-fert-btn';
-        addBtn.textContent = '+ Añadir Producto Personalizado';
-        addBtn.className = 'btn-secondary py-2 px-3 text-sm rounded-md';
+        addBtn.textContent = '+ Añadir Producto';
+        addBtn.className = 'btn-secondary btn-base py-2 px-3 text-sm rounded-md';
         addBtn.onclick = () => {
             const productRow = document.createElement('div');
             productRow.className = 'grid grid-cols-3 gap-2 custom-fert-row';
@@ -259,7 +251,6 @@ function renderFertilizerProducts(lineName) {
                     <option>ml/L</option><option>gr/L</option><option>ml</option><option>gr</option>
                 </select>
             `;
-            // Insertar antes del botón
             container.insertBefore(productRow, addBtn);
         };
         container.appendChild(addBtn);
@@ -278,7 +269,6 @@ function renderFertilizerProducts(lineName) {
         });
     }
 }
-
 
 export function openMoveCicloModal(ciclo, salas) {
     const title = `Mover Ciclo "${ciclo.name}"`;
@@ -326,7 +316,7 @@ export function renderCicloDetails(ciclo, handlers) {
                 <div class="mb-4">
                     <div class="week-header p-3 rounded-t-lg flex justify-between items-center cursor-pointer" onclick="this.nextElementSibling.classList.toggle('hidden')">
                         <h4 class="font-bold text-lg">Semana ${week.weekNumber} <span class="text-sm font-normal px-2 py-1 rounded-full ${phaseInfo.color}">${phaseInfo.name}</span></h4>
-                        <button class="btn-primary text-xs py-1 px-2 rounded-md add-log-for-week-btn" data-week='${JSON.stringify(week)}'>+ Registro</button>
+                        <button class="btn-primary btn-base text-xs py-1 px-2 rounded-md add-log-for-week-btn" data-week='${JSON.stringify(week)}'>+ Registro</button>
                     </div>
                     <div class="p-4 bg-[#262626] rounded-b-lg space-y-3" id="logs-week-${week.weekNumber}"></div>
                 </div>
@@ -347,7 +337,7 @@ export function renderCicloDetails(ciclo, handlers) {
                     <h2 class="text-3xl font-bold text-white font-mono tracking-wider">${ciclo.name}</h2>
                     <p class="text-gray-400">${statusText}</p>
                 </div>
-                <button id="backToCiclosBtn" class="btn-secondary py-2 px-4 rounded-lg">Volver</button>
+                <button id="backToCiclosBtn" class="btn-secondary btn-base py-2 px-4 rounded-lg">Volver</button>
             </header>
             <main>
                 ${weeksHTML}
@@ -372,14 +362,17 @@ export function renderToolsView() {
     return `
         <header class="flex justify-between items-center mb-8">
             <h1 class="text-3xl font-bold text-white font-mono tracking-wider">Herramientas</h1>
-            <button id="backToPanelBtn" class="btn-secondary py-2 px-4 rounded-lg">Volver al Panel</button>
+            <button id="backToPanelBtn" class="btn-secondary btn-base py-2 px-4 rounded-lg">Volver al Panel</button>
         </header>
         <div class="mb-6 border-b border-gray-700">
             <nav class="flex space-x-4 sm:space-x-8 overflow-x-auto" aria-label="Tabs">
-                <button id="geneticsTabBtn" class="py-4 px-1 border-b-2 font-medium text-lg text-gray-300 hover:text-white hover:border-gray-300 whitespace-nowrap">Genéticas</button>
-                <button id="stockTabBtn" class="py-4 px-1 border-b-2 font-medium text-lg text-gray-300 hover:text-white hover:border-gray-300 whitespace-nowrap">Stock Clones</button>
-                <button id="baulSemillasTabBtn" class="py-4 px-1 border-b-2 font-medium text-lg text-gray-300 hover:text-white hover:border-gray-300 whitespace-nowrap">Baúl de Semillas</button>
+                <button id="geneticsTabBtn" class="py-4 px-1 border-b-2 font-medium text-lg text-gray-300 hover:text-white hover:border-gray-300 whitespace-nowrap btn-base">Genéticas</button>
+                <button id="stockTabBtn" class="py-4 px-1 border-b-2 font-medium text-lg text-gray-300 hover:text-white hover:border-gray-300 whitespace-nowrap btn-base">Stock Clones</button>
+                <button id="baulSemillasTabBtn" class="py-4 px-1 border-b-2 font-medium text-lg text-gray-300 hover:text-white hover:border-gray-300 whitespace-nowrap btn-base">Baúl de Semillas</button>
             </nav>
+        </div>
+        <div class="my-4">
+            <input type="search" id="searchTools" placeholder="Buscar en la pestaña actual..." class="w-full max-w-lg p-2 rounded-md focus:ring-amber-500 focus:border-amber-500">
         </div>
         <div id="geneticsContent">
             <div class="flex flex-col md:flex-row gap-8">
@@ -391,7 +384,7 @@ export function renderToolsView() {
                         <input type="text" id="genetic-bank" placeholder="Banco" class="w-full p-2 rounded-md">
                         <input type="text" id="genetic-owner" placeholder="Dueño" class="w-full p-2 rounded-md">
                         <input type="number" id="genetic-stock" placeholder="Stock de clones inicial" class="w-full p-2 rounded-md">
-                        <button type="submit" class="btn-primary w-full py-2 rounded-lg">Guardar Genética</button>
+                        <button type="submit" class="btn-primary btn-base w-full py-2 rounded-lg">Guardar Genética</button>
                     </form>
                 </div>
                 <div id="geneticsList" class="w-full md:w-3/5 lg:w-2/3 space-y-4"></div>
@@ -408,7 +401,7 @@ export function renderToolsView() {
                         <input type="text" id="seed-name" placeholder="Nombre de la semilla" required class="w-full p-2 rounded-md">
                         <input type="text" id="seed-bank" placeholder="Banco de origen" class="w-full p-2 rounded-md">
                         <input type="number" id="seed-quantity" placeholder="Cantidad" required class="w-full p-2 rounded-md">
-                        <button type="submit" class="btn-primary w-full py-2 rounded-lg">Añadir al Baúl</button>
+                        <button type="submit" class="btn-primary btn-base w-full py-2 rounded-lg">Añadir al Baúl</button>
                     </form>
                 </div>
                 <div id="baulSemillasList" class="w-full md:w-3/5 lg:w-2/3 space-y-4"></div>
@@ -421,7 +414,7 @@ export function renderSettingsView() {
     return `
         <header class="flex justify-between items-center mb-8">
             <h1 class="text-3xl font-bold text-white font-mono tracking-wider">Ajustes</h1>
-            <button id="backToPanelFromSettingsBtn" class="btn-secondary py-2 px-4 rounded-lg">Volver al Panel</button>
+            <button id="backToPanelFromSettingsBtn" class="btn-secondary btn-base py-2 px-4 rounded-lg">Volver al Panel</button>
         </header>
         <div class="max-w-2xl mx-auto space-y-8">
             <div class="card p-6">
@@ -429,13 +422,13 @@ export function renderSettingsView() {
                 <form id="changePasswordForm" class="space-y-4">
                     <input type="password" id="newPassword" placeholder="Nueva contraseña" required class="w-full p-2 rounded-md">
                     <input type="password" id="confirmPassword" placeholder="Confirmar nueva contraseña" required class="w-full p-2 rounded-md">
-                    <button type="submit" class="btn-primary py-2 px-4 rounded-lg">Cambiar Contraseña</button>
+                    <button type="submit" class="btn-primary btn-base py-2 px-4 rounded-lg">Cambiar Contraseña</button>
                 </form>
             </div>
             <div class="card p-6 border-red-500">
                 <h2 class="text-xl font-bold text-red-400 mb-4">Zona de Peligro</h2>
                 <p class="text-gray-400 mb-4">Esta acción no se puede deshacer. Perderás todos tus datos de cultivo.</p>
-                <button id="deleteAccountBtn" class="btn-danger py-2 px-4 rounded-lg">Eliminar mi Cuenta</button>
+                <button id="deleteAccountBtn" class="btn-danger btn-base py-2 px-4 rounded-lg">Eliminar mi Cuenta</button>
             </div>
         </div>
     `;
@@ -475,16 +468,16 @@ export function createCicloCard(ciclo, handlers) {
             ${statusInfo}
         </div>
         <div class="mt-6 flex flex-wrap justify-end gap-2">
-            <button data-action="move-ciclo" class="btn-secondary p-2 rounded-lg transition" title="Mover Ciclo">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" /></svg>
+            <button data-action="move-ciclo" class="btn-secondary btn-base p-2 rounded-lg" title="Mover Ciclo">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M7.5 21 3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5" /></svg>
             </button>
-            <button data-action="edit-ciclo" class="btn-secondary p-2 rounded-lg transition">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.5L14.732 3.732z" /></svg>
+            <button data-action="edit-ciclo" class="btn-secondary btn-base p-2 rounded-lg" title="Editar">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" /></svg>
             </button>
-            <button data-action="delete-ciclo" class="btn-danger p-2 rounded-lg transition">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+            <button data-action="delete-ciclo" class="btn-danger btn-base p-2 rounded-lg" title="Eliminar">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.134-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.067-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" /></svg>
             </button>
-            <button data-action="view-details" class="btn-primary flex-grow sm:flex-grow-0 font-semibold py-2 px-3 rounded-lg text-sm transition">Ver Detalles</button>
+            <button data-action="view-details" class="btn-primary btn-base flex-grow sm:flex-grow-0 font-semibold py-2 px-3 rounded-lg text-sm">Ver Detalles</button>
         </div>
     `;
     card.querySelector('[data-action="edit-ciclo"]').addEventListener('click', () => handlers.openCicloModal(ciclo));
@@ -523,14 +516,18 @@ export function createLogEntry(log, ciclo, handlers) {
         details = `<p class="font-semibold text-green-400">Poda: ${log.podaType || ''}</p>`;
         if(log.clonesCount) details += `<p class="text-sm text-gray-300">Se sacaron ${log.clonesCount} clones.</p>`;
     }
-    entry.className = `log-entry p-3 rounded-md ${borderColor}`;
+    entry.className = `log-entry p-3 rounded-md`;
+    entry.style.borderLeftColor = borderColor.replace('border-', '#'); // Workaround for dynamic border colors with Tailwind
+    entry.classList.add(borderColor);
+
+
     entry.innerHTML = `
         <div class="flex justify-between items-center">
             <div>
                 <span class="text-xs text-gray-400">${logDate}</span>
             </div>
-            <button data-action="delete-log" data-ciclo-id="${ciclo.id}" data-log-id="${log.id}" class="p-1 rounded-md text-gray-500 hover:bg-red-800 hover:text-white transition">
-                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+            <button data-action="delete-log" data-ciclo-id="${ciclo.id}" data-log-id="${log.id}" class="p-1 rounded-md text-gray-500 hover:bg-red-800 hover:text-white btn-base" title="Eliminar registro">
+                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>
             </button>
         </div>
         <div class="mt-2">${details}</div>
@@ -541,22 +538,22 @@ export function createLogEntry(log, ciclo, handlers) {
     return entry;
 }
 
-export function renderSalasGrid(currentSalas, currentCiclos, handlers) {
+export function renderSalasGrid(salas, ciclos, handlers) {
     const salasGrid = getEl('salasGrid');
     if (!salasGrid) return;
     getEl('loadingSalas').style.display = 'none';
     salasGrid.innerHTML = '';
-    if (currentSalas.length === 0) {
+    if (salas.length === 0) {
         getEl('emptySalasState').style.display = 'block';
         return;
     }
     getEl('emptySalasState').style.display = 'none';
 
-    currentSalas.forEach(sala => {
-        const ciclosInSala = currentCiclos.filter(c => c.salaId === sala.id);
+    salas.forEach(sala => {
+        const ciclosInSala = ciclos.filter(c => c.salaId === sala.id);
         const activeCiclos = ciclosInSala.filter(c => c.phase !== 'Finalizado');
         const salaCard = document.createElement('div');
-        salaCard.className = 'card rounded-xl p-5 flex flex-col justify-between aspect-square';
+        salaCard.className = 'card rounded-xl p-5 flex flex-col justify-between aspect-square relative';
         salaCard.dataset.salaId = sala.id;
         
         let ciclosPreviewHTML = '';
@@ -581,22 +578,26 @@ export function renderSalasGrid(currentSalas, currentCiclos, handlers) {
         }
 
         salaCard.innerHTML = `
-            <div class="flex-grow flex flex-col">
+            <div class="absolute top-2 right-2">
+                <button data-action="quick-add-ciclo" data-sala-id="${sala.id}" class="btn-secondary h-8 w-8 rounded-full flex items-center justify-center btn-base hover:bg-amber-500" title="Añadir Ciclo a ${sala.name}">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
+                </button>
+            </div>
+            <div class="flex-grow flex flex-col cursor-pointer" data-action="open-sala">
                 <h3 class="text-2xl font-bold text-white">${sala.name}</h3>
                 <p class="text-gray-400 mb-4">${activeCiclos.length} ciclo(s) activo(s)</p>
                 <div class="flex-grow relative overflow-y-auto">${ciclosPreviewHTML}</div>
             </div>
             <div class="flex justify-end gap-2 mt-4 flex-wrap">
-                <button data-action="edit-sala" class="btn-secondary p-2 rounded-lg transition">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.5L14.732 3.732z" /></svg>
+                <button data-action="edit-sala" class="btn-secondary btn-base p-2 rounded-lg" title="Editar Sala">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" /></svg>
                 </button>
-                <button data-action="delete-sala" class="btn-danger p-2 rounded-lg transition">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                <button data-action="delete-sala" class="btn-danger btn-base p-2 rounded-lg" title="Eliminar Sala">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.134-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.067-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" /></svg>
                 </button>
             </div>
         `;
-        salaCard.addEventListener('click', (e) => {
-            if (e.target.closest('button')) return;
+        salaCard.querySelector('[data-action="open-sala"]').addEventListener('click', (e) => {
             handlers.showCiclosView(sala.id, sala.name);
         });
         salaCard.querySelector('[data-action="edit-sala"]').addEventListener('click', (e) => {
@@ -607,19 +608,23 @@ export function renderSalasGrid(currentSalas, currentCiclos, handlers) {
             e.stopPropagation();
             handlers.deleteSala(sala.id, sala.name);
         });
+        salaCard.querySelector('[data-action="quick-add-ciclo"]').addEventListener('click', (e) => {
+            e.stopPropagation();
+            handlers.openCicloModal(null, e.currentTarget.dataset.salaId);
+        });
         salasGrid.appendChild(salaCard);
     });
 }
 
-export function renderGeneticsList(currentGenetics, handlers) {
+export function renderGeneticsList(genetics, handlers) {
     const geneticsList = getEl('geneticsList');
     if (!geneticsList) return;
     geneticsList.innerHTML = '';
-    if (currentGenetics.length === 0) {
-        geneticsList.innerHTML = `<p class="text-center text-gray-500">No hay genéticas guardadas.</p>`;
+    if (genetics.length === 0) {
+        geneticsList.innerHTML = `<p class="text-center text-gray-500">No hay genéticas que coincidan con la búsqueda.</p>`;
         return;
     }
-    currentGenetics.forEach(g => {
+    genetics.forEach(g => {
         const geneticCard = document.createElement('div');
         geneticCard.className = 'card p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center';
         geneticCard.innerHTML = `
@@ -628,11 +633,11 @@ export function renderGeneticsList(currentGenetics, handlers) {
                 <p class="text-sm text-gray-400">${g.parents || 'Sin padres definidos'} | ${g.bank || 'Sin banco'} | ${g.owner || 'Sin dueño'}</p>
             </div>
             <div class="flex gap-2 flex-wrap">
-                <button data-action="edit-genetic" data-id="${g.id}" class="btn-secondary p-2 rounded-lg transition">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.5L14.732 3.732z" /></svg>
+                <button data-action="edit-genetic" data-id="${g.id}" class="btn-secondary btn-base p-2 rounded-lg" title="Editar">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" /></svg>
                 </button>
-                <button data-action="delete-genetic" data-id="${g.id}" class="btn-danger p-2 rounded-lg transition">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                <button data-action="delete-genetic" data-id="${g.id}" class="btn-danger btn-base p-2 rounded-lg" title="Eliminar">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.134-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.067-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" /></svg>
                 </button>
             </div>
         `;
@@ -642,15 +647,15 @@ export function renderGeneticsList(currentGenetics, handlers) {
     geneticsList.querySelectorAll('[data-action="delete-genetic"]').forEach(btn => btn.addEventListener('click', (e) => handlers.deleteGenetic(e.currentTarget.dataset.id)));
 }
 
-export function renderStockList(currentGenetics, handlers) {
+export function renderStockList(genetics, handlers) {
     const stockList = getEl('stockList');
     if (!stockList) return;
     stockList.innerHTML = '';
-    if (currentGenetics.length === 0) {
+    if (genetics.length === 0) {
         stockList.innerHTML = `<p class="text-center text-gray-500">Añade genéticas para ver el stock.</p>`;
         return;
     }
-    currentGenetics.forEach(g => {
+    genetics.forEach(g => {
         const stockCard = document.createElement('div');
         stockCard.className = 'card p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center';
         stockCard.innerHTML = `
@@ -659,8 +664,8 @@ export function renderStockList(currentGenetics, handlers) {
                 <p class="text-sm text-gray-400">Clones en stock: <span class="font-bold text-xl text-amber-400">${g.cloneStock || 0}</span></p>
             </div>
             <div class="flex items-center gap-2">
-                <button data-action="update-stock" data-id="${g.id}" data-amount="-1" class="btn-secondary rounded-full w-10 h-10 flex items-center justify-center text-2xl">-</button>
-                <button data-action="update-stock" data-id="${g.id}" data-amount="1" class="btn-secondary rounded-full w-10 h-10 flex items-center justify-center text-2xl">+</button>
+                <button data-action="update-stock" data-id="${g.id}" data-amount="-1" class="btn-secondary btn-base rounded-full w-10 h-10 flex items-center justify-center text-2xl">-</button>
+                <button data-action="update-stock" data-id="${g.id}" data-amount="1" class="btn-secondary btn-base rounded-full w-10 h-10 flex items-center justify-center text-2xl">+</button>
             </div>
         `;
         stockList.appendChild(stockCard);
@@ -668,15 +673,15 @@ export function renderStockList(currentGenetics, handlers) {
     stockList.querySelectorAll('[data-action="update-stock"]').forEach(btn => btn.addEventListener('click', (e) => handlers.updateStock(e.currentTarget.dataset.id, parseInt(e.currentTarget.dataset.amount))));
 }
 
-export function renderBaulSemillasList(currentSeeds, handlers) {
+export function renderBaulSemillasList(seeds, handlers) {
     const baulSemillasList = getEl('baulSemillasList');
     if (!baulSemillasList) return;
     baulSemillasList.innerHTML = '';
-    if (currentSeeds.length === 0) {
-        baulSemillasList.innerHTML = `<p class="text-center text-gray-500">No hay semillas en el baúl.</p>`;
+    if (seeds.length === 0) {
+        baulSemillasList.innerHTML = `<p class="text-center text-gray-500">No hay semillas que coincidan con la búsqueda.</p>`;
         return;
     }
-    currentSeeds.forEach(s => {
+    seeds.forEach(s => {
         const seedCard = document.createElement('div');
         seedCard.className = 'card p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center';
         seedCard.innerHTML = `
@@ -686,9 +691,9 @@ export function renderBaulSemillasList(currentSeeds, handlers) {
                 <p class="text-sm text-gray-400">Cantidad: <span class="font-bold text-amber-400">${s.quantity || 0}</span></p>
             </div>
             <div class="flex gap-2 flex-wrap">
-                <button data-action="germinate-seed" data-id="${s.id}" class="btn-primary py-2 px-4 rounded-lg text-sm" ${s.quantity > 0 ? '' : 'disabled'}>Germinar</button>
-                <button data-action="delete-seed" data-id="${s.id}" class="btn-danger p-2 rounded-lg transition">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                <button data-action="germinate-seed" data-id="${s.id}" class="btn-primary btn-base py-2 px-4 rounded-lg text-sm" ${s.quantity > 0 ? '' : 'disabled'}>Germinar</button>
+                <button data-action="delete-seed" data-id="${s.id}" class="btn-danger btn-base p-2 rounded-lg" title="Eliminar">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.134-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.067-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" /></svg>
                 </button>
             </div>
         `;

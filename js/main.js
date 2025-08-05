@@ -21,6 +21,7 @@ let salasUnsubscribe = null, ciclosUnsubscribe = null, logsUnsubscribe = null, g
 let currentSalas = [], currentCiclos = [], currentGenetics = [], currentSeeds = [];
 let currentSalaId = null, currentSalaName = null;
 let confirmCallback = null;
+let activeToolsTab = 'genetics'; // Para saber qué filtrar en la vista de herramientas
 
 // --- 1. FUNCTION DEFINITIONS (LOGIC & DATA) ---
 
@@ -71,16 +72,11 @@ function generateStandardWeeks() {
     return weeks;
 }
 
-// CAMBIO MAYOR: formatFertilizers ahora es retrocompatible
 function formatFertilizers(fertilizers) {
     if (!fertilizers) return 'Ninguno';
-
-    // Nuevo formato (array)
     if (Array.isArray(fertilizers) && fertilizers.length > 0) {
         return fertilizers.map(f => `${f.productName} (${f.dose} ${f.unit})`).join(', ');
     }
-    
-    // Formato antiguo (objeto) para retrocompatibilidad
     if (typeof fertilizers === 'object' && !Array.isArray(fertilizers)) {
         const used = [];
         if (fertilizers.basesAmount && fertilizers.basesUnit) used.push(`Bases (${fertilizers.basesAmount} ${fertilizers.basesUnit})`);
@@ -91,7 +87,6 @@ function formatFertilizers(fertilizers) {
         if (fertilizers.foliar && fertilizers.foliarProduct) used.push(`Foliar (${fertilizers.foliarProduct})`);
         return used.length > 0 ? used.join(', ') : 'Ninguno';
     }
-
     return 'Ninguno';
 }
 
@@ -104,7 +99,14 @@ function loadSalas() {
     if (salasUnsubscribe) salasUnsubscribe();
     salasUnsubscribe = onSnapshot(q, (snapshot) => {
         currentSalas = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        renderSalasGrid(currentSalas, currentCiclos, handlers);
+        const searchInput = getEl('searchSalas');
+        if (searchInput && searchInput.value) {
+            const searchTerm = searchInput.value.toLowerCase();
+            const filteredSalas = currentSalas.filter(sala => sala.name.toLowerCase().includes(searchTerm));
+            renderSalasGrid(filteredSalas, currentCiclos, handlers);
+        } else {
+            renderSalasGrid(currentSalas, currentCiclos, handlers);
+        }
     }, error => {
         console.error("Error loading salas:", error);
         getEl('loadingSalas').innerText = "Error al cargar las salas.";
@@ -117,7 +119,15 @@ function loadCiclos() {
     if (ciclosUnsubscribe) ciclosUnsubscribe();
     ciclosUnsubscribe = onSnapshot(q, (snapshot) => {
         currentCiclos = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        renderSalasGrid(currentSalas, currentCiclos, handlers); 
+        const searchInput = getEl('searchSalas');
+        if (searchInput && searchInput.value) {
+             const searchTerm = searchInput.value.toLowerCase();
+            const filteredSalas = currentSalas.filter(sala => sala.name.toLowerCase().includes(searchTerm));
+            renderSalasGrid(filteredSalas, currentCiclos, handlers);
+        } else {
+            renderSalasGrid(currentSalas, currentCiclos, handlers);
+        }
+        
         if (!getEl('ciclosView').classList.contains('hidden')) handlers.showCiclosView(currentSalaId, currentSalaName);
         if (!getEl('cicloDetailView').classList.contains('hidden')) {
             const activeCicloId = getEl('cicloDetailView').querySelector('[data-ciclo-id]')?.dataset.cicloId;
@@ -137,8 +147,7 @@ function loadGenetics() {
     geneticsUnsubscribe = onSnapshot(q, (snapshot) => {
         currentGenetics = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         if(!getEl('toolsView').classList.contains('hidden')) {
-            renderGeneticsList(currentGenetics, handlers);
-            renderStockList(currentGenetics, handlers);
+            handlers.handleToolsSearch({ target: getEl('searchTools') });
         }
     });
 }
@@ -150,7 +159,7 @@ function loadSeeds() {
     seedsUnsubscribe = onSnapshot(q, (snapshot) => {
         currentSeeds = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
          if(!getEl('toolsView').classList.contains('hidden')) {
-            renderBaulSemillasList(currentSeeds, handlers);
+            handlers.handleToolsSearch({ target: getEl('searchTools') });
         }
     });
 }
@@ -261,8 +270,8 @@ const handlers = {
     },
 
     // --- CICLOS ---
-    openCicloModal: (ciclo = null) => {
-        uiOpenCicloModal(ciclo, currentSalas);
+    openCicloModal: (ciclo = null, preselectedSalaId = null) => {
+        uiOpenCicloModal(ciclo, currentSalas, preselectedSalaId);
     },
     handleCicloFormSubmit: async (e) => {
         e.preventDefault();
@@ -311,7 +320,6 @@ const handlers = {
                 });
                 batch.delete(doc(db, `users/${userId}/ciclos`, cicloId));
                 await batch.commit();
-
                 showNotification('Ciclo eliminado correctamente.');
             } catch (error) {
                 console.error("Error deleting ciclo: ", error);
@@ -325,6 +333,9 @@ const handlers = {
         currentSalaId = salaId;
         currentSalaName = salaName;
         handlers.hideAllViews();
+        const view = getEl('ciclosView');
+        view.classList.remove('hidden');
+        view.classList.add('view-container');
 
         getEl('salaNameHeader').innerText = `Sala: ${salaName}`;
         const ciclosGrid = getEl('ciclosGrid');
@@ -339,10 +350,11 @@ const handlers = {
         } else {
             getEl('emptyCiclosState').classList.remove('hidden');
         }
-        getEl('ciclosView').classList.remove('hidden');
     },
     hideCiclosView: () => {
-        getEl('ciclosView').classList.add('hidden');
+        const view = getEl('ciclosView');
+        view.classList.add('hidden');
+        view.classList.remove('view-container');
         getEl('app').classList.remove('hidden');
         currentSalaId = null;
         currentSalaName = null;
@@ -353,6 +365,7 @@ const handlers = {
         const detailView = getEl('cicloDetailView');
         detailView.innerHTML = renderCicloDetails(ciclo, handlers);
         detailView.classList.remove('hidden');
+        detailView.classList.add('view-container');
         
         getEl('backToCiclosBtn').addEventListener('click', () => handlers.showCiclosView(ciclo.salaId, currentSalas.find(s=>s.id === ciclo.salaId)?.name));
         
@@ -363,7 +376,9 @@ const handlers = {
     },
     hideCicloDetails: () => {
         if (logsUnsubscribe) logsUnsubscribe();
-        getEl('cicloDetailView').classList.add('hidden');
+        const view = getEl('cicloDetailView');
+        view.classList.add('hidden');
+        view.classList.remove('view-container');
         if (currentSalaId && currentSalaName) {
             handlers.showCiclosView(currentSalaId, currentSalaName);
         } else {
@@ -375,11 +390,11 @@ const handlers = {
         const toolsView = getEl('toolsView');
         toolsView.innerHTML = renderToolsView();
         toolsView.classList.remove('hidden');
+        toolsView.classList.add('view-container');
+        
         handlers.switchToolsTab('genetics'); 
         
-        renderGeneticsList(currentGenetics, handlers);
-        renderStockList(currentGenetics, handlers);
-        renderBaulSemillasList(currentSeeds, handlers);
+        handlers.handleToolsSearch({ target: { value: '' } });
         
         getEl('backToPanelBtn').addEventListener('click', handlers.hideToolsView);
         getEl('geneticsTabBtn').addEventListener('click', () => handlers.switchToolsTab('genetics'));
@@ -387,9 +402,12 @@ const handlers = {
         getEl('baulSemillasTabBtn').addEventListener('click', () => handlers.switchToolsTab('baulSemillas'));
         getEl('geneticsForm').addEventListener('submit', handlers.handleGeneticsFormSubmit);
         getEl('seedForm').addEventListener('submit', handlers.handleSeedFormSubmit);
+        getEl('searchTools').addEventListener('input', handlers.handleToolsSearch);
     },
     hideToolsView: () => {
-        getEl('toolsView').classList.add('hidden');
+        const view = getEl('toolsView');
+        view.classList.add('hidden');
+        view.classList.remove('view-container');
         getEl('app').classList.remove('hidden');
     },
     showSettingsView: () => {
@@ -397,29 +415,51 @@ const handlers = {
         const settingsView = getEl('settingsView');
         settingsView.innerHTML = renderSettingsView();
         settingsView.classList.remove('hidden');
+        settingsView.classList.add('view-container');
         
         getEl('backToPanelFromSettingsBtn').addEventListener('click', handlers.hideSettingsView);
         getEl('changePasswordForm').addEventListener('submit', handlers.handleChangePassword);
         getEl('deleteAccountBtn').addEventListener('click', handlers.handleDeleteAccount);
     },
     hideSettingsView: () => {
-        getEl('settingsView').classList.add('hidden');
+        const view = getEl('settingsView');
+        view.classList.add('hidden');
+        view.classList.remove('view-container');
         getEl('app').classList.remove('hidden');
     },
     hideAllViews: () => {
         ['app', 'ciclosView', 'cicloDetailView', 'toolsView', 'settingsView'].forEach(id => {
             const el = getEl(id);
-            if (el) el.classList.add('hidden');
+            if (el) {
+                el.classList.add('hidden');
+                el.classList.remove('view-container');
+            }
         });
     },
     
     // --- TOOLS ---
     switchToolsTab: (activeTab) => {
+        activeToolsTab = activeTab;
         ['genetics', 'stock', 'baulSemillas'].forEach(tab => {
             getEl(`${tab}Content`).classList.toggle('hidden', tab !== activeTab);
             getEl(`${tab}TabBtn`).classList.toggle('border-amber-400', tab === activeTab);
             getEl(`${tab}TabBtn`).classList.toggle('border-transparent', tab !== activeTab);
         });
+        getEl('searchTools').value = '';
+        handlers.handleToolsSearch({ target: { value: '' } });
+    },
+    handleToolsSearch: (e) => {
+        const searchTerm = e.target.value.toLowerCase();
+        if (activeToolsTab === 'genetics') {
+            const filtered = currentGenetics.filter(g => g.name.toLowerCase().includes(searchTerm));
+            renderGeneticsList(filtered, handlers);
+        } else if (activeToolsTab === 'baulSemillas') {
+            const filtered = currentSeeds.filter(s => s.name.toLowerCase().includes(searchTerm));
+            renderBaulSemillasList(filtered, handlers);
+        } else if (activeToolsTab === 'stock') {
+            const filtered = currentGenetics.filter(g => g.name.toLowerCase().includes(searchTerm));
+            renderStockList(filtered, handlers);
+        }
     },
     handleGeneticsFormSubmit: async (e) => {
         e.preventDefault();
@@ -616,7 +656,6 @@ const handlers = {
                 logData.litros = getEl('log-litros').value || null;
             }
 
-            // CAMBIO MAYOR: Lógica para leer los fertilizantes dinámicos
             const fertilizersUsed = [];
             const selectedLine = getEl('fert-line-select').value;
 
@@ -713,7 +752,9 @@ onAuthStateChanged(auth, user => {
     if (user) {
         userId = user.uid;
         handlers.hideAllViews();
-        getEl('app').classList.remove('hidden');
+        const appView = getEl('app');
+        appView.classList.remove('hidden');
+        appView.classList.add('view-container');
         getEl('welcomeUser').innerText = `Anota todo, no seas pancho.`;
         
         loadSalas();
@@ -721,6 +762,13 @@ onAuthStateChanged(auth, user => {
         loadGenetics();
         loadSeeds();
         initializeEventListeners(handlers);
+
+        getEl('searchSalas').addEventListener('input', e => {
+            const searchTerm = e.target.value.toLowerCase();
+            const filteredSalas = currentSalas.filter(sala => sala.name.toLowerCase().includes(searchTerm));
+            renderSalasGrid(filteredSalas, currentCiclos, handlers);
+        });
+
     } else {
         userId = null;
         if (salasUnsubscribe) salasUnsubscribe();
@@ -729,7 +777,9 @@ onAuthStateChanged(auth, user => {
         if (seedsUnsubscribe) seedsUnsubscribe();
         
         handlers.hideAllViews();
-        getEl('authView').classList.remove('hidden');
+        const authView = getEl('authView');
+        authView.classList.remove('hidden');
+        authView.classList.add('view-container');
         initializeEventListeners(handlers);
     }
 });
