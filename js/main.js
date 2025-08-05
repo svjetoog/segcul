@@ -56,6 +56,7 @@ function calculateDaysSince(startDateString) {
 
 function getPhaseInfo(phaseName) {
     switch(phaseName) {
+        case 'Vegetativo': return { name: 'VEGETATIVO', color: 'bg-green-600', class: 'vegetativo' };
         case 'PRE-FLORA': return { name: 'PRE-FLORA', color: 'bg-purple-600', class: 'pre-flora' };
         case 'FLORA': return { name: 'FLORA', color: 'bg-pink-600', class: 'flora' };
         case 'MADURACION': return { name: 'MADURACION', color: 'bg-orange-600', class: 'maduracion' };
@@ -63,6 +64,14 @@ function getPhaseInfo(phaseName) {
         case 'SECADO': return { name: 'SECADO', color: 'bg-yellow-600 text-black', class: 'secado' };
         default: return { name: 'Finalizado', color: 'bg-gray-500', class: 'finalizado' };
     }
+}
+
+function generateVegetativeWeeks() {
+    const weeks = [];
+    for (let i = 1; i <= 4; i++) {
+        weeks.push({ weekNumber: i, phaseName: 'Vegetativo' });
+    }
+    return weeks;
 }
 
 function generateStandardWeeks() {
@@ -100,8 +109,7 @@ function formatFertilizers(fertilizers) {
 function initializeDragAndDrop() {
     const salasGrid = getEl('salasGrid');
     if (sortableSalas) sortableSalas.destroy();
-    
-    // CAMBIO: Añadida una guarda para asegurar que el elemento existe antes de inicializar.
+
     if (salasGrid) {
         sortableSalas = new Sortable(salasGrid, {
             animation: 150,
@@ -127,10 +135,7 @@ function initializeDragAndDrop() {
     }
 }
 
-// CAMBIO: La función de destrucción ahora también limpia las variables, evitando estados inconsistentes.
 function destroyToolSortables() {
-    // EXPLICACIÓN: Al poner la variable a null después de destruirla, evitamos cualquier error
-    // si esta función es llamada múltiples veces seguidas antes de una reinicialización.
     if (sortableGenetics) {
         sortableGenetics.destroy();
         sortableGenetics = null;
@@ -145,12 +150,7 @@ function destroyToolSortables() {
     }
 }
 
-// CAMBIO: Función reescrita para ser más robusta y evitar el error de elemento nulo.
 function initializeToolsDragAndDrop() {
-    // EXPLICACIÓN: Esta función ahora es a prueba de fallos. Solo intentará inicializar Sortable
-    // si el elemento correspondiente a la pestaña activa existe en el DOM. Esto soluciona
-    // el crash, aunque la raíz del problema (por qué el elemento no se renderiza)
-    // probablemente esté en tu archivo `ui.js`.
     const onSortEnd = async (evt, collectionName) => {
         const batch = writeBatch(db);
         Array.from(evt.to.children).forEach((item, index) => {
@@ -168,23 +168,22 @@ function initializeToolsDragAndDrop() {
             showNotification('Error al guardar el nuevo orden.', 'error');
         }
     };
-    
-    destroyToolSortables(); // Se asegura de limpiar cualquier instancia previa.
+
+    destroyToolSortables();
 
     if (activeToolsTab === 'genetics') {
         const geneticsList = getEl('geneticsList');
-        if (geneticsList) { // Guarda de seguridad
+        if (geneticsList) {
             sortableGenetics = new Sortable(geneticsList, { animation: 150, ghostClass: 'sortable-ghost', onEnd: (evt) => onSortEnd(evt, 'genetics') });
         }
     } else if (activeToolsTab === 'stock') {
         const stockList = getEl('stockList');
-        if (stockList) { // Guarda de seguridad
-            // La colección es 'genetics' porque el stock de clones modifica las genéticas. Esto es correcto.
+        if (stockList) {
             sortableStock = new Sortable(stockList, { animation: 150, ghostClass: 'sortable-ghost', onEnd: (evt) => onSortEnd(evt, 'genetics') });
         }
     } else if (activeToolsTab === 'baulSemillas') {
         const seedsList = getEl('baulSemillasList');
-        if (seedsList) { // Guarda de seguridad
+        if (seedsList) {
             sortableSeeds = new Sortable(seedsList, { animation: 150, ghostClass: 'sortable-ghost', onEnd: (evt) => onSortEnd(evt, 'seeds') });
         }
     }
@@ -202,7 +201,7 @@ function loadSalas() {
         currentSalas.sort((a, b) => (a.position || 0) - (b.position || 0));
 
         const searchInput = getEl('searchSalas');
-        if (sortableSalas) sortableSalas.destroy(); // Limpiamos antes de re-renderizar por si acaso
+        if (sortableSalas) sortableSalas.destroy();
         if (searchInput && searchInput.value) {
             const searchTerm = searchInput.value.toLowerCase();
             const filteredSalas = currentSalas.filter(sala => sala.name.toLowerCase().includes(searchTerm));
@@ -231,7 +230,7 @@ function loadCiclos() {
         } else {
             renderSalasGrid(currentSalas, currentCiclos, handlers);
         }
-        
+
         if (!getEl('ciclosView').classList.contains('hidden')) handlers.showCiclosView(currentSalaId, currentSalaName);
         if (!getEl('cicloDetailView').classList.contains('hidden')) {
             const activeCicloId = getEl('cicloDetailView').querySelector('[data-ciclo-id]')?.dataset.cicloId;
@@ -397,6 +396,8 @@ const handlers = {
             } else {
                 if (cicloData.phase === 'Floración') {
                     cicloData.floweringWeeks = generateStandardWeeks();
+                } else if (cicloData.phase === 'Vegetativo') {
+                    cicloData.vegetativeWeeks = generateVegetativeWeeks();
                 }
                 await addDoc(collection(db, `users/${userId}/ciclos`), cicloData);
                 showNotification('Ciclo creado.');
@@ -457,16 +458,38 @@ const handlers = {
     },
     showCicloDetails: (ciclo) => {
         if (logsUnsubscribe) logsUnsubscribe();
+
+        // INICIO DE LA CORRECCIÓN CLAVE
+        // EXPLICACIÓN: Este bloque soluciona el problema para los ciclos vegetativos ya existentes.
+        // Si el ciclo es vegetativo y no tiene el array de semanas, se lo creamos "al vuelo"
+        // y lo guardamos en la base de datos para futuras visitas.
+        if (ciclo.phase === 'Vegetativo' && !ciclo.vegetativeWeeks) {
+            console.log(`Migrando ciclo antiguo: ${ciclo.name} (${ciclo.id})`);
+            ciclo.vegetativeWeeks = generateVegetativeWeeks();
+            const cicloRef = doc(db, `users/${userId}/ciclos`, ciclo.id);
+            // Actualizamos el documento en segundo plano, sin bloquear la UI.
+            updateDoc(cicloRef, { vegetativeWeeks: ciclo.vegetativeWeeks })
+                .catch(err => console.error("Error al actualizar ciclo antiguo:", err));
+        }
+        // FIN DE LA CORRECCIÓN CLAVE
+
         handlers.hideAllViews();
         const detailView = getEl('cicloDetailView');
         detailView.innerHTML = renderCicloDetails(ciclo, handlers);
         detailView.classList.remove('hidden');
         detailView.classList.add('view-container');
-        
+
         getEl('backToCiclosBtn').addEventListener('click', () => handlers.showCiclosView(ciclo.salaId, currentSalas.find(s=>s.id === ciclo.salaId)?.name));
-        
-        const weekNumbers = ciclo.floweringWeeks ? ciclo.floweringWeeks.map(w => w.weekNumber) : [];
-        if (ciclo.phase === 'Floración' && weekNumbers.length > 0) {
+
+        let weeksToShow = [];
+        if (ciclo.phase === 'Floración' && ciclo.floweringWeeks) {
+            weeksToShow = ciclo.floweringWeeks;
+        } else if (ciclo.phase === 'Vegetativo' && ciclo.vegetativeWeeks) {
+            weeksToShow = ciclo.vegetativeWeeks;
+        }
+
+        const weekNumbers = weeksToShow.map(w => w.weekNumber);
+        if (weekNumbers.length > 0) {
             loadLogsForCiclo(ciclo.id, weekNumbers);
         }
     },
@@ -487,10 +510,10 @@ const handlers = {
         toolsView.innerHTML = renderToolsView();
         toolsView.classList.remove('hidden');
         toolsView.classList.add('view-container');
-        
+
         handlers.switchToolsTab('genetics');
         handlers.handleViewModeToggle(toolsViewMode, true);
-        
+
         getEl('backToPanelBtn').addEventListener('click', () => {
             destroyToolSortables();
             handlers.hideToolsView();
@@ -516,7 +539,7 @@ const handlers = {
         settingsView.innerHTML = renderSettingsView();
         settingsView.classList.remove('hidden');
         settingsView.classList.add('view-container');
-        
+
         getEl('backToPanelFromSettingsBtn').addEventListener('click', handlers.hideSettingsView);
         getEl('changePasswordForm').addEventListener('submit', handlers.handleChangePassword);
         getEl('deleteAccountBtn').addEventListener('click', handlers.handleDeleteAccount);
@@ -562,11 +585,9 @@ const handlers = {
             filteredData = currentGenetics.filter(g => g.name.toLowerCase().includes(searchTerm));
             renderFunction = toolsViewMode === 'card' ? renderStockList : renderStockListCompact;
         }
-        
+
         if (renderFunction) {
             renderFunction(filteredData, handlers);
-            // CAMBIO: La inicialización ahora se llama aquí, DESPUÉS de que el DOM ha sido actualizado por la función de render.
-            // La nueva función `initializeToolsDragAndDrop` es más segura.
             initializeToolsDragAndDrop();
         }
     },
@@ -575,7 +596,7 @@ const handlers = {
             toolsViewMode = mode;
             localStorage.setItem('toolsViewMode', mode);
         }
-        
+
         getEl('view-mode-card').classList.toggle('bg-amber-500', toolsViewMode === 'card');
         getEl('view-mode-list').classList.toggle('bg-amber-500', toolsViewMode === 'list');
 
@@ -766,7 +787,7 @@ const handlers = {
             date: serverTimestamp(),
             week: parseInt(week)
         };
-        
+
         if (logData.type === 'Riego' || logData.type === 'Cambio de Solución') {
             logData.ph = getEl('log-ph').value || null;
             logData.ec = getEl('log-ec').value || null;
@@ -891,7 +912,7 @@ onAuthStateChanged(auth, user => {
         appView.classList.remove('hidden');
         appView.classList.add('view-container');
         getEl('welcomeUser').innerText = `Anota todo, no seas pancho.`;
-        
+
         loadSalas();
         loadCiclos();
         loadGenetics();
@@ -912,7 +933,7 @@ onAuthStateChanged(auth, user => {
         if (ciclosUnsubscribe) ciclosUnsubscribe();
         if (geneticsUnsubscribe) geneticsUnsubscribe();
         if (seedsUnsubscribe) seedsUnsubscribe();
-        
+
         handlers.hideAllViews();
         const authView = getEl('authView');
         authView.classList.remove('hidden');

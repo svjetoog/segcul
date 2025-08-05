@@ -147,11 +147,11 @@ export function openLogModal(ciclo, week, log = null) {
             <div id="podasFields" class="hidden">
                  <label for="podaType">Tipo de Poda</label>
                  <select id="podaType" class="w-full p-2 rounded-md">
-                    <option>LST</option><option>Main-lining</option><option>Supercropping</option><option>Defoliación</option><option>Lollipop</option><option>Clones</option>
+                     <option>LST</option><option>Main-lining</option><option>Supercropping</option><option>Defoliación</option><option>Lollipop</option><option>Clones</option>
                  </select>
                  <div id="clonesSection" class="mt-2 hidden">
-                    <label for="clones-count">Cantidad de Clones</label>
-                    <input type="number" id="clones-count" class="w-full p-2 rounded-md">
+                     <label for="clones-count">Cantidad de Clones</label>
+                     <input type="number" id="clones-count" class="w-full p-2 rounded-md">
                  </div>
             </div>
         </div>
@@ -306,26 +306,56 @@ export function openGerminateModal(seed) {
      modal.style.display = 'flex';
 }
 
+// MODIFICADO: La función entera ha sido reestructurada para manejar ambas fases.
 export function renderCicloDetails(ciclo, handlers) {
-    let weeksHTML = '<p class="text-gray-500 dark:text-gray-400">Este ciclo no tiene seguimiento por semanas (es vegetativo o finalizado).</p>';
+    // EXPLICACIÓN: Primero, determinamos qué conjunto de semanas vamos a renderizar y cuál es el título de la sección.
+    let weeksToRender = [];
+    let phaseTitle = '';
 
-    if (ciclo.phase === 'Floración' && ciclo.floweringWeeks) {
-        ciclo.floweringWeeks.sort((a, b) => a.weekNumber - b.weekNumber);
-        
-        weeksHTML = ciclo.floweringWeeks.map(week => {
-            const phaseInfo = handlers.getPhaseInfo(week.phaseName);
-            return `
-                <div class="mb-4">
-                    <div class="week-header p-3 rounded-t-lg flex justify-between items-center cursor-pointer" onclick="this.nextElementSibling.classList.toggle('hidden')">
-                        <h4 class="font-bold text-lg text-gray-900 dark:text-white">Semana ${week.weekNumber} <span class="text-sm font-normal px-2 py-1 rounded-full ${phaseInfo.color}">${phaseInfo.name}</span></h4>
-                        <button class="btn-primary btn-base text-xs py-1 px-2 rounded-md add-log-for-week-btn" data-week='${JSON.stringify(week)}'>+ Registro</button>
-                    </div>
-                    <div class="p-4 bg-white dark:bg-[#262626] rounded-b-lg space-y-3" id="logs-week-${week.weekNumber}"></div>
-                </div>
-            `;
-        }).join('');
+    if (ciclo.phase === 'Vegetativo' && ciclo.vegetativeWeeks) {
+        weeksToRender = ciclo.vegetativeWeeks;
+        phaseTitle = 'Semanas de Vegetativo';
+    } else if (ciclo.phase === 'Floración' && ciclo.floweringWeeks) {
+        weeksToRender = ciclo.floweringWeeks;
+        phaseTitle = 'Semanas de Floración';
     }
 
+    // EXPLICACIÓN: Luego, construimos el bloque de HTML para las semanas solo si encontramos semanas para renderizar.
+    let weeksHTML = '';
+    if (weeksToRender.length > 0) {
+        weeksToRender.sort((a, b) => a.weekNumber - b.weekNumber);
+        
+        weeksHTML = `
+            <div class="mt-6">
+                <h3 class="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-200">${phaseTitle}</h3>
+                <div class="space-y-4">
+                    ${weeksToRender.map(week => {
+                        // EXPLICACIÓN: Usamos `getPhaseInfo` para obtener el color correcto de la fase,
+                        // que ahora incluye 'VEGETATIVO'.
+                        const phaseInfo = handlers.getPhaseInfo(week.phaseName || ciclo.phase);
+                        return `
+                            <div class="mb-4">
+                                <div class="week-header p-3 rounded-t-lg flex justify-between items-center cursor-pointer" onclick="this.nextElementSibling.classList.toggle('hidden')">
+                                    <h4 class="font-bold text-lg text-gray-900 dark:text-white">Semana ${week.weekNumber} 
+                                        <span class="text-sm font-normal px-2 py-1 rounded-full ml-2 ${phaseInfo.color}">${phaseInfo.name}</span>
+                                    </h4>
+                                    <button class="btn-primary btn-base text-xs py-1 px-2 rounded-md add-log-for-week-btn" data-week='${JSON.stringify(week)}'>+ Registro</button>
+                                </div>
+                                <div class="p-4 bg-white dark:bg-[#262626] rounded-b-lg space-y-3" id="logs-week-${week.weekNumber}">
+                                    </div>
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+            </div>`;
+    } else {
+        // EXPLICACIÓN: Si no hay semanas (ej. ciclo 'Finalizado'), mostramos un mensaje.
+        weeksHTML = `<div class="mt-6 text-center text-gray-500 dark:text-gray-400">
+                        <p>No hay seguimiento por semanas para la fase "${ciclo.phase}".</p>
+                    </div>`;
+    }
+
+    // EXPLICACIÓN: Finalmente, ensamblamos el HTML completo con el bloque de semanas correcto.
     const diffDaysVege = handlers.calculateDaysSince(ciclo.vegetativeStartDate);
     const diffDaysFlora = handlers.calculateDaysSince(ciclo.floweringStartDate);
     let statusText = '';
@@ -563,7 +593,6 @@ export function renderSalasGrid(salas, ciclos, handlers) {
     }
     getEl('emptySalasState').style.display = 'none';
 
-    // Se ordenan las salas por la nueva propiedad 'position'
     salas.sort((a, b) => (a.position || 0) - (b.position || 0));
 
     salas.forEach(sala => {
@@ -641,12 +670,10 @@ export function renderGeneticsList(genetics, handlers) {
         geneticsList.innerHTML = `<p class="text-center text-gray-500 dark:text-gray-400">No hay genéticas que coincidan con la búsqueda.</p>`;
         return;
     }
-    // MODIFICADO: Se ordenan las genéticas por la nueva propiedad 'position'
     genetics.sort((a, b) => (a.position || 0) - (b.position || 0));
     genetics.forEach(g => {
         const geneticCard = document.createElement('div');
         geneticCard.className = 'card p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center';
-        // MODIFICADO: Se añade el data-id para el drag & drop
         geneticCard.dataset.id = g.id;
         geneticCard.innerHTML = `
             <div class="mb-3 sm:mb-0">
