@@ -1,17 +1,44 @@
 // js/ui.js
 
+// ✨ CAMBIO 1: Importamos la función que crea nuestro componente de timeline.
+import { crearTimelinePrincipal } from './components/timelinePrincipal.js';
+
 export const getEl = (id) => document.getElementById(id);
 let notificationTimeout;
 
 const FERTILIZER_LINES = {
-  "Top Crop": ["Deeper Underground", "Top Veg", "Top Bloom", "Big One", "Top Candy", "Top Bud", "Micro Vita"],
-  "Namaste": ["Amazonia Roots", "Oro Negro", "Flora Booster", "Trico+", "Shanti", "Bio CaMg"],
-  "Kawsay": ["Nutri Base", "Amazonia", "Flora Booster", "Bud Engorde", "Super Candy"],
-  "Advanced Nutrients": ["Sensi Grow A+B", "Sensi Bloom A+B", "Voodoo Juice", "B-52", "Big Bud", "Overdrive", "Flawless Finish"],
-  "Athena (Blended)": ["Grow A", "Grow B", "Bloom A", "Bloom B", "CaMg", "PK", "Cleanse"],
-  "Orgánico / Living Soil": ["Humus de lombriz", "Compost", "Bokashi", "Guano de murciélago", "Harina de hueso", "Melaza", "Micorrizas", "Trichodermas"],
-  "Personalizada": []
+    "Top Crop": ["Deeper Underground", "Top Veg", "Top Bloom", "Big One", "Top Candy", "Top Bud", "Micro Vita"],
+    "Namaste": ["Amazonia Roots", "Oro Negro", "Flora Booster", "Trico+", "Shanti", "Bio CaMg"],
+    "Kawsay": ["Nutri Base", "Amazonia", "Flora Booster", "Bud Engorde", "Super Candy"],
+    "Advanced Nutrients": ["Sensi Grow A+B", "Sensi Bloom A+B", "Voodoo Juice", "B-52", "Big Bud", "Overdrive", "Flawless Finish"],
+    "Athena (Blended)": ["Grow A", "Grow B", "Bloom A", "Bloom B", "CaMg", "PK", "Cleanse"],
+    "Orgánico / Living Soil": ["Humus de lombriz", "Compost", "Bokashi", "Guano de murciélago", "Harina de hueso", "Melaza", "Micorrizas", "Trichodermas"],
+    "Personalizada": []
 };
+
+// TOOLTIP: Función helper para crear el HTML del ícono de ayuda.
+function createTooltipIcon(title) {
+    return `
+        <span class="tooltip-trigger inline-flex items-center justify-center" data-tippy-content="${title}">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 text-gray-400 dark:text-gray-500 hover:text-amber-500 cursor-pointer">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 5.25h.008v.008H12v-.008Z" />
+            </svg>
+        </span>
+    `;
+}
+
+// TOOLTIP: Función para inicializar todos los tooltips en la vista actual.
+function initializeTooltips() {
+    // Usamos `setTimeout` con 0 para asegurar que el DOM se haya renderizado completamente
+    // antes de que Tippy intente encontrar los elementos.
+    setTimeout(() => {
+        tippy('.tooltip-trigger', {
+            animation: 'scale-subtle',
+            theme: 'light-border',
+            allowHTML: true,
+        });
+    }, 0);
+}
 
 export function showNotification(message, type = 'success') {
     const container = getEl('notification-container');
@@ -22,17 +49,11 @@ export function showNotification(message, type = 'success') {
     notif.className = `p-3 rounded-lg shadow-lg mb-2 ${type === 'success' ? 'bg-green-500' : 'bg-red-500'} text-white transition-opacity duration-500 ease-in-out opacity-100`;
 
     container.appendChild(notif);
-    if (container.style.display !== 'block') {
-        container.style.display = 'block';
-    }
-
+    
     setTimeout(() => {
         notif.style.opacity = '0';
         notif.addEventListener('transitionend', () => {
             notif.remove();
-            if (container.children.length === 0) {
-                container.style.display = 'none';
-            }
         });
     }, 4000);
 }
@@ -93,7 +114,10 @@ export function openCicloModal(ciclo = null, salas = [], preselectedSalaId = nul
                     </select>
                 </div>
                 <div>
-                    <label for="cultivationType" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Tipo de Cultivo</label>
+                    <div class="flex items-center gap-2 mb-1">
+                        <label for="cultivationType" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Tipo de Cultivo</label>
+                        ${createTooltipIcon("Define el método de cultivo. Esto ajustará las opciones de registro disponibles (ej: 'Cambio de Solución' para Hidroponia).")}
+                    </div>
                     <select id="cultivationType" class="w-full p-2 rounded-md">
                         <option value="Sustrato" ${ciclo && ciclo.cultivationType === 'Sustrato' ? 'selected' : ''}>Sustrato</option>
                         <option value="Hidroponia" ${ciclo && ciclo.cultivationType === 'Hidroponia' ? 'selected' : ''}>Hidroponia</option>
@@ -108,7 +132,7 @@ export function openCicloModal(ciclo = null, salas = [], preselectedSalaId = nul
                 <label for="floweringStartDate" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Fecha Inicio Floración (12/12)</label>
                 <input type="date" id="floweringStartDate" class="w-full p-2 rounded-md" value="${ciclo ? ciclo.floweringStartDate : ''}">
             </div>
-             <div>
+            <div>
                 <label for="ciclo-notes" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Notas</label>
                 <textarea id="ciclo-notes" rows="3" class="w-full p-2 rounded-md">${ciclo ? ciclo.notes : ''}</textarea>
             </div>
@@ -119,6 +143,7 @@ export function openCicloModal(ciclo = null, salas = [], preselectedSalaId = nul
     
     getEl('cicloForm').dataset.id = ciclo ? ciclo.id : '';
     modal.style.display = 'flex';
+    initializeTooltips();
 }
 
 export function openLogModal(ciclo, week, log = null) {
@@ -145,14 +170,14 @@ export function openLogModal(ciclo, week, log = null) {
             </div>
 
             <div id="podasFields" class="hidden">
-                 <label for="podaType">Tipo de Poda</label>
-                 <select id="podaType" class="w-full p-2 rounded-md">
-                     <option>LST</option><option>Main-lining</option><option>Supercropping</option><option>Defoliación</option><option>Lollipop</option><option>Clones</option>
-                 </select>
-                 <div id="clonesSection" class="mt-2 hidden">
-                     <label for="clones-count">Cantidad de Clones</label>
-                     <input type="number" id="clones-count" class="w-full p-2 rounded-md">
-                 </div>
+                <label for="podaType">Tipo de Poda</label>
+                <select id="podaType" class="w-full p-2 rounded-md">
+                    <option>LST</option><option>Main-lining</option><option>Supercropping</option><option>Defoliación</option><option>Lollipop</option><option>Clones</option>
+                </select>
+                <div id="clonesSection" class="mt-2 hidden">
+                    <label for="clones-count">Cantidad de Clones</label>
+                    <input type="number" id="clones-count" class="w-full p-2 rounded-md">
+                </div>
             </div>
         </div>
     `;
@@ -293,22 +318,20 @@ export function openMoveCicloModal(ciclo, salas) {
 }
 
 export function openGerminateModal(seed) {
-     const title = `Germinar "${seed.name}"`;
-     const content = `
+    const title = `Germinar "${seed.name}"`;
+    const content = `
         <p class="mb-1 text-gray-700 dark:text-gray-300">Disponibles: ${seed.quantity}</p>
         <label for="germinate-quantity" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Cantidad a germinar</label>
         <input type="number" id="germinate-quantity" min="1" max="${seed.quantity}" required class="w-full p-2 rounded-md" value="1">
-     `;
-     const modal = getEl('germinateSeedModal');
-     modal.innerHTML = createModalHTML('germinateSeedModalContent', title, 'germinateSeedForm', content, 'Germinar', 'cancelGerminateBtn');
-     
-     getEl('germinateSeedForm').dataset.id = seed.id;
-     modal.style.display = 'flex';
+    `;
+    const modal = getEl('germinateSeedModal');
+    modal.innerHTML = createModalHTML('germinateSeedModalContent', title, 'germinateSeedForm', content, 'Germinar', 'cancelGerminateBtn');
+    
+    getEl('germinateSeedForm').dataset.id = seed.id;
+    modal.style.display = 'flex';
 }
 
-// MODIFICADO: La función entera ha sido reestructurada para manejar ambas fases.
 export function renderCicloDetails(ciclo, handlers) {
-    // EXPLICACIÓN: Primero, determinamos qué conjunto de semanas vamos a renderizar y cuál es el título de la sección.
     let weeksToRender = [];
     let phaseTitle = '';
 
@@ -320,7 +343,6 @@ export function renderCicloDetails(ciclo, handlers) {
         phaseTitle = 'Semanas de Floración';
     }
 
-    // EXPLICACIÓN: Luego, construimos el bloque de HTML para las semanas solo si encontramos semanas para renderizar.
     let weeksHTML = '';
     if (weeksToRender.length > 0) {
         weeksToRender.sort((a, b) => a.weekNumber - b.weekNumber);
@@ -330,8 +352,6 @@ export function renderCicloDetails(ciclo, handlers) {
                 <h3 class="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-200">${phaseTitle}</h3>
                 <div class="space-y-4">
                     ${weeksToRender.map(week => {
-                        // EXPLICACIÓN: Usamos `getPhaseInfo` para obtener el color correcto de la fase,
-                        // que ahora incluye 'VEGETATIVO'.
                         const phaseInfo = handlers.getPhaseInfo(week.phaseName || ciclo.phase);
                         return `
                             <div class="mb-4">
@@ -342,20 +362,18 @@ export function renderCicloDetails(ciclo, handlers) {
                                     <button class="btn-primary btn-base text-xs py-1 px-2 rounded-md add-log-for-week-btn" data-week='${JSON.stringify(week)}'>+ Registro</button>
                                 </div>
                                 <div class="p-4 bg-white dark:bg-[#262626] rounded-b-lg space-y-3" id="logs-week-${week.weekNumber}">
-                                    </div>
+                                </div>
                             </div>
                         `;
                     }).join('')}
                 </div>
             </div>`;
     } else {
-        // EXPLICACIÓN: Si no hay semanas (ej. ciclo 'Finalizado'), mostramos un mensaje.
         weeksHTML = `<div class="mt-6 text-center text-gray-500 dark:text-gray-400">
                         <p>No hay seguimiento por semanas para la fase "${ciclo.phase}".</p>
                     </div>`;
     }
 
-    // EXPLICACIÓN: Finalmente, ensamblamos el HTML completo con el bloque de semanas correcto.
     const diffDaysVege = handlers.calculateDaysSince(ciclo.vegetativeStartDate);
     const diffDaysFlora = handlers.calculateDaysSince(ciclo.floweringStartDate);
     let statusText = '';
@@ -364,13 +382,14 @@ export function renderCicloDetails(ciclo, handlers) {
 
     const html = `
         <div data-ciclo-id="${ciclo.id}">
-             <header class="flex justify-between items-start mb-6">
+            <header class="flex justify-between items-start mb-6">
                 <div>
                     <h2 class="text-3xl font-bold text-amber-400 font-mono tracking-wider">${ciclo.name}</h2>
                     <p class="text-gray-500 dark:text-gray-400">${statusText}</p>
                 </div>
                 <button id="backToCiclosBtn" class="btn-secondary btn-base py-2 px-4 rounded-lg">Volver</button>
             </header>
+            <div id="timeline-container" class="my-2"></div>
             <main>
                 ${weeksHTML}
             </main>
@@ -385,13 +404,31 @@ export function renderCicloDetails(ciclo, handlers) {
                 openLogModal(ciclo, weekData);
             });
         });
+        
+        try {
+            if (ciclo.phase === 'Floración') {
+                const timelineContainer = getEl('timeline-container');
+                if (timelineContainer) {
+                    const diaActual = handlers.calculateDaysSince(ciclo.floweringStartDate);
+                    const semanasTotales = weeksToRender.length;
+                    
+                    if (diaActual !== null && semanasTotales > 0) {
+                        const timelineElement = crearTimelinePrincipal(diaActual, semanasTotales);
+                        timelineContainer.innerHTML = '';
+                        timelineContainer.appendChild(timelineElement);
+                    }
+                }
+            }
+        } catch (error) {
+            console.error("Error al renderizar la timeline principal:", error);
+        }
+
+        initializeTooltips();
     }, 0);
     
     return html;
-}
-
-export function renderToolsView() {
-    return `
+}export function renderToolsView() {
+    const html = `
         <header class="flex justify-between items-center mb-8">
             <h1 class="text-3xl font-bold text-amber-400 font-mono tracking-wider">Herramientas</h1>
             <button id="backToPanelBtn" class="btn-secondary btn-base py-2 px-4 rounded-lg">Volver al Panel</button>
@@ -406,12 +443,8 @@ export function renderToolsView() {
         <div class="flex items-center justify-between my-4">
             <input type="search" id="searchTools" placeholder="Buscar..." class="w-full max-w-xs p-2 rounded-md focus:ring-amber-500 focus:border-amber-500">
             <div id="view-mode-toggle" class="flex items-center gap-2">
-                <button id="view-mode-card" class="btn-secondary p-2 rounded-md btn-base" title="Vista de tarjetas">
-                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6ZM3.75 15.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25ZM13.5 6a2.25 2.25 0 0 1 2.25-2.25H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6ZM13.5 15.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25Z" /></svg>
-                </button>
-                <button id="view-mode-list" class="btn-secondary p-2 rounded-md btn-base" title="Vista de lista">
-                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" /></svg>
-                </button>
+                <button id="view-mode-card" class="btn-secondary p-2 rounded-md btn-base" title="Vista de tarjetas"><svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6ZM3.75 15.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25ZM13.5 6a2.25 2.25 0 0 1 2.25-2.25H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6ZM13.5 15.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25Z" /></svg></button>
+                <button id="view-mode-list" class="btn-secondary p-2 rounded-md btn-base" title="Vista de lista"><svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" /></svg></button>
             </div>
         </div>
         <div id="geneticsContent">
@@ -419,11 +452,26 @@ export function renderToolsView() {
                 <div class="w-full md:w-2/5 lg:w-1/3">
                     <form id="geneticsForm" class="card p-6 space-y-4">
                         <h3 id="genetic-form-title" class="text-xl font-bold text-amber-400">Añadir Nueva Genética</h3>
-                        <input type="text" id="genetic-name" placeholder="Nombre de la genética" required class="w-full p-2 rounded-md">
-                        <input type="text" id="genetic-parents" placeholder="Padres" class="w-full p-2 rounded-md">
-                        <input type="text" id="genetic-bank" placeholder="Banco" class="w-full p-2 rounded-md">
-                        <input type="text" id="genetic-owner" placeholder="Dueño" class="w-full p-2 rounded-md">
-                        <input type="number" id="genetic-stock" placeholder="Stock de clones inicial" class="w-full p-2 rounded-md">
+                        <div class="form-field-with-tooltip">
+                            <input type="text" id="genetic-name" placeholder="Nombre de la genética" required class="w-full p-2 rounded-md">
+                            ${createTooltipIcon("El nombre con el que identificás a esta variedad. Ej: 'Gorilla Glue #4', 'Moby Dick', 'Punto Rojo'.")}
+                        </div>
+                        <div class="form-field-with-tooltip">
+                            <input type="text" id="genetic-parents" placeholder="Padres" class="w-full p-2 rounded-md">
+                            ${createTooltipIcon("El cruce que le dio origen. Si no lo sabés, dejalo vacío. Ej: 'Chem's Sister x Sour Dubb'.")}
+                        </div>
+                        <div class="form-field-with-tooltip">
+                            <input type="text" id="genetic-bank" placeholder="Banco" class="w-full p-2 rounded-md">
+                            ${createTooltipIcon("El banco de semillas que la comercializa o la creó. Ej: 'DNA Genetics', 'Sweet Seeds', 'BSF'.")}
+                        </div>
+                        <div class="form-field-with-tooltip">
+                            <input type="text" id="genetic-owner" placeholder="Dueño" class="w-full p-2 rounded-md">
+                            ${createTooltipIcon("Acá ponés de quién es el 'cut' (el esqueje original). Sirve para saber quién te pasó el clon. Ej: 'esqueje de Growshop X'.")}
+                        </div>
+                        <div class="form-field-with-tooltip">
+                            <input type="number" id="genetic-stock" placeholder="Stock de clones inicial" class="w-full p-2 rounded-md">
+                            ${createTooltipIcon("Con cuántos clones o 'madres' de esta genética empezás. Después, el stock se manejará desde la pestaña 'Stock de Clones'.")}
+                        </div>
                         <button type="submit" class="btn-primary btn-base w-full py-2 rounded-lg">Guardar Genética</button>
                     </form>
                 </div>
@@ -448,10 +496,12 @@ export function renderToolsView() {
             </div>
         </div>
     `;
+    setTimeout(() => initializeTooltips(), 0);
+    return html;
 }
 
 export function renderSettingsView() {
-    return `
+    const html = `
         <header class="flex justify-between items-center mb-8">
             <h1 class="text-3xl font-bold text-amber-400 font-mono tracking-wider">Ajustes</h1>
             <button id="backToPanelFromSettingsBtn" class="btn-secondary btn-base py-2 px-4 rounded-lg">Volver al Panel</button>
@@ -479,6 +529,8 @@ export function renderSettingsView() {
             </div>
         </div>
     `;
+    setTimeout(() => initializeTooltips(), 0);
+    return html;
 }
 
 export function createCicloCard(ciclo, handlers) {
@@ -489,17 +541,31 @@ export function createCicloCard(ciclo, handlers) {
     const typeText = ciclo.cultivationType || 'Sustrato';
     const typeColor = typeText === 'Hidroponia' ? 'bg-blue-500' : 'bg-yellow-600';
     let statusInfo = '';
+    let microTimelineHTML = ''; // ✨ CAMBIO 1: Variable para nuestra nueva barra
+
     if (ciclo.phase === 'Floración') {
         const diffDays = handlers.calculateDaysSince(ciclo.floweringStartDate);
-        if (diffDays !== null && diffDays > 0) {
-            const currentWeek = Math.floor((diffDays - 1) / 7) + 1;
-            const totalWeeks = ciclo.floweringWeeks ? ciclo.floweringWeeks.length : 10;
-            statusInfo = `<p class="text-sm text-gray-500 dark:text-gray-300 mt-1">Día ${diffDays} (Semana ${currentWeek} / ${totalWeeks})</p>`;
+        if (diffDays !== null && diffDays >= 0) { // Usamos >= 0 para que se vea desde el día 0
+            const currentWeek = Math.floor(diffDays / 7) + 1;
+            const totalWeeks = ciclo.floweringWeeks ? ciclo.floweringWeeks.length : 0;
+            
+            if (totalWeeks > 0) {
+                 statusInfo = `<p class="text-sm text-gray-500 dark:text-gray-300 mt-1">Día ${diffDays} (Semana ${currentWeek} / ${totalWeeks})</p>`;
+                
+                // ✨ CAMBIO 2: Lógica para calcular y generar la micro-timeline
+                const totalDays = totalWeeks * 7;
+                const progressPercentage = Math.min(100, (diffDays / totalDays) * 100);
+                microTimelineHTML = `
+                    <div class="micro-timeline-container">
+                        <div class="micro-timeline-progress" style="width: ${progressPercentage}%;"></div>
+                    </div>
+                `;
+            }
         }
     } else if (ciclo.phase === 'Vegetativo') {
         const diffDays = handlers.calculateDaysSince(ciclo.vegetativeStartDate);
-        if (diffDays !== null && diffDays > 0) {
-            const currentWeek = Math.floor((diffDays - 1) / 7) + 1;
+        if (diffDays !== null && diffDays >= 0) {
+            const currentWeek = Math.floor(diffDays / 7) + 1;
             statusInfo = `<p class="text-sm text-gray-500 dark:text-gray-300 mt-1">Día ${diffDays} (Semana ${currentWeek}) de vegetativo</p>`;
         }
     }
@@ -513,9 +579,9 @@ export function createCicloCard(ciclo, handlers) {
                 </div>
             </div>
             ${statusInfo}
-        </div>
+            ${microTimelineHTML} </div>
         <div class="mt-6 flex flex-wrap justify-end gap-2">
-            <button data-action="move-ciclo" class="btn-secondary btn-base p-2 rounded-lg" title="Mover Ciclo">
+            <button data-action="move-ciclo" class="btn-secondary btn-base p-2 rounded-lg tooltip-trigger" data-tippy-content="Permite mover este ciclo a otra Sala sin afectar sus datos.">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M7.5 21 3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5" /></svg>
             </button>
             <button data-action="edit-ciclo" class="btn-secondary btn-base p-2 rounded-lg" title="Editar">
@@ -536,7 +602,6 @@ export function createCicloCard(ciclo, handlers) {
     });
     return card;
 }
-
 export function createLogEntry(log, ciclo, handlers) {
     const entry = document.createElement('div');
     const logDate = log.date.toLocaleString('es-AR', { dateStyle: 'short', timeStyle: 'short'});
@@ -546,18 +611,18 @@ export function createLogEntry(log, ciclo, handlers) {
         const title = log.type === 'Cambio de Solución' ? 'Cambio de Solución' : (ciclo.cultivationType === 'Hidroponia' ? 'Control de Solución' : 'Riego');
         const color = log.type === 'Cambio de Solución' ? 'text-blue-400' : 'text-amber-400';
         details = `<p class="font-semibold ${color}">${title}</p>
-                         <div class="text-sm text-gray-500 dark:text-gray-300 mt-1 grid grid-cols-2 gap-x-4 gap-y-1">
-                             ${log.litros ? `<span><strong>Litros:</strong> ${log.litros}</span>` : ''}
-                             <span><strong>pH:</strong> ${log.ph || 'N/A'}</span>
-                             <span><strong>EC:</strong> ${log.ec || 'N/A'}</span>
-                         </div>
-                         <div class="text-sm text-gray-500 dark:text-gray-300 mt-2"><strong>Fertilizantes:</strong> ${handlers.formatFertilizers(log.fertilizers)}</div>`;
+                        <div class="text-sm text-gray-500 dark:text-gray-300 mt-1 grid grid-cols-2 gap-x-4 gap-y-1">
+                            ${log.litros ? `<span><strong>Litros:</strong> ${log.litros}</span>` : ''}
+                            <span><strong>pH:</strong> ${log.ph || 'N/A'}</span>
+                            <span><strong>EC:</strong> ${log.ec || 'N/A'}</span>
+                        </div>
+                        <div class="text-sm text-gray-500 dark:text-gray-300 mt-2"><strong>Fertilizantes:</strong> ${handlers.formatFertilizers(log.fertilizers)}</div>`;
         borderColorClass = log.type === 'Cambio de Solución' ? 'border-blue-400' : 'border-amber-500';
 
     } else if (log.type === 'Control de Plagas') {
         borderColorClass = 'border-yellow-400';
         details = `<p class="font-semibold text-yellow-400">Control de Plagas</p>
-                       <p class="text-sm text-gray-500 dark:text-gray-300 mt-1 whitespace-pre-wrap">${log.notes || 'Sin notas.'}</p>`;
+                        <p class="text-sm text-gray-500 dark:text-gray-300 mt-1 whitespace-pre-wrap">${log.notes || 'Sin notas.'}</p>`;
     } else if (log.type === 'Podas') {
         borderColorClass = 'border-green-400';
         details = `<p class="font-semibold text-green-400">Poda: ${log.podaType || ''}</p>`;
@@ -571,7 +636,7 @@ export function createLogEntry(log, ciclo, handlers) {
                 <span class="text-xs text-gray-400 dark:text-gray-400">${logDate}</span>
             </div>
             <button data-action="delete-log" data-ciclo-id="${ciclo.id}" data-log-id="${log.id}" class="p-1 rounded-md text-gray-500 dark:text-gray-500 hover:bg-red-800 hover:text-white btn-base" title="Eliminar registro">
-                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>
             </button>
         </div>
         <div class="mt-2">${details}</div>
@@ -660,6 +725,7 @@ export function renderSalasGrid(salas, ciclos, handlers) {
         });
         salasGrid.appendChild(salaCard);
     });
+    initializeTooltips();
 }
 
 export function renderGeneticsList(genetics, handlers) {
@@ -715,10 +781,10 @@ export function renderGeneticsListCompact(genetics, handlers) {
             </div>
             <div class="flex gap-2">
                 <button data-action="edit-genetic" data-id="${g.id}" class="btn-secondary btn-base p-2 rounded-lg" title="Editar">
-                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" /></svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" /></svg>
                 </button>
                 <button data-action="delete-genetic" data-id="${g.id}" class="btn-danger btn-base p-2 rounded-lg" title="Eliminar">
-                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.134-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.067-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" /></svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.134-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.067-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" /></svg>
                 </button>
             </div>
         `;
@@ -747,7 +813,7 @@ export function renderStockList(genetics, handlers) {
                 <p class="font-bold text-lg text-amber-400">${g.name}</p>
                 <p class="text-sm text-gray-500 dark:text-gray-400">Clones en stock: <span class="font-bold text-xl text-amber-400">${g.cloneStock || 0}</span></p>
             </div>
-            <div class="flex items-center gap-2">
+            <div class="flex items-center gap-2 tooltip-trigger" data-tippy-content="Actualiza manualmente tu stock. También se suma automáticamente cuando registrás una 'Poda de Clones' en un ciclo.">
                 <button data-action="update-stock" data-id="${g.id}" data-amount="-1" class="btn-secondary btn-base rounded-full w-10 h-10 flex items-center justify-center text-2xl">-</button>
                 <button data-action="update-stock" data-id="${g.id}" data-amount="1" class="btn-secondary btn-base rounded-full w-10 h-10 flex items-center justify-center text-2xl">+</button>
             </div>
@@ -777,7 +843,7 @@ export function renderStockListCompact(genetics, handlers) {
             </div>
             <div class="flex items-center gap-4">
                 <span class="font-bold text-lg text-gray-700 dark:text-gray-300">${g.cloneStock || 0}</span>
-                <div class="flex items-center gap-2">
+                <div class="flex items-center gap-2 tooltip-trigger" data-tippy-content="Actualiza manualmente tu stock. También se suma automáticamente cuando registrás una 'Poda de Clones' en un ciclo.">
                     <button data-action="update-stock" data-id="${g.id}" data-amount="-1" class="btn-secondary btn-base rounded-full w-8 h-8 flex items-center justify-center text-xl">-</button>
                     <button data-action="update-stock" data-id="${g.id}" data-amount="1" class="btn-secondary btn-base rounded-full w-8 h-8 flex items-center justify-center text-xl">+</button>
                 </div>
@@ -808,7 +874,7 @@ export function renderBaulSemillasList(seeds, handlers) {
                 <p class="text-sm text-gray-500 dark:text-gray-400">Cantidad: <span class="font-bold text-amber-400">${s.quantity || 0}</span></p>
             </div>
             <div class="flex gap-2 flex-wrap">
-                <button data-action="germinate-seed" data-id="${s.id}" class="btn-primary btn-base py-2 px-4 rounded-lg text-sm" ${s.quantity > 0 ? '' : 'disabled'}>Germinar</button>
+                <button data-action="germinate-seed" data-id="${s.id}" class="btn-primary btn-base py-2 px-4 rounded-lg text-sm tooltip-trigger" ${s.quantity > 0 ? '' : 'disabled'} data-tippy-content="Inicia el proceso de germinación. Esto descontará la cantidad seleccionada de tu stock en el baúl.">Germinar</button>
                 <button data-action="delete-seed" data-id="${s.id}" class="btn-danger btn-base p-2 rounded-lg" title="Eliminar">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.134-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.067-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" /></svg>
                 </button>
@@ -839,7 +905,7 @@ export function renderBaulSemillasListCompact(seeds, handlers) {
                 <p class="text-xs text-gray-500 dark:text-gray-400">${s.bank || 'Banco Desconocido'}</p>
             </div>
             <div class="flex gap-2">
-                <button data-action="germinate-seed" data-id="${s.id}" class="btn-primary btn-base p-2 rounded-lg text-sm" ${s.quantity > 0 ? '' : 'disabled'} title="Germinar">
+                <button data-action="germinate-seed" data-id="${s.id}" class="btn-primary btn-base p-2 rounded-lg text-sm tooltip-trigger" ${s.quantity > 0 ? '' : 'disabled'} data-tippy-content="Inicia el proceso de germinación. Esto descontará la cantidad seleccionada de tu stock en el baúl.">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M5.636 5.636a9 9 0 1 0 12.728 0M12 3v9" /></svg>
                 </button>
                 <button data-action="delete-seed" data-id="${s.id}" class="btn-danger btn-base p-2 rounded-lg" title="Eliminar">
@@ -889,7 +955,11 @@ export function initializeEventListeners(handlers) {
         }
     });
     getEl('aboutBtn').addEventListener('click', () => getEl('aboutModal').style.display = 'flex');
-    getEl('menuAddSala').addEventListener('click', (e) => { e.preventDefault(); handlers.openSalaModal(); getEl('dropdownMenu').classList.add('hidden'); });
+    
+    const menuAddSalaLink = getEl('menuAddSala');
+    menuAddSalaLink.innerHTML = "Añadir Sala " + createTooltipIcon("Una Sala es tu espacio físico de cultivo, como una carpa o un indoor. Dentro de las salas organizarás tus Ciclos.");
+    menuAddSalaLink.addEventListener('click', (e) => { e.preventDefault(); handlers.openSalaModal(); getEl('dropdownMenu').classList.add('hidden'); });
+    
     getEl('menuAddCiclo').addEventListener('click', (e) => { e.preventDefault(); handlers.openCicloModal(); getEl('dropdownMenu').classList.add('hidden'); });
     getEl('menuTools').addEventListener('click', (e) => { e.preventDefault(); handlers.showToolsView(); getEl('dropdownMenu').classList.add('hidden'); });
     getEl('menuSettings').addEventListener('click', (e) => { e.preventDefault(); handlers.showSettingsView(); getEl('dropdownMenu').classList.add('hidden'); });
@@ -905,8 +975,8 @@ export function initializeEventListeners(handlers) {
         if (e.target.closest('#closeAboutBtn')) getEl('aboutModal').style.display = 'none';
         if (e.target.closest('#cancelActionBtn')) handlers.hideConfirmationModal();
         if (e.target.closest('#confirmActionBtn')) {
-             if (handlers.getConfirmCallback()) handlers.getConfirmCallback()();
-             handlers.hideConfirmationModal();
+            if (handlers.getConfirmCallback()) handlers.getConfirmCallback()();
+            handlers.hideConfirmationModal();
         }
     });
 
@@ -918,4 +988,6 @@ export function initializeEventListeners(handlers) {
         if (e.target.id === 'germinateSeedForm') handlers.handleGerminateFormSubmit(e);
         if (e.target.id === 'seedForm') handlers.handleSeedFormSubmit(e);
     });
+    
+    initializeTooltips();
 }

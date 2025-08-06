@@ -1,0 +1,299 @@
+Update Log
+
+Resumen de Cambios v0.25
+Esta versión corrige un error crítico que dejaba la pantalla en blanco al ver los detalles de una sala.
+
+Solución: Se arregló el bug de la "pantalla en blanco".
+
+Causa: El error ocurría al crear salas sin fecha de inicio. Ahora, la fecha es obligatoria.
+
+Estabilidad: La app es más robusta y avisa si detecta datos inválidos.
+
+Versión: Actualizada a "SegCul Beta 0.25 by svjeto".
+
+---------------------------------
+
+Resumen de Cambios v0.26
+Esta versión añade mayor precisión al registro de actividades semanales.
+
+Registro de Día y Hora: Al añadir una nueva entrada (Riego, Cambio de Solución, etc.), ahora se pueden especificar el día de la semana (Lunes, Martes...) y el momento del día (Mañana, Tarde, Noche).
+
+Visualización Mejorada: Esta nueva información de día y hora se muestra claramente en cada registro dentro de la vista de detalles.
+
+Análisis de IA más Preciso: El resumen generado por la IA ahora tiene en cuenta el día y la hora de cada acción, permitiendo un análisis y recomendaciones más detalladas.
+
+Actualización de Versión: La firma de la aplicación ahora muestra "SegCul Beta 0.26 by svjeto".
+
+------------------------------
+
+Resumen de Cambios v0.27
+Esta versión introduce una nueva categoría de registro para un seguimiento más detallado de las técnicas de entrenamiento aplicadas a las plantas.
+
+Nuevo Tipo de Registro - "Podas":
+
+Se ha añadido la opción "Podas" al menú de tipos de registro.
+
+Al seleccionarla, se despliega un nuevo formulario específico para esta acción.
+
+Detalles de la Poda:
+
+Se puede especificar el tipo de poda realizado a través de un menú desplegable con las opciones: Apical, Defoliación y Clones.
+
+Al igual que otros registros, se puede indicar el día de la semana y el momento del día (Mañana, Tarde, Noche) en que se realizó la poda.
+
+Visualización y Análisis:
+
+Los registros de podas se muestran claramente en la vista de detalles de cada semana.
+
+El resumen de la IA ahora incluye y analiza la información de las podas para ofrecer recomendaciones más completas.
+
+Actualización de Versión: La firma de la aplicación ahora muestra "SegCul Beta 0.27 by svjeto".
+
+-----------------------------------
+
+Resumen de Cambios v0.271
+Creación Automática de Salas para Clones: Al registrar una poda de tipo "Clones", la aplicación ahora crea automáticamente una nueva sala.
+
+Configuración por Defecto: La nueva sala se denomina "Clones de [Nombre de la sala original]", se establece en fase "Vegetativo" y toma la fecha del evento como su fecha de inicio.
+
+Versión: Actualizada a "SegCul Beta 0.271 by svjeto".
+
+--------------------------------------
+
+Resumen de Cambios v0.28
+Esta es una actualización mayor que introduce un sistema de inventario y reorganiza la interfaz.
+
+Nuevo Menú Principal: Se ha implementado un menú desplegable (☰) en la esquina superior derecha que ahora agrupa las opciones "Añadir Sala", "Herramientas" y "Cerrar Sesión".
+
+Nueva Sección de "Herramientas":
+
+Control de Genéticas: Una nueva pantalla completa para crear, editar, eliminar y marcar como favoritas tus genéticas, con campos para nombre, parentales, banco y dueño.
+
+Stock de Clones: Una vista de inventario vinculada a tu catálogo de genéticas, que permite ajustar la cantidad de clones de cada una de forma rápida.
+
+Registro de Clones Mejorado: Al registrar una poda de tipo "Clones", ahora seleccionas la genética de tu catálogo y la cantidad. La app actualiza automáticamente el stock.
+
+Versión: Actualizada a "SegCul Beta 0.28 by svjeto".
+
+-------------------------------------
+
+Resumen de Cambios v0.281
+Esta es una actualización mayor que introduce un sistema de inventario y reorganiza la interfaz.
+
+Nuevo Menú Principal: Se implementó un menú desplegable (☰) que ahora agrupa "Añadir Sala", "Herramientas" y "Cerrar Sesión".
+
+Nueva Sección de "Herramientas": Se añadió una pantalla completa con tres pestañas:
+
+Genéticas: Para crear y gestionar tu catálogo de genéticas (nombre, parentales, banco, etc.).
+
+Stock de Clones: Para llevar un inventario de los clones de cada genética.
+
+Banco de Semillas: Para registrar tus semillas y germinarlas, creando salas nuevas automáticamente.
+
+Flujo de Trabajo Mejorado:
+
+Asignación de Genéticas: Ahora, dentro de los detalles de una sala, podés añadir genéticas desde tu stock de clones o crear nuevas.
+
+Registro de Clones: Al registrar una poda de tipo "Clones", la cantidad se suma automáticamente al stock de la genética seleccionada.
+
+Versión: Actualizada a "SegCul Beta 0.281 by svjeto".
+
+----------------
+
+Resumen de Cambios v0.29
+Esta es una actualización estructural mayor que reorganiza la aplicación para un manejo más profesional y escalable.
+
+Nueva Jerarquía "Salas" > "Ciclos":
+
+La aplicación ahora diferencia entre Salas (espacios físicos) y Ciclos (tandas de cultivo).
+
+El panel principal ahora muestra tus Salas. Al hacer clic en una, ves los Ciclos que contiene.
+
+Tarjetas de Sala Compactas:
+
+Las tarjetas en el panel principal son más cuadradas y muestran un resumen de cuántos ciclos activos hay en cada sala.
+
+Nueva Funcionalidad para Mover Ciclos:
+
+Cada ciclo ahora tiene un botón "Mover", que te permite transferirlo fácilmente de una sala a otra.
+
+Flujo de Creación Mejorado:
+
+Desde el menú, ahora puedes "Añadir Sala" (solo pide un nombre) o "Añadir Ciclo".
+
+Al crear un nuevo ciclo, debes asignarlo a una sala existente.
+
+Integración con Herramientas:
+
+El "Banco de Semillas" ahora te permite germinar y asignar las nuevas plantas a una sala específica, creando un nuevo ciclo en el proceso.
+
+La asignación de genéticas ahora se hace directamente a un ciclo, no a una sala.
+
+Versión: Actualizada a "SegCul Beta 0.29 by svjeto".
+
+----------------
+
+Resumen de Cambios v0.291
+Esta versión corrige errores de navegación e introduce la gestión de cuentas.
+
+Navegación Corregida: Se solucionó el error que impedía acceder a la vista de "Ciclos" desde el panel de "Salas".
+
+Vista Previa de Ciclos: Las tarjetas de las salas en el panel principal ahora muestran un resumen de los ciclos activos que contienen.
+
+Nuevo Menú de Ajustes: Se añadió una sección de "Ajustes" al menú principal, permitiendo:
+
+Cambiar la contraseña de la cuenta.
+
+Eliminar la cuenta de forma segura (requiere confirmación con contraseña).
+
+Versión: Actualizada a "SegCul Beta 0.291 by svjeto".
+
+-------------------------
+
+Update v0.29151
+
+Se reescribió por completo el sistema de fechas para arreglar los bugs más importantes.
+
+Ya se puede editar la fecha de inicio de los ciclos sin problemas.
+
+Se corrigió el error que impedía ver los detalles de un ciclo.
+
+Ahora la app es mucho más simple y estable para contar los días. 
+------------------------
+
+v0.292 - Mejoras de UI y Usabilidad
+Modal "Acerca de": Se agregó el botón "¿Qué onda esto?" en el header. Abre una ventana emergente con el texto del README para explicarle la app a los usuarios nuevos.
+
+Unificación de Estilos: Se actualizó la estética de los botones de acción (Editar, Eliminar, Mover, Ver Detalles) en todas las tarjetas para que sean consistentes, usando rounded-lg y las clases btn-primary/secondary/danger.
+
+Botón de Telegram: Se cambió el color del botón a un celeste (bg-sky-500) más acorde a la marca de Telegram.
+
+Estabilidad: Se consolidó el refactor del sistema de fechas (basado en strings YYYY-MM-DD), asegurando que las nuevas funciones de UI no reintroduzcan bugs de zonas horarias.
+
+-------------------
+
+v0.292a - Mejoras en la Pantalla de Bienvenida
+Nuevo Título: Se agregó un logo/título con una estética más "tech" a la pantalla de login para darle más identidad a la app.
+
+Botón de Información para Nuevos Usuarios: Se añadió el botón "¿Qué onda esto?" a los formularios de registro e inicio de sesión. Ahora, cualquiera que llegue a la página puede saber de qué se trata la app antes de registrarse.
+
+Subtítulo: Se cambió el subtítulo a "Tu anotador de cultivo" para que sea más claro y directo.
+
+-----------------
+v0.3 Update Summary
+
+Código refactorizado a estructura modular (main.js, ui.js, firebase.js).
+
+Añadido spinner de carga para eliminar parpadeo al iniciar sesión.
+
+Solucionado error crítico de permisos de Firestore con nuevas reglas de seguridad.
+
+Corregido fallo que impedía el funcionamiento de los formularios de login/registro.
+
+Solucionados errores de script (ReferenceError) surgidos durante la refactorización.
+------------------
+== Versión 0.3 - Punto de Partida ==
+
+Sistema modular funcional (HTML/CSS/JS separados).
+
+Gestión completa de Salas y Ciclos (Crear, Editar, Borrar).
+
+Herramientas funcionales para Genéticas, Stock de Clones y Banco de Semillas.
+
+Registro de riego básico con un checklist estático de fertilizantes (Bases, Enzimas, etc.).
+
+A mejorar: Se detectaron problemas de layout, superposición de elementos y fallos de visualización en pantallas de celular.
+
+== Versión 0.31 - Mejoras de Interfaz y Calidad de Vida (UX) ==
+
+Corregido: El pie de página (versión y Telegram) ya no se superpone con las tarjetas de las salas. Ahora forma parte del flujo normal de la página.
+
+Mejorada: La compatibilidad con móviles. Los grupos de botones en todas las tarjetas ahora se reacomodan en lugar de salirse de la pantalla.
+
+Nuevo: Diseño de 2 columnas en la sección "Herramientas". En pantallas grandes, el formulario y la lista aparecen lado a lado, mientras que en celular se apilan verticalmente.
+
+Unificado: Se estandarizó el estilo y tamaño (text-3xl, font-mono) de todos los títulos de las vistas para una mayor coherencia visual.
+
+Actualizado: El texto del modal "Acerca de" se reemplazó por una mini-guía más completa y con un tono más coloquial.
+
+Renombrado: "Banco de Semillas" ahora es "Baúl de Semillas" en toda la aplicación.
+
+== Versión 0.32 - Nuevo Sistema de Fertilizantes ==
+
+NUEVA FUNCIÓN: Se reemplazó el checklist estático por un sistema de registro de fertilizantes basado en líneas pre-cargadas.
+
+Incluye: Top Crop, Namaste, Kawsay, Advanced Nutrients, Athena y una categoría para Orgánico / Living Soil.
+
+Interfaz dinámica: El modal de registro ahora muestra un selector de línea. Al elegir una, aparecen los productos específicos de esa marca para completar las dosis.
+
+NUEVA OPCIÓN: Se añadió la línea "Personalizada", que permite al usuario añadir productos y dosis con nombres que no están en las listas pre-cargadas, ofreciendo máxima flexibilidad.
+
+MEJORA INTERNA: La información de los fertilizantes ahora se guarda en la base de datos de una forma mucho más limpia y estructurada (como un array de objetos).
+
+IMPORTANTE: El sistema es retrocompatible. Los registros de riego que tenías guardados con el sistema antiguo se siguen visualizando correctamente.
+---------------------------
+== Versión 0.33 - Mejoras de Interfaz (UI) y Experiencia (UX) ==
+
+Nuevo "Look & Feel":
+
+Se añadieron micro-interacciones a botones y tarjetas (efectos al pasar el mouse y al hacer clic).
+
+Las vistas ahora tienen una sutil animación de entrada para una navegación más fluida.
+
+Se unificó el estilo de todos los íconos de la aplicación para mayor coherencia visual.
+
+NUEVA FUNCIÓN - Búsqueda Rápida:
+
+Se agregó una barra de búsqueda en el "Panel de Salas" para encontrar salas por nombre al instante.
+
+Se agregó una barra de búsqueda en "Herramientas" que filtra dinámicamente el contenido de la pestaña que estés viendo (Genéticas, Baúl, etc.).
+
+NUEVA FUNCIÓN - Acciones Rápidas:
+
+Ahora cada tarjeta de Sala en el panel principal tiene un botón +.
+
+Este botón permite añadir un nuevo ciclo directamente a esa sala, ahorrando varios clicks y agilizando el flujo de trabajo.
+---------------------
+== Versión 0.34 - Sistema de Temas (Dark/Light Mode) ==
+
+NUEVA FUNCIÓN - Selector de Tema: Se implementó un sistema completo de Modo Claro / Modo Oscuro.
+
+Se añadió un interruptor en "Ajustes" para que el usuario elija su apariencia preferida (con íconos de sol/luna).
+
+La elección del usuario se guarda en su navegador y se aplica automáticamente en futuras visitas.
+
+El sistema detecta la preferencia del sistema operativo del usuario la primera vez que abre la app.
+
+Coherencia Visual Mejorada:
+
+Se creó una paleta de colores completa para el tema claro, asegurando la legibilidad en toda la aplicación.
+
+Se unificó el efecto de resplandor naranja en las tarjetas para que funcione en ambos temas, reforzando la identidad de la marca.
+
+Se corrigió el error de los títulos y textos que se veían en blanco, asegurando que todos los elementos sean visibles en ambos modos. Ahora los títulos principales siempre usan el color ámbar de la app.
+-----------------
+v0.341 - Mejoras UI Herramientas
+
+Se implementó un selector de vista en "Herramientas" para alternar entre tarjetas y una lista compacta.
+
+La nueva vista de lista se aplicó a las pestañas de Genéticas, Stock de Clones y Baúl de Semillas.
+---------------
+v0.3412 - Ordenamiento Personalizado (Drag & Drop)
+
+Añadida la funcionalidad para reordenar elementos arrastrándolos y soltándolos en la posición deseada.
+
+El nuevo sistema de ordenamiento se aplicó a las Salas del panel principal y a los ítems de Genéticas, Clones y Semillas.
+---------------------
+v0.342 - - Seguimiento Semanal en Vegetativo
+
+Se restauró la funcionalidad de seguimiento y registro de logs semanales para los ciclos en la fase de 'Vegetativo'.
+
+El sistema ahora asigna una estructura por defecto a esta fase y actualiza automáticamente los ciclos antiguos para garantizar la compatibilidad.
+
+Se corrigió un error que congelaba la aplicación al entrar a la pestaña 'Stock' o 'Baúl de Semillas'.
+
+La inicialización del drag-and-drop ahora verifica si la lista existe, evitando el crash si no se renderiza.
+
+--------------
+
+

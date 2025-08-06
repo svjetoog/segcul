@@ -15,6 +15,8 @@ import {
     openGerminateModal as uiOpenGerminateModal,
     openMoveCicloModal as uiOpenMoveCicloModal
 } from './ui.js';
+// ✨ CAMBIO: Añadimos startToolsTour a la importación
+import { startMainTour, startToolsTour } from './onboarding.js';
 
 // --- STATE MANAGEMENT ---
 let userId = null;
@@ -210,6 +212,9 @@ function loadSalas() {
             renderSalasGrid(currentSalas, currentCiclos, handlers);
         }
         initializeDragAndDrop();
+        
+        startMainTour();
+
     }, error => {
         console.error("Error loading salas:", error);
         getEl('loadingSalas').innerText = "Error al cargar las salas.";
@@ -224,7 +229,7 @@ function loadCiclos() {
         currentCiclos = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         const searchInput = getEl('searchSalas');
         if (searchInput && searchInput.value) {
-             const searchTerm = searchInput.value.toLowerCase();
+            const searchTerm = searchInput.value.toLowerCase();
             const filteredSalas = currentSalas.filter(sala => sala.name.toLowerCase().includes(searchTerm));
             renderSalasGrid(filteredSalas, currentCiclos, handlers);
         } else {
@@ -263,7 +268,7 @@ function loadSeeds() {
     seedsUnsubscribe = onSnapshot(q, (snapshot) => {
         currentSeeds = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         currentSeeds.sort((a, b) => (a.position || 0) - (b.position || 0));
-         if(!getEl('toolsView').classList.contains('hidden')) {
+        if(!getEl('toolsView').classList.contains('hidden')) {
             handlers.handleToolsSearch({ target: getEl('searchTools') });
         }
     });
@@ -409,7 +414,7 @@ const handlers = {
         }
     },
     deleteCiclo: (cicloId, cicloName) => {
-         handlers.showConfirmationModal(`¿Seguro que quieres eliminar el ciclo "${cicloName}"? Todos sus registros serán eliminados.`, async () => {
+        handlers.showConfirmationModal(`¿Seguro que quieres eliminar el ciclo "${cicloName}"? Todos sus registros serán eliminados.`, async () => {
             try {
                 const logsRef = collection(db, `users/${userId}/ciclos/${cicloId}/logs`);
                 const logsSnapshot = await getDocs(logsRef);
@@ -459,19 +464,13 @@ const handlers = {
     showCicloDetails: (ciclo) => {
         if (logsUnsubscribe) logsUnsubscribe();
 
-        // INICIO DE LA CORRECCIÓN CLAVE
-        // EXPLICACIÓN: Este bloque soluciona el problema para los ciclos vegetativos ya existentes.
-        // Si el ciclo es vegetativo y no tiene el array de semanas, se lo creamos "al vuelo"
-        // y lo guardamos en la base de datos para futuras visitas.
         if (ciclo.phase === 'Vegetativo' && !ciclo.vegetativeWeeks) {
             console.log(`Migrando ciclo antiguo: ${ciclo.name} (${ciclo.id})`);
             ciclo.vegetativeWeeks = generateVegetativeWeeks();
             const cicloRef = doc(db, `users/${userId}/ciclos`, ciclo.id);
-            // Actualizamos el documento en segundo plano, sin bloquear la UI.
             updateDoc(cicloRef, { vegetativeWeeks: ciclo.vegetativeWeeks })
                 .catch(err => console.error("Error al actualizar ciclo antiguo:", err));
         }
-        // FIN DE LA CORRECCIÓN CLAVE
 
         handlers.hideAllViews();
         const detailView = getEl('cicloDetailView');
@@ -513,6 +512,9 @@ const handlers = {
 
         handlers.switchToolsTab('genetics');
         handlers.handleViewModeToggle(toolsViewMode, true);
+        
+        // ✨ CAMBIO: Llamamos al tour de herramientas aquí.
+        startToolsTour();
 
         getEl('backToPanelBtn').addEventListener('click', () => {
             destroyToolSortables();
@@ -711,7 +713,7 @@ const handlers = {
     openGerminateModal: (id) => {
         const seed = currentSeeds.find(s => s.id === id);
         if(seed) {
-           uiOpenGerminateModal(seed);
+            uiOpenGerminateModal(seed);
         }
     },
     handleGerminateFormSubmit: async (e) => {
@@ -727,8 +729,8 @@ const handlers = {
 
         const seed = currentSeeds.find(s => s.id === seedId);
         if (quantity > seed.quantity) {
-             showNotification('No puedes germinar más semillas de las que tienes.', 'error');
-             return;
+            showNotification('No puedes germinar más semillas de las que tienes.', 'error');
+            return;
         }
 
         try {
