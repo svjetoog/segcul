@@ -1,6 +1,5 @@
 // js/ui.js
 
-// ✨ CAMBIO 1: Importamos la función que crea nuestro componente de timeline.
 import { crearTimelinePrincipal } from './components/timelinePrincipal.js';
 
 export const getEl = (id) => document.getElementById(id);
@@ -16,7 +15,6 @@ const FERTILIZER_LINES = {
     "Personalizada": []
 };
 
-// TOOLTIP: Función helper para crear el HTML del ícono de ayuda.
 function createTooltipIcon(title) {
     return `
         <span class="tooltip-trigger inline-flex items-center justify-center" data-tippy-content="${title}">
@@ -27,15 +25,20 @@ function createTooltipIcon(title) {
     `;
 }
 
-// TOOLTIP: Función para inicializar todos los tooltips en la vista actual.
 function initializeTooltips() {
-    // Usamos `setTimeout` con 0 para asegurar que el DOM se haya renderizado completamente
-    // antes de que Tippy intente encontrar los elementos.
     setTimeout(() => {
         tippy('.tooltip-trigger', {
             animation: 'scale-subtle',
             theme: 'light-border',
             allowHTML: true,
+            trigger: 'mouseenter focus',
+        });
+        tippy('.tooltip-trigger-click', {
+            animation: 'scale-subtle',
+            theme: 'light-border',
+            allowHTML: true,
+            trigger: 'click',
+            interactive: true,
         });
     }, 0);
 }
@@ -44,17 +47,33 @@ export function showNotification(message, type = 'success') {
     const container = getEl('notification-container');
     if (!container) return;
 
-    const notif = document.createElement('div');
-    notif.textContent = message;
-    notif.className = `p-3 rounded-lg shadow-lg mb-2 ${type === 'success' ? 'bg-green-500' : 'bg-red-500'} text-white transition-opacity duration-500 ease-in-out opacity-100`;
-
-    container.appendChild(notif);
+    if(document.getElementById('main-notification')) {
+        return;
+    }
     
-    setTimeout(() => {
+    const notif = document.createElement('div');
+    notif.id = 'main-notification';
+    notif.textContent = message;
+    
+    notif.className = `p-3 rounded-lg shadow-lg text-white transition-all duration-500 ease-in-out`;
+    notif.classList.add(type === 'success' ? 'bg-green-500' : 'bg-red-500');
+
+    notif.style.opacity = '0';
+    notif.style.transform = 'translateY(20px)';
+    
+    container.innerHTML = '';
+    container.appendChild(notif);
+
+    void notif.offsetWidth;
+
+    notif.style.opacity = '1';
+    notif.style.transform = 'translateY(0)';
+    
+    clearTimeout(notificationTimeout);
+    notificationTimeout = setTimeout(() => {
         notif.style.opacity = '0';
-        notif.addEventListener('transitionend', () => {
-            notif.remove();
-        });
+        notif.style.transform = 'translateY(20px)';
+        notif.addEventListener('transitionend', () => notif.remove());
     }, 4000);
 }
 
@@ -62,7 +81,7 @@ function createModalHTML(id, title, formId, content, submitText, cancelId, submi
     return `
         <div class="w-11/12 md:w-full max-w-lg p-6 rounded-lg shadow-lg overflow-y-auto max-h-screen">
             <h2 class="text-2xl font-bold mb-6 text-amber-400">${title}</h2>
-            <form id="${formId}">
+            <form id="${formId}" data-id="">
                 ${content}
                 <div class="flex justify-end gap-4 mt-8">
                     <button type="button" id="${cancelId}" class="btn-secondary btn-base py-2 px-4 rounded-lg">Cancelar</button>
@@ -110,7 +129,6 @@ export function openCicloModal(ciclo = null, salas = [], preselectedSalaId = nul
                     <select id="cicloPhase" class="w-full p-2 rounded-md">
                         <option value="Vegetativo" ${ciclo && ciclo.phase === 'Vegetativo' ? 'selected' : ''}>Vegetativo</option>
                         <option value="Floración" ${ciclo && ciclo.phase === 'Floración' ? 'selected' : ''}>Floración</option>
-                        <option value="Finalizado" ${ciclo && ciclo.phase === 'Finalizado' ? 'selected' : ''}>Finalizado</option>
                     </select>
                 </div>
                 <div>
@@ -148,8 +166,6 @@ export function openCicloModal(ciclo = null, salas = [], preselectedSalaId = nul
 
 export function openLogModal(ciclo, week, log = null) {
     const title = 'Añadir Registro';
-    const lineOptions = Object.keys(FERTILIZER_LINES).map(line => `<option value="${line}">${line}</option>`).join('');
-
     const content = `
         <div class="space-y-4">
             <div>
@@ -161,24 +177,7 @@ export function openLogModal(ciclo, week, log = null) {
                     <option value="Podas">Podas</option>
                 </select>
             </div>
-
             <div id="log-fields-container"></div>
-
-            <div id="plagasFields" class="hidden">
-                <label for="plagas-notes">Notas / Producto Aplicado</label>
-                <textarea id="plagas-notes" rows="3" class="w-full p-2 rounded-md"></textarea>
-            </div>
-
-            <div id="podasFields" class="hidden">
-                <label for="podaType">Tipo de Poda</label>
-                <select id="podaType" class="w-full p-2 rounded-md">
-                    <option>LST</option><option>Main-lining</option><option>Supercropping</option><option>Defoliación</option><option>Lollipop</option><option>Clones</option>
-                </select>
-                <div id="clonesSection" class="mt-2 hidden">
-                    <label for="clones-count">Cantidad de Clones</label>
-                    <input type="number" id="clones-count" class="w-full p-2 rounded-md">
-                </div>
-            </div>
         </div>
     `;
     const modal = getEl('logModal');
@@ -191,39 +190,44 @@ export function openLogModal(ciclo, week, log = null) {
     
     const logTypeSelect = getEl('logType');
     const logFieldsContainer = getEl('log-fields-container');
-    const plagasFields = getEl('plagasFields');
-    const podasFields = getEl('podasFields');
 
     const toggleLogFields = () => {
         const type = logTypeSelect.value;
         logFieldsContainer.innerHTML = '';
-        plagasFields.classList.add('hidden');
-        podasFields.classList.add('hidden');
 
         if (type === 'Riego' || type === 'Cambio de Solución') {
-            logFieldsContainer.innerHTML = getRiegoHTML(type, lineOptions);
+            logFieldsContainer.innerHTML = getRiegoHTML(type, FERTILIZER_LINES);
             const lineSelect = getEl('fert-line-select');
             lineSelect.addEventListener('change', () => renderFertilizerProducts(lineSelect.value));
             renderFertilizerProducts(lineSelect.value);
         } else if (type === 'Control de Plagas') {
-            plagasFields.classList.remove('hidden');
+            logFieldsContainer.innerHTML = `
+                <label for="plagas-notes">Notas / Producto Aplicado</label>
+                <textarea id="plagas-notes" rows="3" class="w-full p-2 rounded-md"></textarea>
+            `;
         } else if (type === 'Podas') {
-            podasFields.classList.remove('hidden');
+             logFieldsContainer.innerHTML = `
+                <label for="podaType">Tipo de Poda</label>
+                <select id="podaType" class="w-full p-2 rounded-md">
+                    <option>LST</option><option>Main-lining</option><option>Supercropping</option><option>Defoliación</option><option>Lollipop</option><option>Clones</option>
+                </select>
+                <div id="clonesSection" class="mt-2 hidden">
+                    <label for="clones-count">Cantidad de Clones</label>
+                    <input type="number" id="clones-count" class="w-full p-2 rounded-md">
+                </div>
+            `;
+            getEl('podaType').addEventListener('change', () => getEl('clonesSection').style.display = getEl('podaType').value === 'Clones' ? 'block' : 'none');
         }
     };
     
     logTypeSelect.addEventListener('change', toggleLogFields);
     toggleLogFields();
 
-    const podaTypeSelect = getEl('podaType');
-    if (podaTypeSelect) {
-        podaTypeSelect.addEventListener('change', () => getEl('clonesSection').style.display = getEl('podaType').value === 'Clones' ? 'block' : 'none');
-    }
-
     modal.style.display = 'flex';
 }
 
-function getRiegoHTML(type, lineOptions) {
+function getRiegoHTML(type, lines) {
+    const lineOptions = Object.keys(lines).map(line => `<option value="${line}">${line}</option>`).join('');
     const litrosField = type === 'Cambio de Solución' ? `
         <div>
             <label for="log-litros" class="text-gray-700 dark:text-gray-300">Litros Totales</label>
@@ -259,9 +263,7 @@ function getRiegoHTML(type, lineOptions) {
 function renderFertilizerProducts(lineName) {
     const container = getEl('fertilizer-products-container');
     container.innerHTML = '';
-
     const products = FERTILIZER_LINES[lineName];
-
     if (lineName === 'Personalizada') {
         const addBtn = document.createElement('button');
         addBtn.type = 'button';
@@ -331,6 +333,7 @@ export function openGerminateModal(seed) {
     modal.style.display = 'flex';
 }
 
+// MODIFICADO: Añadida la lógica del botón de eliminar semana
 export function renderCicloDetails(ciclo, handlers) {
     let weeksToRender = [];
     let phaseTitle = '';
@@ -343,42 +346,84 @@ export function renderCicloDetails(ciclo, handlers) {
         phaseTitle = 'Semanas de Floración';
     }
 
-    let weeksHTML = '';
-    if (weeksToRender.length > 0) {
-        weeksToRender.sort((a, b) => a.weekNumber - b.weekNumber);
-        
-        weeksHTML = `
-            <div class="mt-6">
-                <h3 class="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-200">${phaseTitle}</h3>
-                <div class="space-y-4">
-                    ${weeksToRender.map(week => {
-                        const phaseInfo = handlers.getPhaseInfo(week.phaseName || ciclo.phase);
-                        return `
-                            <div class="mb-4">
-                                <div class="week-header p-3 rounded-t-lg flex justify-between items-center cursor-pointer" onclick="this.nextElementSibling.classList.toggle('hidden')">
+    let actionButtonsHTML = '';
+    if (ciclo.estado === 'en_secado') {
+        actionButtonsHTML = `
+            <div class="mt-8 text-center bg-gray-100 dark:bg-gray-800 p-6 rounded-lg">
+                <h3 class="text-xl font-bold text-amber-400 mb-2">Proceso de Secado en Marcha</h3>
+                <p class="text-gray-600 dark:text-gray-300 mb-4">Cuando la cosecha esté seca y lista para enfrascar, haz clic abajo para guardar el resultado final.</p>
+                <button id="finalizar-ciclo-btn" class="btn-primary btn-base py-3 px-6 rounded-lg text-lg animate-pulse">
+                    Finalizar y Enfrascar Cosecha
+                </button>
+            </div>
+        `;
+    } else {
+        const lastWeekNumber = weeksToRender.length > 0 ? weeksToRender[weeksToRender.length - 1].weekNumber : 0;
+        const weeksHTML = weeksToRender.length > 0 ? `
+            <div class="space-y-4">
+                ${weeksToRender.sort((a,b) => a.weekNumber - b.weekNumber).map((week, index) => {
+                    const phaseInfo = handlers.getPhaseInfo(week.phaseName || ciclo.phase);
+                    const isLastWeek = week.weekNumber === lastWeekNumber;
+                    
+                    const deleteButtonHTML = `
+                        <button 
+                            data-action="delete-week" 
+                            data-ciclo-id="${ciclo.id}" 
+                            data-week-number="${week.weekNumber}" 
+                            class="btn-base p-1 rounded-md ${isLastWeek ? 'text-gray-400 hover:bg-red-800 hover:text-white' : 'text-gray-700 dark:text-gray-800 cursor-not-allowed'}" 
+                            ${!isLastWeek ? 'disabled' : ''} 
+                            ${!isLastWeek ? `data-tippy-content="Solo se puede eliminar la última semana"` : ''}
+                            title="Eliminar Semana ${week.weekNumber}">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.134-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.067-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+                            </svg>
+                        </button>
+                    `;
+
+                    return `
+                        <div class="mb-4">
+                            <div class="week-header p-3 rounded-t-lg flex justify-between items-center cursor-pointer" onclick="this.nextElementSibling.classList.toggle('hidden')">
+                                <div class="flex items-center gap-2">
+                                    ${deleteButtonHTML}
                                     <h4 class="font-bold text-lg text-gray-900 dark:text-white">Semana ${week.weekNumber} 
                                         <span class="text-sm font-normal px-2 py-1 rounded-full ml-2 ${phaseInfo.color}">${phaseInfo.name}</span>
                                     </h4>
-                                    <button class="btn-primary btn-base text-xs py-1 px-2 rounded-md add-log-for-week-btn" data-week='${JSON.stringify(week)}'>+ Registro</button>
                                 </div>
-                                <div class="p-4 bg-white dark:bg-[#262626] rounded-b-lg space-y-3" id="logs-week-${week.weekNumber}">
-                                </div>
+                                <button class="btn-primary btn-base text-xs py-1 px-2 rounded-md add-log-for-week-btn" data-week='${JSON.stringify(week)}'>+ Registro</button>
                             </div>
-                        `;
-                    }).join('')}
-                </div>
+                            <div class="p-4 bg-white dark:bg-[#262626] rounded-b-lg space-y-3" id="logs-week-${week.weekNumber}">
+                            </div>
+                        </div>
+                    `;
+                }).join('')}
+            </div>` : `<p class="text-center text-gray-500 dark:text-gray-400">No hay semanas definidas.</p>`;
+        
+        const mainActionButtons = `
+            <div class="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700 flex flex-col sm:flex-row items-center justify-center gap-4">
+                <button id="add-week-btn" class="btn-secondary btn-base py-2 px-4 rounded-lg w-full sm:w-auto">
+                    + Añadir Semana de ${ciclo.phase === 'Floración' ? 'Floración' : 'Vegetativo'}
+                </button>
+                ${ciclo.phase === 'Floración' ? `
+                <button id="iniciar-secado-btn" class="btn-primary btn-base py-2 px-4 rounded-lg font-bold w-full sm:w-auto">
+                    🌱 Poner a Secar
+                </button>` : ''}
+            </div>
+        `;
+
+        actionButtonsHTML = `
+            <div class="mt-6">
+                <h3 class="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-200">${phaseTitle}</h3>
+                ${weeksHTML}
+                ${mainActionButtons}
             </div>`;
-    } else {
-        weeksHTML = `<div class="mt-6 text-center text-gray-500 dark:text-gray-400">
-                        <p>No hay seguimiento por semanas para la fase "${ciclo.phase}".</p>
-                    </div>`;
     }
 
     const diffDaysVege = handlers.calculateDaysSince(ciclo.vegetativeStartDate);
     const diffDaysFlora = handlers.calculateDaysSince(ciclo.floweringStartDate);
     let statusText = '';
-    if(ciclo.phase === 'Vegetativo' && diffDaysVege !== null) statusText = `Día ${diffDaysVege} de vegetativo.`;
-    if(ciclo.phase === 'Floración' && diffDaysFlora !== null) statusText = `Día ${diffDaysFlora} de floración.`;
+    if(ciclo.estado === 'en_secado') statusText = `El ciclo está <span class="font-bold text-yellow-400">EN SECADO</span>.`;
+    else if(ciclo.phase === 'Vegetativo' && diffDaysVege !== null) statusText = `Día ${diffDaysVege} de vegetativo.`;
+    else if(ciclo.phase === 'Floración' && diffDaysFlora !== null) statusText = `Día ${diffDaysFlora} de floración.`;
 
     const html = `
         <div data-ciclo-id="${ciclo.id}">
@@ -391,7 +436,7 @@ export function renderCicloDetails(ciclo, handlers) {
             </header>
             <div id="timeline-container" class="my-2"></div>
             <main>
-                ${weeksHTML}
+                ${actionButtonsHTML}
             </main>
         </div>
     `;
@@ -404,9 +449,30 @@ export function renderCicloDetails(ciclo, handlers) {
                 openLogModal(ciclo, weekData);
             });
         });
+
+        // NUEVO: Listener para el botón de eliminar semana.
+        document.querySelectorAll('[data-action="delete-week"]').forEach(btn => {
+            if (!btn.disabled) {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    handlers.handleDeleteLastWeek(e.currentTarget.dataset.cicloId);
+                });
+            } else {
+                // Aseguramos que el tooltip se inicialice para los botones deshabilitados
+                tippy(btn, {
+                    animation: 'scale-subtle',
+                    theme: 'light-border',
+                });
+            }
+        });
+
+        const finalizarBtn = getEl('finalizar-ciclo-btn');
+        if (finalizarBtn) {
+            finalizarBtn.addEventListener('click', () => handlers.openFinalizarCicloModal(ciclo));
+        }
         
         try {
-            if (ciclo.phase === 'Floración') {
+            if (ciclo.phase === 'Floración' && ciclo.estado !== 'en_secado') {
                 const timelineContainer = getEl('timeline-container');
                 if (timelineContainer) {
                     const diaActual = handlers.calculateDaysSince(ciclo.floweringStartDate);
@@ -427,7 +493,9 @@ export function renderCicloDetails(ciclo, handlers) {
     }, 0);
     
     return html;
-}export function renderToolsView() {
+}
+
+export function renderToolsView() {
     const html = `
         <header class="flex justify-between items-center mb-8">
             <h1 class="text-3xl font-bold text-amber-400 font-mono tracking-wider">Herramientas</h1>
@@ -438,6 +506,7 @@ export function renderCicloDetails(ciclo, handlers) {
                 <button id="geneticsTabBtn" class="py-4 px-1 border-b-2 font-medium text-lg text-gray-500 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:border-gray-400 dark:hover:border-gray-300 whitespace-nowrap btn-base">Genéticas</button>
                 <button id="stockTabBtn" class="py-4 px-1 border-b-2 font-medium text-lg text-gray-500 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:border-gray-400 dark:hover:border-gray-300 whitespace-nowrap btn-base">Stock Clones</button>
                 <button id="baulSemillasTabBtn" class="py-4 px-1 border-b-2 font-medium text-lg text-gray-500 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:border-gray-400 dark:hover:border-gray-300 whitespace-nowrap btn-base">Baúl de Semillas</button>
+                <button id="historialTabBtn" class="py-4 px-1 border-b-2 font-medium text-lg text-gray-500 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:border-gray-400 dark:hover:border-gray-300 whitespace-nowrap btn-base">Historial</button>
             </nav>
         </div>
         <div class="flex items-center justify-between my-4">
@@ -495,6 +564,19 @@ export function renderCicloDetails(ciclo, handlers) {
                 <div id="baulSemillasList" class="w-full md:w-3/5 lg:w-2/3 space-y-4"></div>
             </div>
         </div>
+        <div id="historialContent" class="hidden">
+            <div class="flex flex-col md:flex-row gap-8">
+                <aside class="w-full md:w-1/4">
+                    <div id="historial-filter-panel" class="card p-4">
+                        <h3 class="font-bold text-lg mb-4">Filtrar Cosechas</h3>
+                        </div>
+                </aside>
+                <main class="w-full md:w-3/4">
+                    <div id="historialGrid" class="space-y-4">
+                        </div>
+                </main>
+            </div>
+        </div>
     `;
     setTimeout(() => initializeTooltips(), 0);
     return html;
@@ -536,23 +618,34 @@ export function renderSettingsView() {
 export function createCicloCard(ciclo, handlers) {
     const card = document.createElement('div');
     card.className = 'card rounded-xl p-5 flex flex-col justify-between';
-    const phaseColor = ciclo.phase === 'Floración' ? 'bg-pink-500' : 'bg-green-500';
-    const phaseText = ciclo.phase;
+    
+    let phaseColor = 'bg-gray-500';
+    let phaseText = ciclo.phase;
+    if (ciclo.estado === 'en_secado') {
+        phaseColor = handlers.getPhaseInfo('en_secado').color;
+        phaseText = handlers.getPhaseInfo('en_secado').name;
+    } else if (ciclo.phase === 'Floración') {
+        phaseColor = 'bg-pink-500';
+    } else if (ciclo.phase === 'Vegetativo') {
+        phaseColor = 'bg-green-500';
+    }
+
     const typeText = ciclo.cultivationType || 'Sustrato';
     const typeColor = typeText === 'Hidroponia' ? 'bg-blue-500' : 'bg-yellow-600';
     let statusInfo = '';
-    let microTimelineHTML = ''; // ✨ CAMBIO 1: Variable para nuestra nueva barra
+    let microTimelineHTML = '';
 
-    if (ciclo.phase === 'Floración') {
+    if (ciclo.estado === 'en_secado') {
+        statusInfo = `<p class="text-sm text-yellow-400 font-semibold mt-1">¡Listo para enfrascar!</p>`;
+    } else if (ciclo.phase === 'Floración') {
         const diffDays = handlers.calculateDaysSince(ciclo.floweringStartDate);
-        if (diffDays !== null && diffDays >= 0) { // Usamos >= 0 para que se vea desde el día 0
+        if (diffDays !== null && diffDays >= 0) {
             const currentWeek = Math.floor(diffDays / 7) + 1;
             const totalWeeks = ciclo.floweringWeeks ? ciclo.floweringWeeks.length : 0;
             
             if (totalWeeks > 0) {
                  statusInfo = `<p class="text-sm text-gray-500 dark:text-gray-300 mt-1">Día ${diffDays} (Semana ${currentWeek} / ${totalWeeks})</p>`;
                 
-                // ✨ CAMBIO 2: Lógica para calcular y generar la micro-timeline
                 const totalDays = totalWeeks * 7;
                 const progressPercentage = Math.min(100, (diffDays / totalDays) * 100);
                 microTimelineHTML = `
@@ -579,7 +672,8 @@ export function createCicloCard(ciclo, handlers) {
                 </div>
             </div>
             ${statusInfo}
-            ${microTimelineHTML} </div>
+            ${microTimelineHTML}
+        </div>
         <div class="mt-6 flex flex-wrap justify-end gap-2">
             <button data-action="move-ciclo" class="btn-secondary btn-base p-2 rounded-lg tooltip-trigger" data-tippy-content="Permite mover este ciclo a otra Sala sin afectar sus datos.">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M7.5 21 3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5" /></svg>
@@ -602,12 +696,17 @@ export function createCicloCard(ciclo, handlers) {
     });
     return card;
 }
+
 export function createLogEntry(log, ciclo, handlers) {
     const entry = document.createElement('div');
     const logDate = log.date.toLocaleString('es-AR', { dateStyle: 'short', timeStyle: 'short'});
     let details = '';
     let borderColorClass = 'border-amber-500';
-    if (log.type === 'Riego' || log.type === 'Cambio de Solución') {
+
+    if (log.type === 'Iniciar Secado') {
+        borderColorClass = 'border-yellow-400';
+        details = `<p class="font-semibold text-yellow-400">🔥 Inicio de Secado</p><p class="text-sm text-gray-500 dark:text-gray-300 mt-1">El ciclo ha sido marcado para secado.</p>`;
+    } else if (log.type === 'Riego' || log.type === 'Cambio de Solución') {
         const title = log.type === 'Cambio de Solución' ? 'Cambio de Solución' : (ciclo.cultivationType === 'Hidroponia' ? 'Control de Solución' : 'Riego');
         const color = log.type === 'Cambio de Solución' ? 'text-blue-400' : 'text-amber-400';
         details = `<p class="font-semibold ${color}">${title}</p>
@@ -622,7 +721,7 @@ export function createLogEntry(log, ciclo, handlers) {
     } else if (log.type === 'Control de Plagas') {
         borderColorClass = 'border-yellow-400';
         details = `<p class="font-semibold text-yellow-400">Control de Plagas</p>
-                        <p class="text-sm text-gray-500 dark:text-gray-300 mt-1 whitespace-pre-wrap">${log.notes || 'Sin notas.'}</p>`;
+                         <p class="text-sm text-gray-500 dark:text-gray-300 mt-1 whitespace-pre-wrap">${log.notes || 'Sin notas.'}</p>`;
     } else if (log.type === 'Podas') {
         borderColorClass = 'border-green-400';
         details = `<p class="font-semibold text-green-400">Poda: ${log.podaType || ''}</p>`;
@@ -662,7 +761,7 @@ export function renderSalasGrid(salas, ciclos, handlers) {
 
     salas.forEach(sala => {
         const ciclosInSala = ciclos.filter(c => c.salaId === sala.id);
-        const activeCiclos = ciclosInSala.filter(c => c.phase !== 'Finalizado');
+        const activeCiclos = ciclosInSala.filter(c => c.estado !== 'finalizado');
         const salaCard = document.createElement('div');
         salaCard.className = 'card rounded-xl p-5 flex flex-col justify-between aspect-square relative';
         salaCard.dataset.salaId = sala.id;
@@ -671,7 +770,9 @@ export function renderSalasGrid(salas, ciclos, handlers) {
         if (activeCiclos.length > 0) {
             const listHTML = activeCiclos.map(c => {
                 let phaseClass = 'vege';
-                if (c.phase === 'Floración' && c.floweringStartDate && c.floweringWeeks) {
+                if (c.estado === 'en_secado') {
+                    phaseClass = 'secado';
+                } else if (c.phase === 'Floración' && c.floweringStartDate && c.floweringWeeks) {
                     const diffDays = handlers.calculateDaysSince(c.floweringStartDate);
                     if (diffDays !== null && diffDays > 0) {
                         const currentWeek = Math.floor((diffDays - 1) / 7) + 1;
@@ -743,7 +844,7 @@ export function renderGeneticsList(genetics, handlers) {
         geneticCard.dataset.id = g.id;
         geneticCard.innerHTML = `
             <div class="mb-3 sm:mb-0">
-                <p class="font-bold text-lg text-amber-400 flex items-center gap-2">${g.name}</p>
+                <p class="font-bold text-lg text-amber-400 flex items-center gap-2">${g.favorita ? '⭐' : ''} ${g.name}</p>
                 <p class="text-sm text-gray-500 dark:text-gray-400">${g.parents || 'Sin padres definidos'} | ${g.bank || 'Sin banco'} | ${g.owner || 'Sin dueño'}</p>
             </div>
             <div class="flex gap-2 flex-wrap">
@@ -776,7 +877,7 @@ export function renderGeneticsListCompact(genetics, handlers) {
         item.dataset.id = g.id;
         item.innerHTML = `
             <div>
-                <p class="font-semibold text-amber-400">${g.name}</p>
+                <p class="font-semibold text-amber-400 flex items-center gap-2">${g.favorita ? '⭐' : ''} ${g.name}</p>
                 <p class="text-xs text-gray-500 dark:text-gray-400">${g.bank || 'Sin banco'}</p>
             </div>
             <div class="flex gap-2">
@@ -919,6 +1020,141 @@ export function renderBaulSemillasListCompact(seeds, handlers) {
     baulSemillasList.querySelectorAll('[data-action="delete-seed"]').forEach(btn => btn.addEventListener('click', (e) => handlers.deleteSeed(e.currentTarget.dataset.id)));
 }
 
+export function renderHistorialView(historial, handlers) {
+    const grid = getEl('historialGrid');
+    if (!grid) return;
+    grid.innerHTML = '';
+
+    if (historial.length === 0) {
+        grid.innerHTML = `<p class="text-center text-gray-500 dark:text-gray-400 col-span-full">No hay cosechas en tu historial. ¡Finaliza un ciclo para empezar!</p>`;
+        return;
+    }
+
+    historial.sort((a,b) => b.fechaFinalizacion.toDate() - a.fechaFinalizacion.toDate());
+    historial.forEach(ciclo => {
+        grid.appendChild(createHistorialCard(ciclo, handlers));
+    });
+    initializeTooltips();
+}
+
+function createHistorialCard(ciclo, handlers) {
+    const card = document.createElement('div');
+    card.className = 'card p-4 rounded-lg';
+
+    const fechaFin = ciclo.fechaFinalizacion ? ciclo.fechaFinalizacion.toDate().toLocaleDateString('es-AR') : 'N/A';
+    const allTags = [...(ciclo.etiquetasGlobales || []), ...(ciclo.etiquetasCustom || [])];
+    const tagsHTML = allTags.map(tag => {
+        const isCustom = ciclo.etiquetasCustom && ciclo.etiquetasCustom.includes(tag);
+        return `<span class="tag ${isCustom ? 'tag-custom' : 'tag-standard'}">${tag}</span>`;
+    }).join('');
+    
+    const geneticsList = ciclo.genetics ? ciclo.genetics.map(g => `<li>${g.name}</li>`).join('') : '<li>No especificadas</li>';
+
+    card.innerHTML = `
+        <div class="flex justify-between items-start">
+            <h3 class="text-xl font-bold text-amber-400">${ciclo.name}</h3>
+            <div class="flex items-center gap-2">
+                <span class="text-lg font-mono text-gray-700 dark:text-gray-200 cursor-pointer tooltip-trigger-click" data-tippy-content="<ul class='list-disc list-inside text-left'>${geneticsList}</ul>">🧬</span>
+            </div>
+        </div>
+        <hr class="border-gray-200 dark:border-gray-700 my-2">
+        <div class="flex justify-between items-center text-gray-600 dark:text-gray-300 font-mono text-lg my-3">
+            <span class="tooltip-trigger" data-tippy-content="Peso en seco">⚖️ ${ciclo.pesoSeco || 0}g</span>
+            <span class="tooltip-trigger" data-tippy-content="Días de floración">🌸 ${ciclo.diasDeFlora || 0}d</span>
+            <span class="tooltip-trigger" data-tippy-content="Días de secado">⏳ ${ciclo.diasDeSecado || 0}d</span>
+            <span class="tooltip-trigger" data-tippy-content="Fecha de cosecha">🗓️ ${fechaFin}</span>
+        </div>
+        <div class="flex flex-wrap gap-2 mt-2">
+            ${tagsHTML || '<p class="text-xs text-gray-400 italic">Sin etiquetas.</p>'}
+        </div>
+    `;
+    
+    return card;
+}
+
+export function openFinalizarCicloModal(ciclo, predefinedTags, maxCustomTags, allGenetics) {
+    const modal = getEl('finalizarCicloModal');
+    const form = getEl('finalizarCicloForm');
+    form.dataset.cicloId = ciclo.id;
+
+    const globalTagsContainer = getEl('global-tags-container');
+    globalTagsContainer.innerHTML = '';
+    Object.entries(predefinedTags).forEach(([category, tags]) => {
+        const categoryDiv = document.createElement('div');
+        categoryDiv.className = 'mb-2';
+        categoryDiv.innerHTML = `<h4 class="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-1">${category}</h4>`;
+        const tagsWrapper = document.createElement('div');
+        tagsWrapper.className = 'flex flex-wrap gap-2';
+        tags.forEach(tag => {
+            const tagEl = document.createElement('button');
+            tagEl.type = 'button';
+            tagEl.className = 'tag tag-standard';
+            tagEl.textContent = tag;
+            tagEl.onclick = () => tagEl.classList.toggle('active');
+            tagsWrapper.appendChild(tagEl);
+        });
+        categoryDiv.appendChild(tagsWrapper);
+        globalTagsContainer.appendChild(categoryDiv);
+    });
+
+    const customTagsContainer = getEl('custom-tags-container');
+    const customTagInput = getEl('custom-tag-input');
+    const addCustomTagBtn = getEl('add-custom-tag-btn');
+    customTagsContainer.innerHTML = '';
+
+    const addCustomTag = () => {
+        if (customTagsContainer.children.length >= maxCustomTags) {
+            showNotification(`Puedes añadir un máximo de ${maxCustomTags} etiquetas personalizadas.`, 'error');
+            return;
+        }
+        const value = customTagInput.value.trim();
+        if (value) {
+            const tagEl = document.createElement('span');
+            tagEl.className = 'tag tag-custom flex items-center gap-1';
+            tagEl.textContent = value;
+            const removeBtn = document.createElement('button');
+            removeBtn.type = 'button';
+            removeBtn.innerHTML = '&times;';
+            removeBtn.className = 'font-bold';
+            removeBtn.onclick = () => tagEl.remove();
+            tagEl.appendChild(removeBtn);
+            customTagsContainer.appendChild(tagEl);
+            customTagInput.value = '';
+        }
+    };
+    addCustomTagBtn.onclick = addCustomTag;
+    customTagInput.onkeydown = (e) => { if(e.key === 'Enter') { e.preventDefault(); addCustomTag(); }};
+
+    const geneticasContainer = getEl('geneticas-feedback-container');
+    geneticasContainer.innerHTML = '';
+    if (ciclo.genetics && ciclo.genetics.length > 0) {
+        ciclo.genetics.forEach(g => {
+            const geneticInfo = allGenetics.find(ag => ag.id === g.id);
+            const row = document.createElement('div');
+            row.className = 'genetic-feedback-row p-3 rounded-md bg-gray-100 dark:bg-gray-800';
+            row.dataset.id = g.id;
+            row.dataset.name = g.name;
+            row.innerHTML = `
+                <p class="font-bold text-lg text-amber-400">${g.name}</p>
+                <div class="flex items-center justify-between mt-2">
+                    <div class="flex gap-4 text-sm">
+                        <label class="flex items-center gap-1"><input type="radio" name="decision-${g.id}" value="repetir"> 👍 Repetir</label>
+                        <label class="flex items-center gap-1"><input type="radio" name="decision-${g.id}" value="no-repetir"> 👎 No Repetir</label>
+                    </div>
+                    <label class="flex items-center gap-2 text-lg cursor-pointer">
+                        <input type="checkbox" class="favorite-checkbox h-5 w-5 rounded text-amber-500 focus:ring-amber-500" ${geneticInfo && geneticInfo.favorita ? 'checked' : ''}> ⭐ Favorita
+                    </label>
+                </div>
+            `;
+            geneticasContainer.appendChild(row);
+        });
+    } else {
+        geneticasContainer.innerHTML = '<p class="italic text-gray-500">No se especificaron genéticas para este ciclo.</p>';
+    }
+
+    modal.style.display = 'flex';
+}
+
 export function initializeEventListeners(handlers) {
     getEl('loginForm').addEventListener('submit', (e) => {
         e.preventDefault();
@@ -978,6 +1214,7 @@ export function initializeEventListeners(handlers) {
             if (handlers.getConfirmCallback()) handlers.getConfirmCallback()();
             handlers.hideConfirmationModal();
         }
+        if (e.target.closest('#cancelFinalizarBtn')) getEl('finalizarCicloModal').style.display = 'none';
     });
 
     document.body.addEventListener('submit', (e) => {
@@ -987,6 +1224,7 @@ export function initializeEventListeners(handlers) {
         if (e.target.id === 'moveCicloForm') handlers.handleMoveCicloSubmit(e);
         if (e.target.id === 'germinateSeedForm') handlers.handleGerminateFormSubmit(e);
         if (e.target.id === 'seedForm') handlers.handleSeedFormSubmit(e);
+        if (e.target.id === 'finalizarCicloForm') handlers.handleFinalizarCicloFormSubmit(e);
     });
     
     initializeTooltips();

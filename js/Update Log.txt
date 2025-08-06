@@ -295,5 +295,43 @@ Se corrigió un error que congelaba la aplicación al entrar a la pestaña 'Stoc
 La inicialización del drag-and-drop ahora verifica si la lista existe, evitando el crash si no se renderiza.
 
 --------------
+--- Version 0.345 ---
 
+* Implementacion de Tooltips de Ayuda (?):
+  Se anadieron iconos de ayuda en puntos clave de la app para explicar
+  funciones especificas y guiar al usuario.
 
+* Timeline de Progreso en Detalles del Ciclo:
+  Se muestra una barra de progreso segmentada para visualizar el
+  avance de las semanas en ciclos de floracion.
+
+* Micro-Timeline de Progreso en Panel de Salas:
+  Cada ciclo en floracion ahora muestra una barra de progreso
+  compacta para un resumen visual rapido en el panel principal.
+
+* Sistema de Onboarding (Tours Guiados):
+  Se implemento un tour de bienvenida y un tour para la seccion de
+  Herramientas para guiar a los nuevos usuarios.
+
+* Personalizacion de Estilos del Tour:
+  La apariencia de los tours guiados ahora se adapta
+  automaticamente al tema claro/oscuro de la aplicacion.
+---------------------------------
+Claro. Aquí tienes el resumen de actualizaciones de la v0.35 para tu bloc de notas.
+
+Resumen de Updates v0.35 (respecto a v0.345)
+
+- Historial de Ciclos: Se añadió una nueva pestaña "Historial" en Herramientas para archivar y consultar los ciclos finalizados.
+
+- Nuevo Flujo para Cosechar: Se eliminó la "Semana de Secado". Se usa el botón "Poner a Secar" para cambiar el estado del ciclo.
+Luego aparece el botón "Finalizar y Enfrascar" para guardar los datos finales de la cosecha.
+
+- Gestión Flexible de Semanas: Se puede extender un ciclo con el botón "+ Añadir Semana".
+También se puede eliminar la última semana (junto a sus logs) con el nuevo ícono de eliminar.
+
+- Sistema de Etiquetas y Favoritas: Al finalizar un ciclo, se añaden "tags" descriptivos (ej: "Ultra Resinoso", "Fácil de Cultivar").
+También se pueden marcar genéticas como favoritas desde el resumen de la cosecha.
+
+- Mejoras de Interfaz y Datos: Las semanas sin registros ahora aparecen cerradas por defecto en la vista de detalles.
+Los ciclos creados en versiones anteriores se actualizan solos para ser compatibles.
+-------------------

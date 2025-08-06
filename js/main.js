@@ -1,7 +1,7 @@
 // js/main.js
 import { auth, db } from './firebase.js';
 import { onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, updatePassword, deleteUser } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-import { collection, doc, addDoc, deleteDoc, onSnapshot, query, serverTimestamp, getDocs, writeBatch, updateDoc, arrayUnion, where, increment } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+import { collection, doc, addDoc, deleteDoc, onSnapshot, query, serverTimestamp, getDocs, writeBatch, updateDoc, arrayUnion, where, increment, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 import {
     getEl, showNotification, renderSalasGrid, createCicloCard, createLogEntry,
     renderGeneticsList, renderStockList,
@@ -13,15 +13,16 @@ import {
     openCicloModal as uiOpenCicloModal,
     openLogModal as uiOpenLogModal,
     openGerminateModal as uiOpenGerminateModal,
-    openMoveCicloModal as uiOpenMoveCicloModal
+    openMoveCicloModal as uiOpenMoveCicloModal,
+    openFinalizarCicloModal as uiOpenFinalizarCicloModal,
+    renderHistorialView
 } from './ui.js';
-// ✨ CAMBIO: Añadimos startToolsTour a la importación
 import { startMainTour, startToolsTour } from './onboarding.js';
 
 // --- STATE MANAGEMENT ---
 let userId = null;
-let salasUnsubscribe = null, ciclosUnsubscribe = null, logsUnsubscribe = null, geneticsUnsubscribe = null, seedsUnsubscribe = null;
-let currentSalas = [], currentCiclos = [], currentGenetics = [], currentSeeds = [];
+let salasUnsubscribe = null, ciclosUnsubscribe = null, logsUnsubscribe = null, geneticsUnsubscribe = null, seedsUnsubscribe = null, historialUnsubscribe = null;
+let currentSalas = [], currentCiclos = [], currentGenetics = [], currentSeeds = [], currentHistorial = [];
 let currentSalaId = null, currentSalaName = null;
 let confirmCallback = null;
 let activeToolsTab = 'genetics';
@@ -30,6 +31,13 @@ let sortableSalas = null;
 let sortableGenetics = null;
 let sortableStock = null;
 let sortableSeeds = null;
+
+const PREDEFINED_TAGS = {
+    "Cualidades del Producto Final": ["Muy Potente", "Ultra Resinoso", "Aroma Intenso", "Sabor Complejo", "Flores Densas", "Aspecto Atractivo"],
+    "Experiencia de Cultivo": ["Fácil de Cultivar", "Resistente a Plagas"],
+    "Producción": ["Baja Producción", "Producción Media", "Alta Producción"]
+};
+const MAX_CUSTOM_TAGS = 3;
 
 
 // --- 1. FUNCTION DEFINITIONS (LOGIC & DATA) ---
@@ -56,6 +64,15 @@ function calculateDaysSince(startDateString) {
     return diffDays + 1;
 }
 
+function calculateDaysBetween(start, end) {
+    if (!start || !end) return 0;
+    const startDate = start.toDate ? start.toDate() : start;
+    const endDate = end.toDate ? end.toDate() : end;
+    const diffTime = Math.abs(endDate - startDate);
+    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+}
+
+
 function getPhaseInfo(phaseName) {
     switch(phaseName) {
         case 'Vegetativo': return { name: 'VEGETATIVO', color: 'bg-green-600', class: 'vegetativo' };
@@ -63,7 +80,7 @@ function getPhaseInfo(phaseName) {
         case 'FLORA': return { name: 'FLORA', color: 'bg-pink-600', class: 'flora' };
         case 'MADURACION': return { name: 'MADURACION', color: 'bg-orange-600', class: 'maduracion' };
         case 'LAVADO': return { name: 'LAVADO', color: 'bg-blue-600', class: 'lavado' };
-        case 'SECADO': return { name: 'SECADO', color: 'bg-yellow-600 text-black', class: 'secado' };
+        case 'en_secado': return { name: 'EN SECADO', color: 'bg-yellow-400 text-black', class: 'secado' };
         default: return { name: 'Finalizado', color: 'bg-gray-500', class: 'finalizado' };
     }
 }
@@ -78,13 +95,12 @@ function generateVegetativeWeeks() {
 
 function generateStandardWeeks() {
     const weeks = [];
-    for (let i = 1; i <= 10; i++) {
+    for (let i = 1; i <= 9; i++) {
         let phaseName;
         if (i <= 3) phaseName = 'PRE-FLORA';
         else if (i <= 6) phaseName = 'FLORA';
         else if (i <= 8) phaseName = 'MADURACION';
         else if (i === 9) phaseName = 'LAVADO';
-        else if (i === 10) phaseName = 'SECADO';
         weeks.push({ weekNumber: i, phaseName });
     }
     return weeks;
@@ -226,7 +242,8 @@ function loadCiclos() {
     const q = query(collection(db, `users/${userId}/ciclos`));
     if (ciclosUnsubscribe) ciclosUnsubscribe();
     ciclosUnsubscribe = onSnapshot(q, (snapshot) => {
-        currentCiclos = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        currentCiclos = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })).filter(c => c.estado !== 'finalizado');
+        
         const searchInput = getEl('searchSalas');
         if (searchInput && searchInput.value) {
             const searchTerm = searchInput.value.toLowerCase();
@@ -274,16 +291,39 @@ function loadSeeds() {
     });
 }
 
+function loadHistorial() {
+    if (!userId) return;
+    const q = query(collection(db, `users/${userId}/ciclos`), where("estado", "==", "finalizado"));
+    if (historialUnsubscribe) historialUnsubscribe();
+    historialUnsubscribe = onSnapshot(q, (snapshot) => {
+        currentHistorial = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        if (activeToolsTab === 'historial') {
+             renderHistorialView(currentHistorial, handlers);
+        }
+    }, error => {
+        console.error("Error loading history:", error);
+    });
+}
+
 function loadLogsForCiclo(cicloId, weekNumbers) {
     if (logsUnsubscribe) logsUnsubscribe();
     const q = query(collection(db, `users/${userId}/ciclos/${cicloId}/logs`));
     logsUnsubscribe = onSnapshot(q, (snapshot) => {
-        weekNumbers.forEach(weekNum => {
-            const logContainer = getEl(`logs-week-${weekNum}`);
-            if(logContainer) logContainer.innerHTML = `<p class="text-gray-500 dark:text-gray-400 italic">No hay registros.</p>`;
-        });
         const allLogs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data(), date: doc.data().date.toDate() }));
         allLogs.sort((a, b) => b.date - a.date);
+        
+        const weeksWithLogs = new Set(allLogs.map(log => log.week));
+
+        weekNumbers.forEach(weekNum => {
+            const logContainer = getEl(`logs-week-${weekNum}`);
+            if(logContainer) {
+                logContainer.innerHTML = `<p class="text-gray-500 dark:text-gray-400 italic">No hay registros.</p>`;
+                if (!weeksWithLogs.has(weekNum)) {
+                    logContainer.classList.add('hidden');
+                }
+            }
+        });
+        
         allLogs.forEach(log => {
             const logContainer = getEl(`logs-week-${log.week}`);
             if (logContainer) {
@@ -386,7 +426,8 @@ const handlers = {
             cultivationType: getEl('cultivationType').value,
             vegetativeStartDate: getEl('vegetativeStartDate').value,
             floweringStartDate: getEl('floweringStartDate').value,
-            notes: getEl('ciclo-notes').value.trim()
+            notes: getEl('ciclo-notes').value.trim(),
+            estado: 'activo'
         };
 
         if (!cicloData.name || !cicloData.salaId) {
@@ -464,12 +505,26 @@ const handlers = {
     showCicloDetails: (ciclo) => {
         if (logsUnsubscribe) logsUnsubscribe();
 
+        let needsUpdate = false;
+        const cicloRef = doc(db, `users/${userId}/ciclos`, ciclo.id);
+
         if (ciclo.phase === 'Vegetativo' && !ciclo.vegetativeWeeks) {
-            console.log(`Migrando ciclo antiguo: ${ciclo.name} (${ciclo.id})`);
+            console.log(`Migrando ciclo vegetativo antiguo: ${ciclo.name}`);
             ciclo.vegetativeWeeks = generateVegetativeWeeks();
-            const cicloRef = doc(db, `users/${userId}/ciclos`, ciclo.id);
-            updateDoc(cicloRef, { vegetativeWeeks: ciclo.vegetativeWeeks })
-                .catch(err => console.error("Error al actualizar ciclo antiguo:", err));
+            needsUpdate = true;
+        }
+
+        if (ciclo.phase === 'Floración' && ciclo.floweringWeeks && ciclo.floweringWeeks.some(w => w.phaseName === 'SECADO')) {
+            console.log(`Migrando ciclo de floración antiguo: ${ciclo.name}`);
+            ciclo.floweringWeeks = ciclo.floweringWeeks.filter(w => w.phaseName !== 'SECADO');
+            needsUpdate = true;
+        }
+
+        if (needsUpdate) {
+            updateDoc(cicloRef, { 
+                vegetativeWeeks: ciclo.vegetativeWeeks || null,
+                floweringWeeks: ciclo.floweringWeeks || null
+            }).catch(err => console.error("Error al migrar datos del ciclo:", err));
         }
 
         handlers.hideAllViews();
@@ -479,6 +534,12 @@ const handlers = {
         detailView.classList.add('view-container');
 
         getEl('backToCiclosBtn').addEventListener('click', () => handlers.showCiclosView(ciclo.salaId, currentSalas.find(s=>s.id === ciclo.salaId)?.name));
+        
+        const addWeekBtn = getEl('add-week-btn');
+        if(addWeekBtn) addWeekBtn.addEventListener('click', () => handlers.handleAddWeek(ciclo.id));
+        
+        const iniciarSecadoBtn = getEl('iniciar-secado-btn');
+        if(iniciarSecadoBtn) iniciarSecadoBtn.addEventListener('click', () => handlers.handleIniciarSecado(ciclo.id, ciclo.name));
 
         let weeksToShow = [];
         if (ciclo.phase === 'Floración' && ciclo.floweringWeeks) {
@@ -513,7 +574,6 @@ const handlers = {
         handlers.switchToolsTab('genetics');
         handlers.handleViewModeToggle(toolsViewMode, true);
         
-        // ✨ CAMBIO: Llamamos al tour de herramientas aquí.
         startToolsTour();
 
         getEl('backToPanelBtn').addEventListener('click', () => {
@@ -523,6 +583,7 @@ const handlers = {
         getEl('geneticsTabBtn').addEventListener('click', () => handlers.switchToolsTab('genetics'));
         getEl('stockTabBtn').addEventListener('click', () => handlers.switchToolsTab('stock'));
         getEl('baulSemillasTabBtn').addEventListener('click', () => handlers.switchToolsTab('baulSemillas'));
+        getEl('historialTabBtn').addEventListener('click', () => handlers.switchToolsTab('historial'));
         getEl('geneticsForm').addEventListener('submit', handlers.handleGeneticsFormSubmit);
         getEl('seedForm').addEventListener('submit', handlers.handleSeedFormSubmit);
         getEl('searchTools').addEventListener('input', handlers.handleToolsSearch);
@@ -554,7 +615,7 @@ const handlers = {
         getEl('app').classList.remove('hidden');
     },
     hideAllViews: () => {
-        ['app', 'ciclosView', 'cicloDetailView', 'toolsView', 'settingsView'].forEach(id => {
+        ['app', 'ciclosView', 'cicloDetailView', 'toolsView', 'settingsView', 'historialView'].forEach(id => {
             const el = getEl(id);
             if (el) {
                 el.classList.add('hidden');
@@ -564,13 +625,24 @@ const handlers = {
     },
     switchToolsTab: (newTab) => {
         activeToolsTab = newTab;
-        ['genetics', 'stock', 'baulSemillas'].forEach(tab => {
+        ['genetics', 'stock', 'baulSemillas', 'historial'].forEach(tab => {
             getEl(`${tab}Content`).classList.toggle('hidden', tab !== activeToolsTab);
             getEl(`${tab}TabBtn`).classList.toggle('border-amber-400', tab === activeToolsTab);
             getEl(`${tab}TabBtn`).classList.toggle('border-transparent', tab !== activeToolsTab);
         });
-        getEl('searchTools').value = '';
-        handlers.handleToolsSearch({ target: { value: '' } });
+
+        const searchTools = getEl('searchTools');
+        const viewMode = getEl('view-mode-toggle');
+        
+        if (newTab === 'historial') {
+            searchTools.placeholder = 'Buscar por genética, sala...';
+            viewMode.classList.add('hidden');
+            renderHistorialView(currentHistorial, handlers);
+        } else {
+            searchTools.placeholder = 'Buscar por nombre...';
+            viewMode.classList.remove('hidden');
+            handlers.handleToolsSearch({ target: { value: '' } });
+        }
     },
     handleToolsSearch: (e) => {
         const searchTerm = e.target.value.toLowerCase();
@@ -613,7 +685,8 @@ const handlers = {
             parents: getEl('genetic-parents').value.trim(),
             bank: getEl('genetic-bank').value.trim(),
             owner: getEl('genetic-owner').value.trim(),
-            cloneStock: parseInt(getEl('genetic-stock').value) || 0
+            cloneStock: parseInt(getEl('genetic-stock').value) || 0,
+            favorita: geneticId ? (currentGenetics.find(g => g.id === geneticId)?.favorita || false) : false
         };
         if (!geneticData.name) {
             showNotification('El nombre es obligatorio.', 'error');
@@ -773,7 +846,8 @@ const handlers = {
             await updatePassword(user, newPassword);
             showNotification('Contraseña cambiada correctamente.');
             e.target.reset();
-        } catch (error) {
+        } catch (error)
+        {
             console.error("Error changing password:", error);
             showNotification('Error al cambiar la contraseña. Es posible que necesites volver a iniciar sesión.', 'error');
         }
@@ -789,7 +863,7 @@ const handlers = {
             date: serverTimestamp(),
             week: parseInt(week)
         };
-
+        
         if (logData.type === 'Riego' || logData.type === 'Cambio de Solución') {
             logData.ph = getEl('log-ph').value || null;
             logData.ec = getEl('log-ec').value || null;
@@ -852,6 +926,144 @@ const handlers = {
             } catch (error) {
                 console.error("Error deleting log:", error);
                 showNotification('Error al eliminar el registro.', 'error');
+            }
+        });
+    },
+    openFinalizarCicloModal: (ciclo) => {
+        uiOpenFinalizarCicloModal(ciclo, PREDEFINED_TAGS, MAX_CUSTOM_TAGS, currentGenetics);
+    },
+    handleFinalizarCicloFormSubmit: async (e) => {
+        e.preventDefault();
+        const form = e.target;
+        const cicloId = form.dataset.cicloId;
+        const cicloOriginal = (await getDoc(doc(db, `users/${userId}/ciclos`, cicloId))).data();
+        
+        const pesoSeco = parseFloat(getEl('peso-seco').value);
+        const etiquetasGlobales = Array.from(getEl('global-tags-container').querySelectorAll('.tag.active')).map(t => t.textContent);
+        const etiquetasCustom = Array.from(getEl('custom-tags-container').querySelectorAll('.tag')).map(t => t.textContent.replace(' ×', ''));
+        
+        const feedbackGeneticas = [];
+        document.querySelectorAll('.genetic-feedback-row').forEach(row => {
+            const id = row.dataset.id;
+            const name = row.dataset.name;
+            const decision = row.querySelector('input[name="decision-' + id + '"]:checked')?.value || 'ninguna';
+            const favorita = row.querySelector('.favorite-checkbox').checked;
+            feedbackGeneticas.push({ id, name, decision, favorita });
+        });
+
+        const diasDeSecado = cicloOriginal.fechaInicioSecado ? calculateDaysBetween(cicloOriginal.fechaInicioSecado, new Date()) : 0;
+        const diasDeFlora = calculateDaysSince(cicloOriginal.floweringStartDate);
+
+        const cosechaData = {
+            estado: 'finalizado',
+            fechaFinalizacion: serverTimestamp(),
+            pesoSeco: isNaN(pesoSeco) ? 0 : pesoSeco,
+            diasDeFlora,
+            diasDeSecado,
+            etiquetasGlobales,
+            etiquetasCustom,
+            feedbackGeneticas
+        };
+
+        try {
+            const batch = writeBatch(db);
+            const cicloRef = doc(db, `users/${userId}/ciclos`, cicloId);
+            batch.update(cicloRef, cosechaData);
+            
+            for (const feedback of feedbackGeneticas) {
+                const geneticRef = doc(db, `users/${userId}/genetics`, feedback.id);
+                const originalGenetic = currentGenetics.find(g => g.id === feedback.id);
+                if (originalGenetic && originalGenetic.favorita !== feedback.favorita) {
+                    batch.update(geneticRef, { favorita: feedback.favorita });
+                }
+            }
+            
+            await batch.commit();
+            showNotification('¡Cosecha guardada en el historial! Felicitaciones.');
+            getEl('finalizarCicloModal').style.display = 'none';
+        } catch(error) {
+            console.error("Error guardando la cosecha: ", error);
+            showNotification('Error al guardar la cosecha en el historial.', 'error');
+        }
+    },
+    handleAddWeek: async (cicloId) => {
+        try {
+            const cicloRef = doc(db, `users/${userId}/ciclos`, cicloId);
+            const cicloSnap = await getDoc(cicloRef);
+            if (!cicloSnap.exists()) throw new Error("Cycle not found");
+            const cicloData = cicloSnap.data();
+            
+            const weeksArrayName = cicloData.phase === 'Floración' ? 'floweringWeeks' : 'vegetativeWeeks';
+            const currentWeeks = cicloData[weeksArrayName] || [];
+            
+            const newWeekNumber = currentWeeks.length + 1;
+            const newWeek = { weekNumber: newWeekNumber, phaseName: cicloData.phase === 'Floración' ? 'FLORA' : 'Vegetativo' };
+            
+            await updateDoc(cicloRef, { [weeksArrayName]: arrayUnion(newWeek) });
+            showNotification(`Semana ${newWeekNumber} añadida al ciclo.`);
+        } catch (error) {
+            console.error("Error adding week:", error);
+            showNotification('Error al añadir la semana.', 'error');
+        }
+    },
+    // NUEVO: Handler para eliminar la última semana de un ciclo.
+    handleDeleteLastWeek: async (cicloId) => {
+        try {
+            const cicloRef = doc(db, `users/${userId}/ciclos`, cicloId);
+            const cicloSnap = await getDoc(cicloRef);
+            if (!cicloSnap.exists()) throw new Error("Ciclo no encontrado");
+            
+            const cicloData = cicloSnap.data();
+            const weeksArrayName = cicloData.phase === 'Floración' ? 'floweringWeeks' : 'vegetativeWeeks';
+            const currentWeeks = cicloData[weeksArrayName] || [];
+
+            if (currentWeeks.length === 0) {
+                showNotification("No hay semanas para eliminar.", "error");
+                return;
+            }
+
+            const lastWeekNumber = currentWeeks[currentWeeks.length - 1].weekNumber;
+
+            handlers.showConfirmationModal(`¿Seguro que quieres eliminar la Semana ${lastWeekNumber}? Todos sus registros también se borrarán.`, async () => {
+                try {
+                    const batch = writeBatch(db);
+
+                    // 1. Eliminar logs de la última semana
+                    const logsQuery = query(collection(db, `users/${userId}/ciclos/${cicloId}/logs`), where("week", "==", lastWeekNumber));
+                    const logsSnapshot = await getDocs(logsQuery);
+                    logsSnapshot.forEach(logDoc => {
+                        batch.delete(logDoc.ref);
+                    });
+
+                    // 2. Actualizar el ciclo para remover la última semana
+                    const updatedWeeks = currentWeeks.slice(0, -1);
+                    batch.update(cicloRef, { [weeksArrayName]: updatedWeeks });
+
+                    await batch.commit();
+                    showNotification(`Semana ${lastWeekNumber} y sus registros eliminados.`);
+                } catch (error) {
+                    console.error("Error al eliminar la última semana y sus logs:", error);
+                    showNotification("Error al eliminar la semana.", "error");
+                }
+            });
+
+        } catch (error) {
+            console.error("Error preparando la eliminación de la semana:", error);
+            showNotification("No se pudo preparar la eliminación de la semana.", "error");
+        }
+    },
+    handleIniciarSecado: (cicloId, cicloName) => {
+        handlers.showConfirmationModal(`¿Seguro que quieres finalizar el cultivo de "${cicloName}" y empezar el secado? Ya no podrás añadir más registros.`, async () => {
+            try {
+                const cicloRef = doc(db, `users/${userId}/ciclos`, cicloId);
+                await updateDoc(cicloRef, {
+                    estado: 'en_secado',
+                    fechaInicioSecado: serverTimestamp()
+                });
+                showNotification('Proceso de secado iniciado.');
+            } catch (error) {
+                console.error("Error starting drying process:", error);
+                showNotification('Error al iniciar el secado.', 'error');
             }
         });
     },
@@ -919,6 +1131,7 @@ onAuthStateChanged(auth, user => {
         loadCiclos();
         loadGenetics();
         loadSeeds();
+        loadHistorial();
         initializeEventListeners(handlers);
 
         getEl('searchSalas').addEventListener('input', e => {
@@ -935,6 +1148,7 @@ onAuthStateChanged(auth, user => {
         if (ciclosUnsubscribe) ciclosUnsubscribe();
         if (geneticsUnsubscribe) geneticsUnsubscribe();
         if (seedsUnsubscribe) seedsUnsubscribe();
+        if (historialUnsubscribe) historialUnsubscribe();
 
         handlers.hideAllViews();
         const authView = getEl('authView');
@@ -943,3 +1157,14 @@ onAuthStateChanged(auth, user => {
         initializeEventListeners(handlers);
     }
 });
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/service-worker.js')
+      .then(registration => {
+        console.log('Service Worker registrado con éxito:', registration.scope);
+      })
+      .catch(error => {
+        console.error('Error al registrar el Service Worker:', error);
+      });
+  });
+}

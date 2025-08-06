@@ -6,9 +6,9 @@
     <title>Seguimiento de Cultivo</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    
+    <link rel="manifest" href="/manifest.json">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/shepherd.js@latest/dist/css/shepherd.css" />
-
+	
     <link rel="icon" href="data:;base64,iVBORw0KGgo=">
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
     
@@ -93,12 +93,28 @@
         border-color: #f59e0b;
         transform: translateY(-2px);
     }
+    
+    .tag {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        border-radius: 9999px;
+        font-size: 0.75rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.15s ease-in-out;
+    }
+    .tag-standard { background-color: #e5e7eb; color: #374151; }
+    .dark .tag-standard { background-color: #525252; color: #e5e5e5; }
+    .tag-custom { border: 1px dashed #fbbf24; color: #fbbf24; }
+    .dark .tag-custom { border-color: #facc15; color: #facc15; }
+    .tag:hover { transform: scale(1.05); }
 
-    #salaModal > div, #cicloModal > div, #logModal > div, #addWeekModal > div, #aiSummaryModal > div, #authView form, #toolsView .card, #germinateSeedModal > div, #addGeneticsToCicloModal > div, #moveCicloModal > div, #settingsView .card, #confirmationModal > div, #aboutModal > div { 
+
+    #salaModal > div, #cicloModal > div, #logModal > div, #addWeekModal > div, #aiSummaryModal > div, #authView form, #toolsView .card, #germinateSeedModal > div, #addGeneticsToCicloModal > div, #moveCicloModal > div, #settingsView .card, #confirmationModal > div, #aboutModal > div, #finalizarCicloModal > div { 
         background-color: #ffffff; 
         border: 1px solid #d1d5db;
     }
-    .dark #salaModal > div, .dark #cicloModal > div, .dark #logModal > div, .dark #addWeekModal > div, .dark #aiSummaryModal > div, .dark #authView form, .dark #toolsView .card, .dark #germinateSeedModal > div, .dark #addGeneticsToCicloModal > div, .dark #moveCicloModal > div, .dark #settingsView .card, .dark #confirmationModal > div, .dark #aboutModal > div {
+    .dark #salaModal > div, .dark #cicloModal > div, .dark #logModal > div, .dark #addWeekModal > div, .dark #aiSummaryModal > div, .dark #authView form, .dark #toolsView .card, .dark #germinateSeedModal > div, .dark #addGeneticsToCicloModal > div, .dark #moveCicloModal > div, .dark #settingsView .card, .dark #confirmationModal > div, .dark #aboutModal > div, .dark #finalizarCicloModal > div {
         background-color: #262626; 
         border: 1px solid #404040;
     }
@@ -361,7 +377,7 @@
                  Grupo Telegram
             </a>
             <div class="text-xs text-gray-500 dark:text-gray-600 font-mono">
-                SegCul v0.345 by svjeto
+                SegCul v0.35 by svjeto
             </div>
         </footer>
     </div>
@@ -378,6 +394,7 @@
     <div id="cicloDetailView" class="p-4 sm:p-6 lg:p-8 hidden"></div>
     <div id="toolsView" class="p-4 sm:p-6 lg:p-8 hidden"></div>
     <div id="settingsView" class="p-4 sm:p-6 lg:p-8 hidden"></div>
+    <div id="historialView" class="p-4 sm:p-6 lg:p-8 hidden"></div>
 
     <div id="salaModal" class="fixed inset-0 modal-backdrop flex items-center justify-center z-50 p-4 hidden"></div>
     <div id="cicloModal" class="fixed inset-0 modal-backdrop flex items-center justify-center z-50 p-4 hidden"></div>
@@ -387,6 +404,48 @@
     <div id="germinateSeedModal" class="fixed inset-0 modal-backdrop flex items-center justify-center z-50 p-4 hidden"></div>
     <div id="addGeneticsToCicloModal" class="fixed inset-0 modal-backdrop flex items-center justify-center z-50 p-4 hidden"></div>
     <div id="moveCicloModal" class="fixed inset-0 modal-backdrop flex items-center justify-center z-50 p-4 hidden"></div>
+    <div id="finalizarCicloModal" class="fixed inset-0 modal-backdrop flex items-center justify-center z-50 p-4 hidden">
+        <div class="w-11/12 md:w-full max-w-lg p-6 rounded-lg shadow-lg max-h-[90vh] overflow-y-auto">
+            <form id="finalizarCicloForm">
+                <h2 class="text-2xl font-bold mb-4 text-amber-400">Finalizar Cosecha y Enfrascar</h2>
+                <div class="space-y-6">
+                    <div>
+                        <label for="peso-seco" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Peso en Seco (gramos)</label>
+                        <input type="number" id="peso-seco" step="0.1" required class="w-full p-2 rounded-md focus:ring-amber-500 focus:border-amber-500">
+                    </div>
+
+                    <div>
+                        <h3 class="text-lg font-medium text-gray-800 dark:text-gray-200 mb-2">Etiquetas Globales</h3>
+                        <div id="global-tags-container" class="flex flex-wrap gap-2">
+                            </div>
+                    </div>
+
+                    <div>
+                        <h3 class="text-lg font-medium text-gray-800 dark:text-gray-200 mb-2">Etiquetas Personalizadas</h3>
+                        <div id="custom-tags-container" class="flex flex-wrap gap-2 mb-2">
+                            </div>
+                        <div id="add-custom-tag-container" class="flex gap-2 items-center">
+                            <input type="text" id="custom-tag-input" placeholder="Escribe tu etiqueta..." class="flex-grow p-2 rounded-md focus:ring-amber-500 focus:border-amber-500" maxlength="30">
+                            <button type="button" id="add-custom-tag-btn" class="btn-secondary btn-base py-2 px-3 rounded-md text-sm">Añadir</button>
+                        </div>
+                    </div>
+                    
+                    <hr class="border-gray-300 dark:border-gray-600">
+
+                    <div>
+                        <h3 class="text-lg font-medium text-gray-800 dark:text-gray-200 mb-2">Feedback por Genética</h3>
+                        <div id="geneticas-feedback-container" class="space-y-3">
+                           <p class="text-gray-500 dark:text-gray-400 italic">Cargando genéticas del ciclo...</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="text-right mt-8 flex justify-end gap-4">
+                    <button type="button" id="cancelFinalizarBtn" class="btn-secondary btn-base py-2 px-4 rounded-lg">Cancelar</button>
+                    <button type="submit" class="btn-primary btn-base py-2 px-4 rounded-lg">Guardar Cosecha</button>
+                </div>
+            </form>
+        </div>
+    </div>
     
     <div id="confirmationModal" class="fixed inset-0 modal-backdrop flex items-center justify-center z-50 p-4 hidden">
         <div class="w-11/12 md:w-full md:max-w-md p-6 rounded-lg shadow-lg">
