@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
- "build": "npx tailwindcss -i ./style.css -o ./dist/output.css && copyfiles manifest.json 'js/**/*' dist",
+ "build": "npx tailwindcss -i ./style.css -o ./dist/output.css && copyfiles manifest.json service-worker.js 'js/**/*' dist",
   "start": "npx live-server"
 },
   "devDependencies": {
