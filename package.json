@@ -6,7 +6,7 @@
   "scripts": {
   "build": "npx tailwindcss -i ./style.css -o ./dist/output.css && copyfiles manifest.json dist && cp -r js dist",
   "start": "npx live-server"
-}
+},
   "devDependencies": {
     "@tailwindcss/postcss": "^4.1.11",
     "autoprefixer": "^10.4.19",
