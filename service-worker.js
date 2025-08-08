@@ -1,13 +1,13 @@
 // js/service-worker.js
 
 // Nombre y versión del caché. Cambiar la versión fuerza la actualización del caché.
-const CACHE_NAME = 'segcul-cache-v1';
+const CACHE_NAME = 'segcul-cache-v2';
 
 // Archivos esenciales de la aplicación (el "App Shell") que se guardarán para funcionar offline.
 const urlsToCache = [
   '/',
   '/index.html',
-  '/styles.css',
+  //'/styles.css',
   '/js/main.js',
   '/js/ui.js',
   '/js/firebase.js',
@@ -33,20 +33,37 @@ self.addEventListener('install', event => {
         return cache.addAll(urlsToCache);
       })
   );
+  self.skipWaiting();
 });
 
-// Evento 'fetch': Se dispara cada vez que la aplicación pide un recurso (una página, un script, una imagen).
-// Aquí interceptamos la petición y decidimos si la servimos desde el caché o desde la red.
+self.addEventListener('activate', event => {
+  event.waitUntil(
+    caches.keys().then(cacheNames => {
+      return Promise.all(
+        cacheNames.map(cacheName => {
+          // Si el nombre del caché no es el actual, lo eliminamos.
+          if (cacheName !== CACHE_NAME) {
+            console.log('Eliminando caché antiguo:', cacheName);
+            return caches.delete(cacheName);
+          }
+        })
+      );
+    })
+  );
+  // Tomar control de todas las pestañas abiertas inmediatamente.
+  return self.clients.claim();
+});
+
 self.addEventListener('fetch', event => {
   event.respondWith(
-    // 1. Buscamos el recurso en el caché.
+    
     caches.match(event.request)
       .then(response => {
-        // Si encontramos una respuesta en el caché, la devolvemos.
+        
         if (response) {
           return response;
         }
-        // Si no, la pedimos a la red.
+        
         return fetch(event.request);
       }
     )

@@ -212,10 +212,21 @@ function initializeToolsDragAndDrop() {
 }
 
 
+// En main.js, reemplaza la función loadSalas existente por esta:
+
 function loadSalas() {
     if (!userId) return;
-    getEl('loadingSalas').style.display = 'block';
-    getEl('emptySalasState').style.display = 'none';
+
+    const loadingEl = getEl('loadingSalas');
+    const emptyEl = getEl('emptySalasState');
+
+    if (loadingEl) {
+        loadingEl.style.display = 'block';
+    }
+    if (emptyEl) {
+        emptyEl.style.display = 'none';
+    }
+
     const q = query(collection(db, `users/${userId}/salas`));
     if (salasUnsubscribe) salasUnsubscribe();
     salasUnsubscribe = onSnapshot(q, (snapshot) => {
@@ -237,7 +248,9 @@ function loadSalas() {
 
     }, error => {
         console.error("Error loading salas:", error);
-        getEl('loadingSalas').innerText = "Error al cargar las salas.";
+        if (loadingEl) {
+            loadingEl.innerText = "Error al cargar las salas.";
+        }
     });
 }
 
