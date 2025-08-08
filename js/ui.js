@@ -1156,51 +1156,103 @@ export function openFinalizarCicloModal(ciclo, predefinedTags, maxCustomTags, al
 }
 
 export function initializeEventListeners(handlers) {
-    getEl('loginForm').addEventListener('submit', (e) => {
-        e.preventDefault();
-        handlers.handleLogin(getEl('login-email').value, getEl('login-password').value);
+    // --- Formularios de Autenticación ---
+    const loginForm = getEl('loginForm');
+    if (loginForm) {
+        loginForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            handlers.handleLogin(getEl('login-email').value, getEl('login-password').value);
+        });
+    }
+
+    const registerForm = getEl('registerForm');
+    if (registerForm) {
+        registerForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            handlers.handleRegister(getEl('register-email').value, getEl('register-password').value);
+        });
+    }
+
+    // --- Botones de Navegación de Autenticación ---
+    const showRegisterBtn = getEl('showRegister');
+    if (showRegisterBtn) {
+        showRegisterBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            getEl('loginForm').classList.add('hidden');
+            getEl('registerForm').classList.remove('hidden');
+            getEl('authError').classList.add('hidden');
+        });
+    }
+
+    const showLoginBtn = getEl('showLogin');
+    if (showLoginBtn) {
+        showLoginBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            getEl('registerForm').classList.add('hidden');
+            getEl('loginForm').classList.remove('hidden');
+            getEl('authError').classList.add('hidden');
+        });
+    }
+    
+    // --- Botones "About" ---
+    const aboutBtnAuth = getEl('aboutBtnAuth');
+    if (aboutBtnAuth) aboutBtnAuth.addEventListener('click', () => {
+        const aboutModal = getEl('aboutModal');
+        if (aboutModal) aboutModal.style.display = 'flex';
     });
-    getEl('registerForm').addEventListener('submit', (e) => {
-        e.preventDefault();
-        handlers.handleRegister(getEl('register-email').value, getEl('register-password').value);
+
+    const aboutBtnAuthRegister = getEl('aboutBtnAuthRegister');
+    if (aboutBtnAuthRegister) aboutBtnAuthRegister.addEventListener('click', () => {
+        const aboutModal = getEl('aboutModal');
+        if (aboutModal) aboutModal.style.display = 'flex';
     });
-    getEl('showRegister').addEventListener('click', (e) => {
-        e.preventDefault();
-        getEl('loginForm').classList.add('hidden');
-        getEl('registerForm').classList.remove('hidden');
-        getEl('authError').classList.add('hidden');
+    
+    const aboutBtn = getEl('aboutBtn');
+    if (aboutBtn) aboutBtn.addEventListener('click', () => {
+        const aboutModal = getEl('aboutModal');
+        if (aboutModal) aboutModal.style.display = 'flex';
     });
-    getEl('showLogin').addEventListener('click', (e) => {
-        e.preventDefault();
-        getEl('registerForm').classList.add('hidden');
-        getEl('loginForm').classList.remove('hidden');
-        getEl('authError').classList.add('hidden');
-    });
-    getEl('aboutBtnAuth').addEventListener('click', () => getEl('aboutModal').style.display = 'flex');
-    getEl('aboutBtnAuthRegister').addEventListener('click', () => getEl('aboutModal').style.display = 'flex');
-    getEl('logoutBtn').addEventListener('click', () => handlers.signOut());
-    getEl('menuBtn').addEventListener('click', (e) => {
-        e.stopPropagation();
-        getEl('dropdownMenu').classList.toggle('hidden');
-    });
+
+    // --- Menú Principal ---
+    const logoutBtn = getEl('logoutBtn');
+    if (logoutBtn) logoutBtn.addEventListener('click', () => handlers.signOut());
+
+    const menuBtn = getEl('menuBtn');
+    if (menuBtn) {
+        menuBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            getEl('dropdownMenu').classList.toggle('hidden');
+        });
+    }
+
+    const menuAddSalaLink = getEl('menuAddSala');
+    if (menuAddSalaLink) {
+        if (!menuAddSalaLink.querySelector('.tooltip-icon')) {
+             menuAddSalaLink.innerHTML += " " + createTooltipIcon("Una Sala es tu espacio físico de cultivo, como una carpa o un indoor. Dentro de las salas organizarás tus Ciclos.");
+        }
+        menuAddSalaLink.addEventListener('click', (e) => { e.preventDefault(); handlers.openSalaModal(); getEl('dropdownMenu').classList.add('hidden'); });
+    }
+    
+    const menuAddCiclo = getEl('menuAddCiclo');
+    if(menuAddCiclo) menuAddCiclo.addEventListener('click', (e) => { e.preventDefault(); handlers.openCicloModal(); getEl('dropdownMenu').classList.add('hidden'); });
+    
+    const menuTools = getEl('menuTools');
+    if(menuTools) menuTools.addEventListener('click', (e) => { e.preventDefault(); handlers.showToolsView(); getEl('dropdownMenu').classList.add('hidden'); });
+
+    const menuSettings = getEl('menuSettings');
+    if(menuSettings) menuSettings.addEventListener('click', (e) => { e.preventDefault(); handlers.showSettingsView(); getEl('dropdownMenu').classList.add('hidden'); });
+
+    // --- Botones de Vistas Específicas ---
+    const backToSalasBtn = getEl('backToSalasBtn');
+    if (backToSalasBtn) backToSalasBtn.addEventListener('click', handlers.hideCiclosView);
+    
+    // --- Listeners Globales (Estos son seguros y no necesitan comprobación) ---
     window.addEventListener('click', (e) => {
-        const menuBtn = getEl('menuBtn');
         const dropdownMenu = getEl('dropdownMenu');
         if (menuBtn && dropdownMenu && !menuBtn.contains(e.target) && !dropdownMenu.contains(e.target)) {
             dropdownMenu.classList.add('hidden');
         }
     });
-    getEl('aboutBtn').addEventListener('click', () => getEl('aboutModal').style.display = 'flex');
-    
-    const menuAddSalaLink = getEl('menuAddSala');
-    menuAddSalaLink.innerHTML = "Añadir Sala " + createTooltipIcon("Una Sala es tu espacio físico de cultivo, como una carpa o un indoor. Dentro de las salas organizarás tus Ciclos.");
-    menuAddSalaLink.addEventListener('click', (e) => { e.preventDefault(); handlers.openSalaModal(); getEl('dropdownMenu').classList.add('hidden'); });
-    
-    getEl('menuAddCiclo').addEventListener('click', (e) => { e.preventDefault(); handlers.openCicloModal(); getEl('dropdownMenu').classList.add('hidden'); });
-    getEl('menuTools').addEventListener('click', (e) => { e.preventDefault(); handlers.showToolsView(); getEl('dropdownMenu').classList.add('hidden'); });
-    getEl('menuSettings').addEventListener('click', (e) => { e.preventDefault(); handlers.showSettingsView(); getEl('dropdownMenu').classList.add('hidden'); });
-    
-    getEl('backToSalasBtn').addEventListener('click', handlers.hideCiclosView);
 
     document.body.addEventListener('click', (e) => {
         if (e.target.closest('#cancelSalaBtn')) getEl('salaModal').style.display = 'none';
@@ -1225,7 +1277,6 @@ export function initializeEventListeners(handlers) {
         if (e.target.id === 'germinateSeedForm') handlers.handleGerminateFormSubmit(e);
         if (e.target.id === 'seedForm') handlers.handleSeedFormSubmit(e);
         if (e.target.id === 'finalizarCicloForm') handlers.handleFinalizarCicloFormSubmit(e);
-    });
-    
+    });    
     initializeTooltips();
 }
