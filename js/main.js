@@ -85,12 +85,16 @@ function getPhaseInfo(phaseName) {
     }
 }
 
-function generateVegetativeWeeks() {
+function calculateVegetativeWeeks(startDateString) {
+    const days = calculateDaysSince(startDateString);
+    if (days === null || days < 1) return []; // No empezar si no hay fecha o es futura
+
+    const weekCount = Math.ceil(days / 7);
     const weeks = [];
-    for (let i = 1; i <= 4; i++) {
+    for (let i = 1; i <= weekCount; i++) {
         weeks.push({ weekNumber: i, phaseName: 'Vegetativo' });
     }
-    return weeks;
+    return weeks.length > 0 ? weeks : [{ weekNumber: 1, phaseName: 'Vegetativo' }]; // Asegura al menos 1 semana
 }
 
 function generateStandardWeeks() {
@@ -351,6 +355,27 @@ const handlers = {
                 getEl('authError').classList.remove('hidden');
             });
     },
+	handlePasarAFlora: (cicloId, cicloName) => {
+    handlers.showConfirmationModal(`¿Seguro que quieres pasar el ciclo "${cicloName}" a Floración? Esto establecerá la fecha de floración a hoy y generará las 9 semanas estándar.`, async () => {
+        try {
+            const cicloRef = doc(db, `users/${userId}/ciclos`, cicloId);
+            // Formatear la fecha de hoy como YYYY-MM-DD
+            const today = new Date();
+            const floweringStartDate = today.toISOString().split('T')[0];
+
+            await updateDoc(cicloRef, {
+                phase: 'Floración',
+                floweringStartDate: floweringStartDate,
+                floweringWeeks: generateStandardWeeks(),
+                vegetativeWeeks: null // Opcional: limpiar las semanas de vege
+            });
+            showNotification(`Ciclo "${cicloName}" ha pasado a Floración.`);
+        } catch (error) {
+            console.error("Error al pasar a floración:", error);
+            showNotification('Error al cambiar de fase.', 'error');
+        }
+    });
+},
     calculateDaysSince,
     getPhaseInfo,
     formatFertilizers,
@@ -443,7 +468,8 @@ const handlers = {
                 if (cicloData.phase === 'Floración') {
                     cicloData.floweringWeeks = generateStandardWeeks();
                 } else if (cicloData.phase === 'Vegetativo') {
-                    cicloData.vegetativeWeeks = generateVegetativeWeeks();
+                    // CAMBIO: Ahora usamos la nueva función con la fecha de inicio
+                    cicloData.vegetativeWeeks = calculateVegetativeWeeks(cicloData.vegetativeStartDate);
                 }
                 await addDoc(collection(db, `users/${userId}/ciclos`), cicloData);
                 showNotification('Ciclo creado.');
@@ -502,17 +528,129 @@ const handlers = {
         currentSalaId = null;
         currentSalaName = null;
     },
-    showCicloDetails: (ciclo) => {
-        if (logsUnsubscribe) logsUnsubscribe();
+    // REEMPLAZA tu función showCicloDetails actual con esta versión completa
+showCicloDetails: (ciclo) => {
+    if (logsUnsubscribe) logsUnsubscribe();
 
-        let needsUpdate = false;
-        const cicloRef = doc(db, `users/${userId}/ciclos`, ciclo.id);
+    handlers.hideAllViews();
+    const detailView = getEl('cicloDetailView');
 
-        if (ciclo.phase === 'Vegetativo' && !ciclo.vegetativeWeeks) {
-            console.log(`Migrando ciclo vegetativo antiguo: ${ciclo.name}`);
-            ciclo.vegetativeWeeks = generateVegetativeWeeks();
-            needsUpdate = true;
+    // 1. Determinar qué semanas mostrar
+    let weeksToShow = [];
+    if (ciclo.phase === 'Vegetativo') {
+        // Lógica corregida: Calcular semanas de vege dinámicamente
+        weeksToShow = calculateVegetativeWeeks(ciclo.vegetativeStartDate);
+        // Si el cálculo resulta en un array diferente al guardado, lo actualizamos en la BD
+        if (JSON.stringify(weeksToShow) !== JSON.stringify(ciclo.vegetativeWeeks)) {
+            const cicloRef = doc(db, `users/${userId}/ciclos`, ciclo.id);
+            updateDoc(cicloRef, { vegetativeWeeks: weeksToShow }).catch(err => console.error("Error actualizando semanas de vege:", err));
         }
+    } else if (ciclo.phase === 'Floración' && ciclo.floweringWeeks) {
+        // Lógica estándar para floración
+        weeksToShow = ciclo.floweringWeeks;
+    }
+
+    const diasDesdeInicio = ciclo.phase === 'Vegetativo'
+        ? handlers.calculateDaysSince(ciclo.vegetativeStartDate)
+        : handlers.calculateDaysSince(ciclo.floweringStartDate);
+
+    const faseInfo = handlers.getPhaseInfo(ciclo.estado === 'en_secado' ? 'en_secado' : ciclo.phase);
+
+    // 2. Generar el HTML dinámicamente
+    detailView.innerHTML = `
+        <header class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+            <div>
+                <div class="flex items-center gap-3">
+                    <span class="text-sm font-semibold px-3 py-1 rounded-full ${faseInfo.color} text-white">${faseInfo.name}</span>
+                    <h1 class="text-3xl font-bold text-amber-400 font-mono tracking-wider">${ciclo.name}</h1>
+                </div>
+                <p class="text-gray-500 dark:text-gray-400 mt-2">Día ${diasDesdeInicio || 'N/A'} del ciclo.</p>
+            </div>
+            <div class="flex items-center gap-2 self-end sm:self-auto">
+                <button id="backToCiclosBtn" class="btn-secondary btn-base py-2 px-4 rounded-lg">Volver</button>
+                <button id="editCicloBtn" data-ciclo-id="${ciclo.id}" class="btn-secondary btn-base p-2 rounded-lg" title="Editar Ciclo">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5"><path d="m2.695 14.762-1.262 3.155a.5.5 0 0 0 .65.65l3.155-1.262a4 4 0 0 0 1.343-.886L17.5 5.502a2.121 2.121 0 0 0-3-3L3.58 13.42a4 4 0 0 0-.885 1.343Z" /></svg>
+                </button>
+            </div>
+        </header>
+
+        <div class="bg-white dark:bg-neutral-800 p-6 rounded-lg shadow-md mb-8 border border-gray-200 dark:border-neutral-700">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div><strong class="text-gray-600 dark:text-gray-300">Tipo:</strong> ${ciclo.cultivationType || 'No especificado'}</div>
+                <div><strong class="text-gray-600 dark:text-gray-300">Inicio Vege:</strong> ${ciclo.vegetativeStartDate || 'N/A'}</div>
+                <div><strong class="text-gray-600 dark:text-gray-300">Inicio Flora:</strong> ${ciclo.floweringStartDate || 'N/A'}</div>
+            </div>
+            ${ciclo.notes ? `<div class="mt-4 pt-4 border-t border-gray-200 dark:border-neutral-700"><strong class="text-gray-600 dark:text-gray-300">Notas:</strong><p class="whitespace-pre-wrap text-sm mt-1">${ciclo.notes}</p></div>` : ''}
+        </div>
+
+        <div class="flex flex-wrap gap-4 mb-8">
+            ${ciclo.phase === 'Vegetativo' ? `
+                <button id="pasarAFloraBtn" data-ciclo-id="${ciclo.id}" data-ciclo-name="${ciclo.name}" class="btn-primary btn-base py-2 px-4 rounded-lg">
+                    Pasar a Floración
+                </button>` : ''
+            }
+            ${ciclo.phase === 'Floración' && ciclo.estado !== 'en_secado' ? `
+                <button id="add-week-btn" class="btn-secondary btn-base py-2 px-4 rounded-lg">Añadir Semana de Flora</button>
+                <button id="delete-last-week-btn" class="btn-danger btn-base py-2 px-4 rounded-lg">Eliminar Última Semana</button>
+                <button id="iniciar-secado-btn" data-ciclo-id="${ciclo.id}" data-ciclo-name="${ciclo.name}" class="btn-primary btn-base py-2 px-4 rounded-lg">Iniciar Secado</button>` : ''
+            }
+            ${ciclo.estado === 'en_secado' ? `
+                <button id="finalizarCicloBtn" class="btn-primary btn-base py-2 px-4 rounded-lg">Finalizar y Enfrascar</button>` : ''
+            }
+        </div>
+
+        <div data-ciclo-id="${ciclo.id}" class="space-y-4">
+            ${weeksToShow.length > 0 ? weeksToShow.map(week => `
+                <details class="bg-white dark:bg-neutral-800 rounded-lg shadow-sm border border-gray-200 dark:border-neutral-700 overflow-hidden" ${week.weekNumber === weeksToShow.length ? 'open' : ''}>
+                    <summary class="week-header flex justify-between items-center p-4 cursor-pointer">
+                        <h3 class="text-lg font-semibold">${week.phaseName} - Semana ${week.weekNumber}</h3>
+                        <button data-week-num="${week.weekNumber}" class="add-log-btn btn-primary btn-base text-sm py-1 px-3 rounded-md">Añadir Registro</button>
+                    </summary>
+                    <div id="logs-week-${week.weekNumber}" class="p-4 border-t border-gray-200 dark:border-neutral-600">
+                        <p class="text-gray-500 dark:text-gray-400 italic">Cargando registros...</p>
+                    </div>
+                </details>
+            `).join('') : '<p class="text-center text-gray-500 dark:text-gray-400 py-8">No hay semanas para mostrar en este ciclo.</p>'}
+        </div>
+    `;
+
+    // 3. Añadir Event Listeners a los elementos recién creados
+    detailView.classList.remove('hidden');
+    detailView.classList.add('view-container');
+    getEl('backToCiclosBtn').addEventListener('click', () => handlers.showCiclosView(ciclo.salaId, currentSalas.find(s => s.id === ciclo.salaId)?.name));
+    getEl('editCicloBtn').addEventListener('click', () => handlers.openCicloModal(ciclo));
+
+    const pasarAFloraBtn = getEl('pasarAFloraBtn');
+    if (pasarAFloraBtn) {
+        pasarAFloraBtn.addEventListener('click', (e) => handlers.handlePasarAFlora(e.currentTarget.dataset.cicloId, e.currentTarget.dataset.cicloName));
+    }
+    
+    const addWeekBtn = getEl('add-week-btn');
+    if(addWeekBtn) addWeekBtn.addEventListener('click', () => handlers.handleAddWeek(ciclo.id));
+    
+    const deleteLastWeekBtn = getEl('delete-last-week-btn');
+    if(deleteLastWeekBtn) deleteLastWeekBtn.addEventListener('click', () => handlers.handleDeleteLastWeek(ciclo.id));
+
+    const iniciarSecadoBtn = getEl('iniciar-secado-btn');
+    if(iniciarSecadoBtn) iniciarSecadoBtn.addEventListener('click', () => handlers.handleIniciarSecado(ciclo.id, ciclo.name));
+    
+    const finalizarCicloBtn = getEl('finalizarCicloBtn');
+    if (finalizarCicloBtn) finalizarCicloBtn.addEventListener('click', () => handlers.openFinalizarCicloModal(ciclo));
+
+    document.querySelectorAll('.add-log-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const weekNum = e.currentTarget.dataset.weekNum;
+            const currentCiclo = currentCiclos.find(c => c.id === ciclo.id);
+            uiOpenLogModal(currentCiclo, weekNum);
+        });
+    });
+
+    // 4. Cargar los logs para las semanas visibles
+    const weekNumbers = weeksToShow.map(w => w.weekNumber);
+    if (weekNumbers.length > 0) {
+        loadLogsForCiclo(ciclo.id, weekNumbers);
+    }
+},
 
         if (ciclo.phase === 'Floración' && ciclo.floweringWeeks && ciclo.floweringWeeks.some(w => w.phaseName === 'SECADO')) {
             console.log(`Migrando ciclo de floración antiguo: ${ciclo.name}`);
