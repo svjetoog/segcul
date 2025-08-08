@@ -652,45 +652,6 @@ showCicloDetails: (ciclo) => {
     }
 },
 
-        if (ciclo.phase === 'Floración' && ciclo.floweringWeeks && ciclo.floweringWeeks.some(w => w.phaseName === 'SECADO')) {
-            console.log(`Migrando ciclo de floración antiguo: ${ciclo.name}`);
-            ciclo.floweringWeeks = ciclo.floweringWeeks.filter(w => w.phaseName !== 'SECADO');
-            needsUpdate = true;
-        }
-
-        if (needsUpdate) {
-            updateDoc(cicloRef, { 
-                vegetativeWeeks: ciclo.vegetativeWeeks || null,
-                floweringWeeks: ciclo.floweringWeeks || null
-            }).catch(err => console.error("Error al migrar datos del ciclo:", err));
-        }
-
-        handlers.hideAllViews();
-        const detailView = getEl('cicloDetailView');
-        detailView.innerHTML = renderCicloDetails(ciclo, handlers);
-        detailView.classList.remove('hidden');
-        detailView.classList.add('view-container');
-
-        getEl('backToCiclosBtn').addEventListener('click', () => handlers.showCiclosView(ciclo.salaId, currentSalas.find(s=>s.id === ciclo.salaId)?.name));
-        
-        const addWeekBtn = getEl('add-week-btn');
-        if(addWeekBtn) addWeekBtn.addEventListener('click', () => handlers.handleAddWeek(ciclo.id));
-        
-        const iniciarSecadoBtn = getEl('iniciar-secado-btn');
-        if(iniciarSecadoBtn) iniciarSecadoBtn.addEventListener('click', () => handlers.handleIniciarSecado(ciclo.id, ciclo.name));
-
-        let weeksToShow = [];
-        if (ciclo.phase === 'Floración' && ciclo.floweringWeeks) {
-            weeksToShow = ciclo.floweringWeeks;
-        } else if (ciclo.phase === 'Vegetativo' && ciclo.vegetativeWeeks) {
-            weeksToShow = ciclo.vegetativeWeeks;
-        }
-
-        const weekNumbers = weeksToShow.map(w => w.weekNumber);
-        if (weekNumbers.length > 0) {
-            loadLogsForCiclo(ciclo.id, weekNumbers);
-        }
-    },
     hideCicloDetails: () => {
         if (logsUnsubscribe) logsUnsubscribe();
         const view = getEl('cicloDetailView');

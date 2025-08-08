@@ -317,7 +317,6 @@ La inicialización del drag-and-drop ahora verifica si la lista existe, evitando
   La apariencia de los tours guiados ahora se adapta
   automaticamente al tema claro/oscuro de la aplicacion.
 ---------------------------------
-Claro. Aquí tienes el resumen de actualizaciones de la v0.35 para tu bloc de notas.
 
 Resumen de Updates v0.35 (respecto a v0.345)
 
