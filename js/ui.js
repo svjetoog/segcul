@@ -27,13 +27,13 @@ function createTooltipIcon(title) {
 
 function initializeTooltips() {
     setTimeout(() => {
-        tippy('.tooltip-trigger', {
+        window.tippy('.tooltip-trigger', {
             animation: 'scale-subtle',
             theme: 'light-border',
             allowHTML: true,
             trigger: 'mouseenter focus',
         });
-        tippy('.tooltip-trigger-click', {
+        window.tippy('.tooltip-trigger-click', {
             animation: 'scale-subtle',
             theme: 'light-border',
             allowHTML: true,
@@ -459,7 +459,7 @@ export function renderCicloDetails(ciclo, handlers) {
                 });
             } else {
                 // Aseguramos que el tooltip se inicialice para los botones deshabilitados
-                tippy(btn, {
+                window.tippy(btn, {
                     animation: 'scale-subtle',
                     theme: 'light-border',
                 });
