@@ -1255,47 +1255,66 @@ showCicloDetails: (ciclo) => {
     }
 };
 
-onAuthStateChanged(auth, user => {
-    getEl('initial-loader').classList.add('hidden');
-    if (user) {
-        userId = user.uid;
-        handlers.hideAllViews();
-        const appView = getEl('app');
-        appView.classList.remove('hidden');
-        appView.classList.add('view-container');
-        getEl('welcomeUser').innerText = `Anota todo, no seas pancho.`;
+document.addEventListener('DOMContentLoaded', () => {
+    onAuthStateChanged(auth, user => {
+        // Verifica si el elemento existe antes de manipularlo
+        const initialLoader = getEl('initial-loader');
+        if (initialLoader) {
+            initialLoader.classList.add('hidden');
+        }
 
-        loadSalas();
-        loadCiclos();
-        loadGenetics();
-        loadSeeds();
-        loadHistorial();
-        initializeEventListeners(handlers);
+        if (user) {
+            userId = user.uid;
+            handlers.hideAllViews();
+            const appView = getEl('app');
+            if (appView) {
+                appView.classList.remove('hidden');
+                appView.classList.add('view-container');
+            }
+            const welcomeUser = getEl('welcomeUser');
+            if (welcomeUser) {
+                welcomeUser.innerText = `Anota todo, no seas pancho.`;
+            }
 
-        getEl('searchSalas').addEventListener('input', e => {
-            const searchTerm = e.target.value.toLowerCase();
-            const filteredSalas = currentSalas.filter(sala => sala.name.toLowerCase().includes(searchTerm));
-            if (sortableSalas) sortableSalas.destroy();
-            renderSalasGrid(filteredSalas, currentCiclos, handlers);
-            initializeDragAndDrop();
-        });
+            loadSalas();
+            loadCiclos();
+            loadGenetics();
+            loadSeeds();
+            loadHistorial();
+            initializeEventListeners(handlers);
 
-    } else {
-        userId = null;
-        if (salasUnsubscribe) salasUnsubscribe();
-        if (ciclosUnsubscribe) ciclosUnsubscribe();
-        if (geneticsUnsubscribe) geneticsUnsubscribe();
-        if (seedsUnsubscribe) seedsUnsubscribe();
-        if (historialUnsubscribe) historialUnsubscribe();
+            const searchSalas = getEl('searchSalas');
+            if (searchSalas) {
+                searchSalas.addEventListener('input', e => {
+                    const searchTerm = e.target.value.toLowerCase();
+                    const filteredSalas = currentSalas.filter(sala => sala.name.toLowerCase().includes(searchTerm));
+                    if (sortableSalas) sortableSalas.destroy();
+                    renderSalasGrid(filteredSalas, currentCiclos, handlers);
+                    initializeDragAndDrop();
+                });
+            }
 
-        handlers.hideAllViews();
-        const authView = getEl('authView');
-        authView.classList.remove('hidden');
-        authView.classList.add('view-container');
-        initializeEventListeners(handlers);
-    }
-});
-if ('serviceWorker' in navigator) {
+        } else {
+            userId = null;
+
+            if (salasUnsubscribe) salasUnsubscribe();
+            if (ciclosUnsubscribe) ciclosUnsubscribe();
+            if (geneticsUnsubscribe) geneticsUnsubscribe();
+            if (seedsUnsubscribe) seedsUnsubscribe();
+            if (historialUnsubscribe) historialUnsubscribe();
+
+            handlers.hideAllViews();
+
+            const authView = getEl('authView');
+            if (authView) {
+                authView.classList.remove('hidden');
+                authView.classList.add('view-container');
+            }
+
+            initializeEventListeners(handlers);
+        }
+    });
+});if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('/service-worker.js')
       .then(registration => {

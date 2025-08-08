@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seguimiento de Cultivo</title>
+
+    <script type="module" src="js/main.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="output.css">
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" href="data:;base64,iVBORw0KGgo=">
+
+</head>
+
+<body class="text-gray-800 dark:text-gray-200">
+
+    <div id="initial-loader" class="min-h-screen flex items-center justify-center">
+        <div class="spinner"></div>
+    </div>
+
+    <div id="authView" class="min-h-screen flex items-center justify-center p-4 hidden">
+        <div class="w-full max-w-md space-y-8">
+            <div class="text-center mb-8">
+                <h1 class="text-5xl font-bold text-amber-400 font-mono tracking-wider" style="text-shadow: 0 0 10px rgba(251, 191, 36, 0.5);">SegCul</h1>
+                <p class="text-gray-500 dark:text-gray-400 mt-2 font-mono text-sm">Tu anotador de cultivos</p>
+            </div>
+            
+            <form id="loginForm" class="mt-8 space-y-6 p-8 rounded-xl shadow-lg">
+                <input type="hidden" name="remember" value="true">
+                <div class="rounded-md shadow-sm -space-y-px">
+                    <div>
+                        <label for="login-email" class="sr-only">Email</label>
+                        <input id="login-email" name="email" type="email" autocomplete="email" required class="input-field rounded-t-md" placeholder="Email">
+                    </div>
+                    <div>
+                        <label for="login-password" class="sr-only">Contraseña</label>
+                        <input id="login-password" name="password" type="password" autocomplete="current-password" required class="input-field rounded-b-md" placeholder="Contraseña">
+                    </div>
+                </div>
+                </form>
+        </div>
+    </div>
+
+    </body>
+</html>

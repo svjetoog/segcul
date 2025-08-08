@@ -1,0 +1,247 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body { 
+        font-family: 'Inter', sans-serif; 
+        background-color: #f3f4f6;
+    }
+    .dark body {
+        background-color: #171717;
+    }
+
+    /* Estilo para el elemento fantasma durante el drag & drop */
+    .sortable-ghost {
+        opacity: 0.4;
+        background-color: #fbbf24 !important;
+    }
+
+    .modal-backdrop { background-color: rgba(0, 0, 0, 0.75); }
+
+    .card { 
+        background-color: #ffffff; 
+        border: 1px solid #e5e7eb;
+        transition: all 0.2s ease-in-out; 
+    }
+    .dark .card {
+        background-color: #262626; 
+        border: 1px solid #f59e0b; 
+    }
+    .card:hover { 
+        transform: translateY(-5px) scale(1.02); 
+        border-color: #fbbf24; 
+        box-shadow: 0 0 10px rgba(251, 191, 36, 0.6), 0 0 20px rgba(251, 191, 36, 0.4); 
+    }
+
+    .ciclos-list { display: flex; flex-direction: column; gap: 0.35rem; }
+    
+    .ciclo-item { 
+        background-color: #e5e7eb;
+        border: 1px solid #d1d5db;
+        color: #1f2937;
+        padding: 0.35rem 2rem 0.35rem 0.75rem; border-radius: 0.5rem; box-shadow: 0 2px 4px rgba(0,0,0,0.1); transition: all 0.2s ease-out; font-size: 0.875rem; position: relative; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; 
+    }
+    .dark .ciclo-item {
+        background-color: #404040;
+        border: 1px solid #525252;
+        color: #e5e5e5;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.4);
+    }
+    .ciclo-item:hover { transform: translateY(-2px); border-color: #f59e0b; z-index: 10; }
+    .ciclo-item::after { content: ''; position: absolute; right: 0.75rem; top: 50%; transform: translateY(-50%); width: 0.65rem; height: 0.65rem; border-radius: 9999px; border: 1px solid rgba(0,0,0,0.5); }
+    .ciclo-item.vege::after { background-color: #4ade80; }
+    .ciclo-item.pre-flora::after { background-color: #c084fc; }
+    .ciclo-item.flora::after { background-color: #f472b6; }
+    .ciclo-item.maduracion::after { background-color: #fb923c; }
+    .ciclo-item.lavado::after { background-color: #60a5fa; }
+    .ciclo-item.secado::after { background-color: #facc15; }
+
+    .compact-list-item {
+        background-color: #ffffff;
+        border: 1px solid #e5e7eb;
+        padding: 0.5rem 1rem;
+        border-radius: 0.5rem;
+        transition: all 0.2s ease-out;
+    }
+    .dark .compact-list-item {
+        background-color: #262626;
+        border-color: #404040;
+    }
+    .compact-list-item:hover {
+        border-color: #f59e0b;
+        transform: translateY(-2px);
+    }
+    
+    .tag {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        border-radius: 9999px;
+        font-size: 0.75rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.15s ease-in-out;
+    }
+    .tag-standard { background-color: #e5e7eb; color: #374151; }
+    .dark .tag-standard { background-color: #525252; color: #e5e5e5; }
+    .tag-custom { border: 1px dashed #fbbf24; color: #fbbf24; }
+    .dark .tag-custom { border-color: #facc15; color: #facc15; }
+    .tag:hover { transform: scale(1.05); }
+
+
+    #salaModal > div, #cicloModal > div, #logModal > div, #addWeekModal > div, #aiSummaryModal > div, #authView form, #toolsView .card, #germinateSeedModal > div, #addGeneticsToCicloModal > div, #moveCicloModal > div, #settingsView .card, #confirmationModal > div, #aboutModal > div, #finalizarCicloModal > div { 
+        background-color: #ffffff; 
+        border: 1px solid #d1d5db;
+    }
+    .dark #salaModal > div, .dark #cicloModal > div, .dark #logModal > div, .dark #addWeekModal > div, .dark #aiSummaryModal > div, .dark #authView form, .dark #toolsView .card, .dark #germinateSeedModal > div, .dark #addGeneticsToCicloModal > div, .dark #moveCicloModal > div, .dark #settingsView .card, .dark #confirmationModal > div, .dark #aboutModal > div, .dark #finalizarCicloModal > div {
+        background-color: #262626; 
+        border: 1px solid #404040;
+    }
+
+    .btn-primary, #authView button[type="submit"] { background-color: #f59e0b; color: #111827; font-weight: 600; }
+    .btn-primary:hover, #authView button[type="submit"]:hover { background-color: #d97706; }
+    .btn-secondary { background-color: #e5e7eb; color: #1f2937; font-weight: 500; }
+    .dark .btn-secondary { background-color: #525252; color: #ffffff; }
+    .btn-secondary:hover { background-color: #d1d5db; }
+    .dark .btn-secondary:hover { background-color: #404040; }
+    .btn-danger { background-color: #ef4444; color: #ffffff; font-weight: 500; }
+    .btn-danger:hover { background-color: #dc2626; }
+    .btn-base { transition: all 0.15s ease-in-out; } .btn-base:hover { transform: scale(1.05); filter: brightness(1.1); } .btn-base:active { transform: scale(0.98); filter: brightness(0.9); }
+    
+    .week-header { background-color: #e5e7eb; }
+    .dark .week-header { background-color: #404040; }
+    .log-entry { border-left: 4px solid #f59e0b; background-color: #ffffff; }
+    .dark .log-entry { background-color: #262626; }
+
+    input, select, textarea { 
+        background-color: #f9fafb !important;
+        border-color: #d1d5db !important;
+        color: #1f2937 !important;
+    }
+    .dark input, .dark select, .dark textarea {
+        background-color: #404040 !important; 
+        border-color: #525252 !important; 
+        color: #e5e5e5 !important;
+    }
+    input::placeholder { color: #6b7280 !important; }
+    .dark input::placeholder { color: #a3a3a3 !important; }
+
+    .spinner { border: 4px solid rgba(0, 0, 0, 0.1); border-radius: 50%; border-top: 4px solid #4b5563; width: 24px; height: 24px; animation: spin 1s linear infinite; }
+    .dark .spinner { border: 4px solid rgba(255, 255, 255, 0.3); border-top: 4px solid #fff; }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    
+    #notification-container { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 200; display: none; padding: 12px 24px; border-radius: 8px; color: white; font-weight: 600; box-shadow: 0 4px 15px rgba(0,0,0,0.5); animation: fadeInOut 4s ease-in-out; }
+    #notification-container.success { background-color: #22c55e; }
+    #notification-container.error { background-color: #ef4444; }
+    @keyframes fadeInOut { 0% { opacity: 0; transform: translate(-50%, 20px); } 15% { opacity: 1; transform: translate(-50%, 0); } 85% { opacity: 1; transform: translate(-50%, 0); } 100% { opacity: 0; transform: translate(-50%, 20px); } }
+    .view-container { animation: fadeIn 0.4s ease-in-out; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+    .form-field-with-tooltip {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem; /* 8px */
+    }
+    .form-field-with-tooltip input {
+        flex-grow: 1;
+    }
+
+    .timeline-principal {
+        display: flex;
+        width: 100%;
+        height: 10px;
+        gap: 4px;
+        padding: 10px 0;
+    }
+    .timeline-segment {
+        flex: 1;
+        background-color: #e0e0e0;
+        border-radius: 5px;
+        transition: background-color 0.4s ease;
+        height: 10px;
+    }
+    .dark .timeline-segment {
+        background-color: #404040;
+    }
+    .timeline-segment.active {
+        background-color: #FFC107;
+    }
+    
+    .micro-timeline-container {
+        width: 100%;
+        height: 6px;
+        background-color: #e0e0e0;
+        border-radius: 3px;
+        margin-top: 8px;
+        overflow: hidden;
+    }
+    .dark .micro-timeline-container {
+        background-color: #404040;
+    }
+    .micro-timeline-progress {
+        height: 100%;
+        background-color: #FFC107;
+        border-radius: 3px;
+        transition: width 0.5s ease-out;
+    }
+
+    /* ✨ ESTILOS DEFINITIVOS PARA ONBOARDING ✨ */
+    .shepherd-element.shepherd-theme-dark {
+        background-color: #ffffff;
+        border: 1px solid #e5e7eb;
+        border-radius: 0.75rem;
+        box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+        font-family: 'Inter', sans-serif;
+    }
+    .shepherd-theme-dark .shepherd-title {
+        color: #1f2937;
+        font-weight: 700;
+    }
+    .shepherd-theme-dark .shepherd-text {
+        color: #374151;
+    }
+    .shepherd-theme-dark.shepherd-has-arrow[data-popper-placement^='bottom'] > .shepherd-arrow::before {
+        background-color: #ffffff;
+    }
+    .shepherd-theme-dark .shepherd-button {
+        background-color: #f59e0b; color: #111827;
+        transition: all 0.15s ease-in-out;
+    }
+    .shepherd-theme-dark .shepherd-button:hover {
+        background-color: #d97706;
+    }
+    .shepherd-theme-dark .shepherd-button.shepherd-button-secondary {
+        background-color: #e5e7eb; color: #1f2937;
+    }
+    .shepherd-theme-dark .shepherd-button.shepherd-button-secondary:hover {
+        background-color: #d1d5db;
+    }
+
+    /* Sobreescribimos los estilos cuando la app está en modo oscuro */
+    .dark .shepherd-element.shepherd-theme-dark {
+        background-color: #262626;
+        border: 1px solid #f59e0b;
+        box-shadow: 0 0 15px rgba(251, 191, 36, 0.5);
+    }
+    .dark .shepherd-theme-dark .shepherd-title {
+        color: #f59e0b;
+    }
+    .dark .shepherd-theme-dark .shepherd-text {
+        color: #e5e5e5;
+    }
+    .dark .shepherd-theme-dark .shepherd-text strong {
+        color: #facc15;
+    }
+    .dark .shepherd-theme-dark.shepherd-has-arrow[data-popper-placement^='bottom'] > .shepherd-arrow::before {
+        background-color: #262626;
+    }
+    .dark .shepherd-theme-dark .shepherd-button.shepherd-button-secondary {
+        background-color: #525252;
+        color: #ffffff;
+    }
+    .dark .shepherd-theme-dark .shepherd-button.shepherd-button-secondary:hover {
+        background-color: #404040;
+    }
+	.dark .shepherd-theme-dark .shepherd-header {
+    background-color: #262626; /* Mismo color que el cuerpo para un look cohesivo */
+    border-bottom: 1px solid #404040; /* Pequeño separador opcional */
+}
