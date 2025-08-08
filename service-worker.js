@@ -1,9 +1,9 @@
 // js/service-worker.js
 
-// Nombre y versión del caché. Cambiar la versión fuerza la actualización del caché.
-const CACHE_NAME = 'segcul-cache-v2';
+// Aumentamos la versión para forzar la actualización del caché.
+const CACHE_NAME = 'segcul-cache-v3';
 
-// Archivos esenciales de la aplicación (el "App Shell") que se guardarán para funcionar offline.
+// Lista de archivos corregida.
 const urlsToCache = [
   '/',
   '/index.html',
@@ -12,7 +12,7 @@ const urlsToCache = [
   '/js/ui.js',
   '/js/firebase.js',
   '/js/onboarding.js',
-  '/js/components/timelinePrincipal.js',
+  //'/js/components/timelinePrincipal.js', // ARCHIVO PROBLEMÁTICO: Lo comento porque probablemente no existe en el servidor.
   '/images/icons/icon-72x72.png',
   '/images/icons/icon-96x96.png',
   '/images/icons/icon-128x128.png',
@@ -23,13 +23,11 @@ const urlsToCache = [
   '/images/icons/icon-512x512.png'
 ];
 
-// Evento 'install': Se dispara cuando el Service Worker se instala por primera vez.
-// Aquí es donde guardamos en caché todos nuestros archivos del App Shell.
 self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(cache => {
-        console.log('Cache abierto');
+        console.log('Cache v3 abierto');
         return cache.addAll(urlsToCache);
       })
   );
@@ -50,22 +48,17 @@ self.addEventListener('activate', event => {
       );
     })
   );
-  // Tomar control de todas las pestañas abiertas inmediatamente.
   return self.clients.claim();
 });
 
 self.addEventListener('fetch', event => {
   event.respondWith(
-    
     caches.match(event.request)
       .then(response => {
-        
         if (response) {
           return response;
         }
-        
         return fetch(event.request);
-      }
-    )
+      })
   );
 });
